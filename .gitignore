@@ -1,0 +1,44 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories (if you ever add a package manager later)
+node_modules/
+bower_components/
+
+# Build output (if you add build tools later)
+dist/
+build/
+.cache/
+
+# Environment files (just in case)
+.env
+.env.local
+.env.*.local
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Code editor settings
+.vscode/
+.idea/
+
+# Temporary / backup files
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+*.orig
+
+# Mac system files
+.AppleDouble
+.LSOverride
+
+# CodeSandbox artifacts
+.codesandbox
+.sandbox.config.json
