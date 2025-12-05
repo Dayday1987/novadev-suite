@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NovaDev Suite — David Munoz</title>
+  <meta name="description" content="NovaDev Suite — Portfolio & Tools by David Munoz. Meme maker, AI prompt library, and interactive demos." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="wrap">
+      <div class="brand">
+        <img src="assets/avatar.png" alt="David Munoz" class="logo"/>
+        <div>
+          <div class="brand-title">NovaDev Suite</div>
+          <div class="brand-sub">David Munoz — Portfolio & Tools</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="#projects">Projects</a>
+        <a href="#tools">Tools</a>
+        <a href="#contact" class="cta">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-left">
+          <h1 class="hero-title">NovaDev Suite</h1>
+          <p class="hero-sub">A polished portfolio and tools suite — show off projects, generate memes, save AI prompts, and demo interactive apps.</p>
+          <div class="hero-ctas">
+            <a class="btn primary" href="#tools">Open Tools</a>
+            <a class="btn ghost" href="#projects">See Projects</a>
+          </div>
+
+          <ul class="features">
+            <li>⚡ Fast, mobile-first, accessible</li>
+            <li>🧰 Meme Maker (client-side Canvas)</li>
+            <li>📝 Prompt Library (persistent via localStorage; upgradeable to Supabase)</li>
+            <li>🚀 Deploys easily to Netlify / Vercel</li>
+          </ul>
+        </div>
+
+        <div class="hero-right">
+          <div class="mockup">
+            <!-- Replace hero-mock.png with your own mockup in /assets -->
+            <img src="assets/hero-mock.png" alt="Project mockups"/>
+            <div class="mockup-badge">NovaDev Suite — Demo</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section id="projects" class="section">
+      <div class="wrap">
+        <h2>Selected Projects</h2>
+        <div class="projects-grid">
+          <article class="card project">
+            <img src="assets/project1.png" alt="Project screenshot"/>
+            <h3>AI Portfolio</h3>
+            <p>Interactive portfolio with polished UI and project demos.</p>
+          </article>
+
+          <article class="card project">
+            <img src="assets/project2.png" alt="Project screenshot"/>
+            <h3>Motorcycle Wheelie Game</h3>
+            <p>Canvas-based balance game — coming soon (placeholder).</p>
+          </article>
+
+          <article class="card project">
+            <img src="assets/project3.png" alt="Project screenshot"/>
+            <h3>Meme Maker</h3>
+            <p>Fast client-side editor — upload, text, download.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- TOOLS -->
+    <section id="tools" class="section tools-section">
+      <div class="wrap">
+        <h2>Tools</h2>
+        <div class="tools-grid">
+          <!-- Meme Maker -->
+          <div class="card tool">
+            <h3>Meme Maker</h3>
+            <canvas id="memeCanvas" width="800" height="500" aria-label="Meme canvas"></canvas>
+
+            <div class="tool-row">
+              <input id="imageInput" type="file" accept="image/*"/>
+              <input id="topText" placeholder="Top text" />
+              <input id="bottomText" placeholder="Bottom text" />
+            </div>
+
+            <div class="tool-row">
+              <button id="drawMeme" class="btn primary">Draw</button>
+              <button id="downloadMeme" class="btn ghost">Download PNG</button>
+              <button id="resetMeme" class="btn">Reset</button>
+            </div>
+            <p class="muted">Tip: Use Impact-style text (uppercase) for classic meme look.</p>
+          </div>
+
+          <!-- Prompt Library -->
+          <div class="card tool">
+            <h3>AI Prompt Library</h3>
+            <textarea id="promptInput" placeholder="Write a prompt here..."></textarea>
+            <div class="tool-row">
+              <button id="savePrompt" class="btn primary">Save Prompt</button>
+              <button id="clearPrompts" class="btn ghost">Clear All</button>
+            </div>
+
+            <ul id="promptList" class="prompt-list" aria-live="polite"></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT / FOOTER -->
+    <section id="contact" class="section">
+      <div class="wrap">
+        <div class="card contact">
+          <h3>Get in touch</h3>
+          <p class="muted">Want custom features, Supabase sync, or to demo this live? Email: <a href="mailto:you@example.com">you@example.com</a></p>
+          <p class="muted">Replace the contact email in <code>index.html</code>.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div>© <strong>NovaDev Suite</strong> — David Munoz</div>
+      <div class="muted">Built for demos • Deploy to Netlify or Vercel</div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
