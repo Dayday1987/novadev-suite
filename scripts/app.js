@@ -1,33 +1,19 @@
-/* Combined NovaDevSuite script
+/* Combined NovaDev Suite script
    - Meme Maker (client-side)
    - Prompt Library (localStorage)
    - Animations: reveal on scroll, tilt on hover
    - Live footer clock
-   - Safe, defensive: checks for elements
+   - Defensive and self-contained
 */
 
-/* Wrap everything to avoid leaking globals */
 (() => {
   'use strict';
 
-  /* ---------------------------
-     Helper utilities
-  ---------------------------*/
   const $ = (sel, ctx = document) => ctx.querySelector(sel);
   const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
   const safe = (fn) => { try { fn(); } catch(e) { console.error(e); } };
 
-  /* ---------------------------
-     MEME MAKER
-     IDs expected:
-     - memeCanvas
-     - imageInput
-     - topText
-     - bottomText
-     - drawMeme
-     - downloadMeme
-     - resetMeme (optional)
-  ---------------------------*/
+  /* ===== MEME MAKER ===== */
   safe(() => {
     const canvas = $('#memeCanvas');
     if (!canvas) return;
@@ -136,25 +122,16 @@
       drawMemeCanvas();
     });
 
-    // draw initial empty canvas
     drawMemeCanvas();
   });
 
-  /* ---------------------------
-     PROMPT LIBRARY (localStorage)
-     IDs:
-      - promptInput
-      - savePrompt
-      - clearPrompts
-      - promptList
-  ---------------------------*/
+  /* ===== PROMPT LIBRARY ===== */
   safe(() => {
     const promptInput = $('#promptInput');
     const savePromptBtn = $('#savePrompt');
     const clearPromptsBtn = $('#clearPrompts');
     const promptList = $('#promptList');
     const STORAGE_KEY = 'novadev_prompts_v1';
-
     if (!promptList) return;
 
     function loadPrompts() {
@@ -234,11 +211,9 @@
     loadPrompts();
   });
 
-  /* ---------------------------
-     Animations, reveal-on-scroll, tilt, live clock
-  ---------------------------*/
+  /* ===== ANIMATIONS & CLOCK ===== */
   safe(() => {
-    // Reveal on scroll
+    // reveal on scroll
     const revealElems = $$('.reveal');
     if ('IntersectionObserver' in window && revealElems.length) {
       const io = new IntersectionObserver((entries) => {
@@ -259,31 +234,25 @@
       revealElems.forEach(el => el.classList.add('is-visible'));
     }
 
-    // Project tile tilt
+    // project tilt
     const tiltCards = $$('.card.project');
     tiltCards.forEach(card => {
       card.classList.add('project-tilt');
-      // ignore tilt for touch devices
-      if (('ontouchstart' in window) || navigator.maxTouchPoints > 0) {
-        // no tilt on touch devices
-        return;
-      }
+      if (('ontouchstart' in window) || navigator.maxTouchPoints > 0) return;
       card.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
         const px = (e.clientX - rect.left) / rect.width;
         const py = (e.clientY - rect.top) / rect.height;
-        const rx = (py - 0.5) * 6; // rotateX
-        const ry = (px - 0.5) * -8; // rotateY
+        const rx = (py - 0.5) * 6;
+        const ry = (px - 0.5) * -8;
         card.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) translateY(-6px)`;
       });
-      card.addEventListener('mouseleave', () => {
-        card.style.transform = '';
-      });
+      card.addEventListener('mouseleave', () => { card.style.transform = ''; });
       card.addEventListener('focusin', () => card.style.transform = 'translateY(-8px)');
       card.addEventListener('focusout', () => card.style.transform = '');
     });
 
-    // Live footer clock and year
+    // live clock
     const clockEl = $('#liveClock');
     const yearEl = $('#year');
     function pad(n){ return n<10 ? '0'+n : n; }
@@ -298,7 +267,7 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // Hero entrance
+    // hero entrance
     const heroLeft = $('.hero-left');
     const heroRight = $('.hero-right');
     if (heroLeft) heroLeft.classList.add('reveal', 'is-visible');
@@ -308,8 +277,5 @@
     }
   });
 
-  /* ---------------------------
-     Final safety log
-  ---------------------------*/
   console.info('NovaDev Suite script loaded');
 })();
