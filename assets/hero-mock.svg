@@ -1,0 +1,21 @@
+<!-- hero-mock.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-label="Hero mock">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#6EE7F7"/><stop offset="1" stop-color="#7C5CFF"/></linearGradient>
+    <style>
+      .bg{fill:#071422}
+      .card{fill:url(#g1);opacity:0.98}
+      .title{font-family:Inter,system-ui,Arial;font-size:36px;font-weight:700;fill:#071422}
+      .muted{font-family:Inter,system-ui,Arial;font-size:16px;fill:#e6eef6;opacity:0.9}
+    </style>
+  </defs>
+
+  <rect width="1400" height="900" class="bg"/>
+  <g transform="translate(80,80)">
+    <rect width="1240" height="740" rx="18" fill="#0b1a28" />
+    <rect x="24" y="24" width="480" height="420" rx="12" class="card"/>
+    <rect x="520" y="24" width="680" height="420" rx="12" fill="#091322" />
+    <text x="40" y="520" class="title">NovaDev Suite — Demo</text>
+    <text x="40" y="560" class="muted">Interactive tools • Meme maker • Prompt library</text>
+  </g>
+</svg>
