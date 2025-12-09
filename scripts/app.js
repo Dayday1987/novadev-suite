@@ -279,3 +279,249 @@
 
   console.info('NovaDev Suite script loaded');
 })();
+/* ==== In-page Monaco editor + live preview (NovaDevStudio) ==== */
+(() => {
+  // Config
+  const STORAGE_KEY = 'novadev_editor_v1';
+  const MONACO_BASE = 'https://unpkg.com/monaco-editor@0.37.1/min/vs';
+
+  // Helpers
+  const $ = (sel, ctx = document) => ctx.querySelector(sel);
+  const $$ = (sel, ctx = document) => Array.from((ctx || document).querySelectorAll(sel));
+  const saveToStorage = (obj) => localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+  const loadFromStorage = () => {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); }
+    catch(e){ return {}; }
+  };
+
+  // Default starter files
+  const DEFAULTS = {
+    'index.html': `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>NovaDev Editor Preview</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main>
+      <h1>Hello from NovaDev Editor</h1>
+      <div id="app">Edit HTML, CSS, JS and click Run.</div>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>`,
+    'styles.css': `/* styles.css — demo */\nbody{font-family:Inter,system-ui,Arial;background:#071422;color:#e6eef6;padding:24px}\nh1{color:var(--accent-1, #6EE7F7)}`,
+    'script.js': `// script.js — demo\nconsole.log('NovaDev Editor running');\ndocument.getElementById('app').innerHTML += '<p>JS executed.</p>';\n`
+  };
+
+  // Elements
+  const editorContainer = document.getElementById('editorContainer');
+  const previewFrame = document.getElementById('editorPreview');
+  const runBtn = document.getElementById('editorRun');
+  const saveBtn = document.getElementById('editorSave');
+  const exportBtn = document.getElementById('editorExport');
+  const fileTabs = document.querySelectorAll('.file-tab');
+
+  // State
+  let monacoEditor = null;
+  let models = {}; // { filename: monaco.editor.ITextModel }
+  let currentFile = 'index.html';
+
+  // Load stored or default
+  const stored = loadFromStorage();
+  const initialFiles = {
+    'index.html': stored['index.html'] || DEFAULTS['index.html'],
+    'styles.css': stored['styles.css'] || DEFAULTS['styles.css'],
+    'script.js': stored['script.js'] || DEFAULTS['script.js']
+  };
+
+  // Dynamically load the Monaco loader script
+  function loadMonacoLoader() {
+    return new Promise((resolve, reject) => {
+      if (window.require && window.monaco) return resolve();
+      const existing = document.querySelector('script[data-monaco-loader]');
+      if (existing) {
+        existing.addEventListener('load', () => resolve());
+        existing.addEventListener('error', () => reject(new Error('Failed to load monaco loader')));
+        return;
+      }
+      const s = document.createElement('script');
+      s.src = MONACO_BASE + '/loader.js';
+      s.async = true;
+      s.setAttribute('data-monaco-loader', '1');
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('Failed to load monaco loader'));
+      document.head.appendChild(s);
+    });
+  }
+
+  // Initialize Monaco
+  async function initMonaco() {
+    await loadMonacoLoader();
+    // configure require
+    if (window.require && !window.require.configuredForNova) {
+      window.require.config({ paths: { vs: MONACO_BASE } });
+      window.require.configuredForNova = true;
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        window.require(['vs/editor/editor.main'], () => {
+          // create models for files
+          const createModel = (code, lang, filename) => {
+            // reuse if existing model for hot reload
+            const existing = window.monaco && window.monaco.editor && window.monaco.editor.getModels().find(m => m.uri.path === '/' + filename);
+            if (existing) {
+              existing.setValue(code);
+              return existing;
+            }
+            return monaco.editor.createModel(code, lang, monaco.Uri.parse('inmemory://model/' + filename));
+          };
+
+          models['index.html'] = createModel(initialFiles['index.html'], 'html', 'index.html');
+          models['styles.css'] = createModel(initialFiles['styles.css'], 'css', 'styles.css');
+          models['script.js'] = createModel(initialFiles['script.js'], 'javascript', 'script.js');
+
+          // Create editor
+          monacoEditor = monaco.editor.create(editorContainer, {
+            model: models[currentFile],
+            glyphMargin: false,
+            lightbulb: { enabled: true },
+            automaticLayout: true,
+            minimap: { enabled: false },
+            fontSize: 13,
+            lineNumbers: "on",
+            theme: 'vs-dark'
+          });
+
+          // When switching models via tabs, set model
+          document.querySelectorAll('.file-tab').forEach(btn => {
+            btn.addEventListener('click', (ev) => {
+              const f = btn.dataset.file;
+              switchFile(f);
+            });
+          });
+
+          // keyboard shortcuts
+          monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, () => {
+            handleSave();
+          });
+          monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+            handleRun();
+          });
+
+          resolve();
+        });
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  function switchFile(filename) {
+    if (!models[filename]) return;
+    currentFile = filename;
+    // update active tab UI
+    document.querySelectorAll('.file-tab').forEach(b => b.classList.toggle('active', b.dataset.file === filename));
+    monacoEditor.setModel(models[filename]);
+    monacoEditor.focus();
+  }
+
+  function getAllFilesContent() {
+    return {
+      'index.html': models['index.html'] ? models['index.html'].getValue() : initialFiles['index.html'],
+      'styles.css': models['styles.css'] ? models['styles.css'].getValue() : initialFiles['styles.css'],
+      'script.js': models['script.js'] ? models['script.js'].getValue() : initialFiles['script.js']
+    };
+  }
+
+  function buildPreviewHTML(files) {
+    // We will inject styles and scripts into index.html safely.
+    let html = files['index.html'];
+
+    // Inject styles.css content before </head> if present, otherwise inject at top
+    const styleTag = `<style>\n${files['styles.css']}\n</style>\n`;
+    if (/<\/head>/i.test(html)) {
+      html = html.replace(/<\/head>/i, styleTag + '</head>');
+    } else {
+      html = styleTag + html;
+    }
+
+    // Inject script.js before </body> if present, otherwise append
+    const scriptTag = `<script>\n${files['script.js']}\n<\/script>\n`;
+    if (/<\/body>/i.test(html)) {
+      html = html.replace(/<\/body>/i, scriptTag + '</body>');
+    } else {
+      html = html + scriptTag;
+    }
+
+    return html;
+  }
+
+  function handleRun() {
+    const files = getAllFilesContent();
+    const previewHTML = buildPreviewHTML(files);
+    // Use srcdoc for preview
+    try {
+      previewFrame.srcdoc = previewHTML;
+    } catch (e) {
+      // fallback to blob URL if srcdoc not supported
+      const blob = new Blob([previewHTML], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      previewFrame.src = url;
+      setTimeout(() => URL.revokeObjectURL(url), 20000);
+    }
+  }
+
+  function handleSave() {
+    const files = getAllFilesContent();
+    saveToStorage(files);
+    // small visual feedback
+    saveBtn.textContent = 'Saved';
+    setTimeout(() => saveBtn.textContent = 'Save', 900);
+  }
+
+  function handleExport() {
+    const files = getAllFilesContent();
+    const html = buildPreviewHTML(files);
+    const blob = new Blob([html], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'novadev-editor-export.html';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 15000);
+  }
+
+  // Wire up buttons
+  runBtn && runBtn.addEventListener('click', handleRun);
+  saveBtn && saveBtn.addEventListener('click', handleSave);
+  exportBtn && exportBtn.addEventListener('click', handleExport);
+
+  // Initialize
+  initMonaco().then(() => {
+    // default active tab
+    switchFile(currentFile);
+    // initial run to show preview
+    handleRun();
+    console.info('NovaDev Editor initialized');
+  }).catch(err => {
+    console.error('Failed to initialize Monaco editor:', err);
+    // Provide fallback textarea editor if Monaco fails
+    if (editorContainer) {
+      editorContainer.innerHTML = '<textarea id="fallbackEditor" style="width:100%;height:320px;font-family:monospace;padding:12px;background:#071422;color:#e6eef6;border:0;">' + initialFiles['index.html'] + '</textarea>';
+    }
+  });
+
+  // Expose basic methods for debugging
+  window.novaDevEditor = {
+    run: handleRun,
+    save: handleSave,
+    export: handleExport,
+    getFiles: () => getAllFilesContent()
+  };
+
+})();
