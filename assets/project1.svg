@@ -1,0 +1,11 @@
+<!-- project1.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800" role="img" aria-label="Project 1">
+  <defs>
+    <linearGradient id="p1" x1="0" x2="1"><stop offset="0" stop-color="#7C5CFF"/><stop offset="1" stop-color="#6EE7F7"/></linearGradient>
+    <style>.bg{fill:#071422}.tile{fill:url(#p1)}.label{font-family:Inter,Arial;font-size:28px;font-weight:700;fill:#071422}</style>
+  </defs>
+  <rect width="1200" height="800" class="bg"/>
+  <rect x="40" y="40" width="1120" height="720" rx="12" class="tile"/>
+  <text x="80" y="100" class="label">AI Portfolio</text>
+  <text x="80" y="150" fill="#e6eef6" font-family="Inter" font-size="14">Interactive portfolio demo</text>
+</svg>
