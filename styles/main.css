@@ -138,3 +138,22 @@ textarea, input[type="text"], input[type="email"], input[name="name"]{
   .hero-title{font-size:28px}
   .wrap{padding:18px}
 }
+/* ==== Editor styles (append) ==== */
+.editor-shell { margin-top:18px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.04); background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent); }
+.editor-topbar { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; gap:12px; border-bottom:1px solid rgba(255,255,255,0.02); background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent); }
+.file-tabs { display:flex; gap:8px; align-items:center; }
+.file-tab { background:transparent; border:none; color:var(--muted); padding:8px 10px; border-radius:8px; cursor:pointer; font-family:inherit; font-size:14px; }
+.file-tab.active { color: #071422; background: linear-gradient(90deg,var(--accent-1),var(--accent-2)); box-shadow:0 8px 18px rgba(2,6,23,0.45); font-weight:700; }
+.editor-actions { display:flex; gap:8px; align-items:center; }
+.editor-body { display:grid; grid-template-columns: 1fr 480px; gap:12px; min-height:360px; }
+.monaco-editor-container { height:100%; min-height:360px; border-right:1px solid rgba(255,255,255,0.02); }
+.preview-pane { display:flex; flex-direction:column; border-radius:8px; overflow:hidden; background:var(--card); }
+.preview-toolbar { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.02); color:var(--muted); font-size:13px; }
+#editorPreview { width:100%; height:100%; border:0; display:block; min-height:300px; background:white; }
+.editor-footer { padding:10px 12px; font-size:13px; color:var(--muted); border-top:1px solid rgba(255,255,255,0.02); }
+
+/* Responsive */
+@media (max-width:980px) {
+  .editor-body { grid-template-columns: 1fr; }
+  #editorPreview { min-height:260px; }
+}
