@@ -78,18 +78,25 @@
     }
 
     function drawMemeCanvas() {
-      drawBase();
-      const top = (topTextInput && topTextInput.value || '').toUpperCase();
-      const bottom = (bottomTextInput && bottomTextInput.value || '').toUpperCase();
-      ctx.fillStyle = 'white';
-      ctx.strokeStyle = 'black';
-      ctx.lineWidth = 8;
-      ctx.textAlign = 'center';
-      const fontSize = 64;
-      ctx.font = `${fontSize}px Impact, Arial, sans-serif`;
-      wrapAndDrawText(ctx, top, canvas.width/2, 20, canvas.width - 80, 72, false);
-      wrapAndDrawText(ctx, bottom, canvas.width/2, canvas.height - 20, canvas.width - 80, 72, true);
-    }
+  drawBase();
+  const top = (topTextInput && topTextInput.value || '').toUpperCase();
+  const bottom = (bottomTextInput && bottomTextInput.value || '').toUpperCase();
+
+  // Responsive font sizing
+  const baseFont = Math.max(28, Math.round(canvas.width / 15)); // smaller on mobile
+  ctx.fillStyle = 'white';
+  ctx.strokeStyle = 'black';
+  ctx.lineWidth = Math.max(6, Math.round(baseFont / 10));
+  ctx.textAlign = 'center';
+  ctx.font = `${baseFont}px Impact, Arial, sans-serif`;
+
+  const padding = Math.round(baseFont * 0.8);
+  const topY = padding + baseFont;            // push text down so it's not clipped
+  const bottomY = canvas.height - padding;    // from bottom
+
+  wrapAndDrawText(ctx, top, canvas.width/2, topY, canvas.width - 80, baseFont * 1.1, false);
+  wrapAndDrawText(ctx, bottom, canvas.width/2, bottomY, canvas.width - 80, baseFont * 1.1, true);
+}
 
     if (imageInput) {
       imageInput.addEventListener('change', (e) => {
