@@ -1,34 +1,11 @@
-<!-- assets/og-img.svg - drop-in social preview SVG (1200x630) -->
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="NovaDev Studio social preview">
+<!-- Save as assets/logo-mark.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="N mark">
   <defs>
-    <linearGradient id="ogGrad" x1="0" x2="1">
+    <linearGradient id="m1" x1="0" x2="1">
       <stop offset="0" stop-color="#6EE7F7"/>
       <stop offset="1" stop-color="#7C5CFF"/>
     </linearGradient>
-    <style>
-      .bg{fill:#071422}
-      .card{fill:#0b1a28;opacity:0.96}
-      .title{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;font-weight:800;font-size:56px;fill:#e6eef6}
-      .tag{font-family:Inter,system-ui;font-size:20px;fill:#98a0b3}
-    </style>
   </defs>
-
-  <rect width="1200" height="630" fill="#071422"/>
-  <rect x="48" y="48" width="1104" height="534" rx="28" fill="url(#ogGrad)"/>
-  <rect x="72" y="72" width="1056" height="490" rx="18" fill="#071422" opacity="0.07"/>
-
-  <g transform="translate(120,160)">
-    <text class="title" x="0" y="0">NovaDev Studio</text>
-    <text class="tag" x="0" y="56">NovaDev Suite — Portfolio · Tools · Demos</text>
-
-    <g transform="translate(0,120)">
-      <rect x="0" y="0" width="360" height="210" rx="12" class="card"/>
-      <text x="24" y="36" fill="#e6eef6" font-size="20" font-weight="700">Meme Maker</text>
-      <text x="24" y="72" fill="#98a0b3" font-size="14">Client-side canvas editor</text>
-    </g>
-  </g>
-
-  <g transform="translate(880,460)">
-    <text fill="#98a0b3" font-size="14">by NovaDev Studio</text>
-  </g>
+  <rect width="256" height="256" rx="36" fill="url(#m1)"/>
+  <text x="128" y="168" font-size="120" text-anchor="middle" fill="#071422" font-weight="900" font-family="Inter, sans-serif">N</text>
 </svg>
