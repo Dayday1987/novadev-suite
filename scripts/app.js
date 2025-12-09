@@ -129,9 +129,6 @@
       drawMemeCanvas();
     });
 
-    drawMemeCanvas();
-  });
-
   /* ===== PROMPT LIBRARY ===== */
   safe(() => {
     const promptInput = $('#promptInput');
