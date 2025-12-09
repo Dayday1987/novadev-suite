@@ -1,23 +1,13 @@
-<!-- Save as assets/logo-full.svg -->
+<!-- assets/logo-full.svg -->
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-label="NovaDev Studio logo">
   <defs>
     <linearGradient id="g1" x1="0" x2="1">
       <stop offset="0" stop-color="#6EE7F7"/>
       <stop offset="1" stop-color="#7C5CFF"/>
     </linearGradient>
-    <style>
-      .brand{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; font-weight:800; fill: url(#g1);}
-      .studio{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; font-weight:600; fill:#e6eef6; opacity:0.92}
-    </style>
+    <style>.brand{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;font-weight:800;fill:url(#g1)}.studio{font-family:Inter,system-ui;font-weight:600;fill:#e6eef6;opacity:0.92}</style>
   </defs>
-
-  <!-- mark -->
   <rect x="0" y="0" width="120" height="120" rx="18" fill="url(#g1)"/>
-  <text x="60" y="78" text-anchor="middle" font-size="60" fill="#071422" font-weight="900" font-family="Inter, sans-serif">N</text>
-
-  <!-- name -->
-  <g transform="translate(150,90)">
-    <text class="brand" x="0" y="0" font-size="56">NovaDev</text>
-    <text class="studio" x="0" y="70" font-size="28">Studio</text>
-  </g>
+  <text x="60" y="78" text-anchor="middle" font-size="60" fill="#071422" font-weight="900" font-family="Inter,Arial">N</text>
+  <g transform="translate(150,90)"><text class="brand" x="0" y="0" font-size="56">NovaDev</text><text class="studio" x="0" y="70" font-size="28">Studio</text></g>
 </svg>
