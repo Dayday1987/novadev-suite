@@ -78,36 +78,49 @@
     }
 
     function drawMemeCanvas() {
-  drawBase();
-  const top = (topTextInput && topTextInput.value || '').toUpperCase();
-  const bottom = (bottomTextInput && bottomTextInput.value || '').toUpperCase();
+      drawBase();
+      const top = (topTextInput && topTextInput.value || '').toUpperCase();
+      const bottom = (bottomTextInput && bottomTextInput.value || '').toUpperCase();
 
-  // Responsive font sizing
-  const baseFont = Math.max(28, Math.round(canvas.width / 15)); // smaller on mobile
-  ctx.fillStyle = 'white';
-  ctx.strokeStyle = 'black';
-  ctx.lineWidth = Math.max(6, Math.round(baseFont / 10));
-  ctx.textAlign = 'center';
-  ctx.font = `${baseFont}px Impact, Arial, sans-serif`;
+      // Responsive font sizing
+      const baseFont = Math.max(28, Math.round(canvas.width / 15)); // smaller on mobile
+      ctx.fillStyle = 'white';
+      ctx.strokeStyle = 'black';
+      ctx.lineWidth = Math.max(6, Math.round(baseFont / 10));
+      ctx.textAlign = 'center';
+      ctx.font = `${baseFont}px Impact, Arial, sans-serif`;
 
-  const padding = Math.round(baseFont * 0.8);
-  const topY = padding + baseFont;            // push text down so it's not clipped
-  const bottomY = canvas.height - padding;    // from bottom
+      const padding = Math.round(baseFont * 0.8);
+      const topY = padding + baseFont;            // push text down so it's not clipped
+      const bottomY = canvas.height - padding;    // from bottom
 
-  wrapAndDrawText(ctx, top, canvas.width/2, topY, canvas.width - 80, baseFont * 1.1, false);
-  wrapAndDrawText(ctx, bottom, canvas.width/2, bottomY, canvas.width - 80, baseFont * 1.1, true);
-}
+      wrapAndDrawText(ctx, top, canvas.width/2, topY, canvas.width - 80, baseFont * 1.1, false);
+      wrapAndDrawText(ctx, bottom, canvas.width/2, bottomY, canvas.width - 80, baseFont * 1.1, true);
+    }
 
     if (imageInput) {
       imageInput.addEventListener('change', (e) => {
         const file = e.target.files && e.target.files[0];
-        if (!file) return;
+        if (!file) {
+          loadedImage = null;
+          drawMemeCanvas();
+          return;
+        }
         const url = URL.createObjectURL(file);
         const img = new Image();
-        img.crossOrigin = "anonymous";
+
+        // When a blob/object URL is used, crossOrigin is unnecessary and can cause issues in some environments.
         img.onload = () => {
           loadedImage = img;
           drawMemeCanvas();
+          // revoke blob URL to free memory
+          try { URL.revokeObjectURL(url); } catch (err) { /* ignore */ }
+        };
+        img.onerror = () => {
+          console.warn('Failed to load image for meme');
+          loadedImage = null;
+          drawMemeCanvas();
+          try { URL.revokeObjectURL(url); } catch (err) { /* ignore */ }
         };
         img.src = url;
       });
@@ -128,6 +141,8 @@
       if (bottomTextInput) bottomTextInput.value = '';
       drawMemeCanvas();
     });
+
+  }); // end meme safe
 
   /* ===== PROMPT LIBRARY ===== */
   safe(() => {
@@ -166,10 +181,33 @@
         copyBtn.textContent = 'Copy';
         copyBtn.className = 'btn';
         copyBtn.style.padding = '6px 8px';
-        copyBtn.addEventListener('click', () => {
-          navigator.clipboard.writeText(p);
-          copyBtn.textContent = 'Copied!';
-          setTimeout(()=> copyBtn.textContent = 'Copy', 1000);
+
+        copyBtn.addEventListener('click', async () => {
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(p);
+            } else {
+              // fallback for older browsers / iOS
+              const ta = document.createElement('textarea');
+              ta.value = p;
+              ta.setAttribute('readonly', '');
+              ta.style.position = 'absolute';
+              ta.style.left = '-9999px';
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              ta.remove();
+            }
+            copyBtn.textContent = 'Copied!';
+          } catch (err) {
+            console.warn('Clipboard copy failed', err);
+            alert('Could not copy to clipboard — please copy manually.');
+          }
+
+          // Reset label after short delay
+          setTimeout(() => {
+            copyBtn.textContent = 'Copy';
+          }, 1000);
         });
 
         const delBtn = document.createElement('button');
@@ -267,7 +305,8 @@
       const time = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
       const date = now.toLocaleDateString();
       clockEl.textContent = `${date} · ${time}`;
-    }
+    } // close updateClock
+
     updateClock();
     setInterval(updateClock, 1000);
 
@@ -281,8 +320,22 @@
     }
   });
 
+  // action dispatcher for data-action buttons
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    if (action === 'playWheelie') {
+      document.getElementById('tools')?.scrollIntoView({behavior:'smooth'});
+    } else if (action === 'openProject1') {
+      // placeholder for opening modals or navigating
+      console.info('openProject1 clicked');
+    }
+  });
+
   console.info('NovaDev Suite script loaded');
 })();
+
 /* ==== In-page Monaco editor + live preview (NovaDevStudio) ==== */
 (() => {
   // Config
@@ -482,9 +535,17 @@
   function handleSave() {
     const files = getAllFilesContent();
     saveToStorage(files);
+
     // small visual feedback
-    saveBtn.textContent = 'Saved';
-    setTimeout(() => saveBtn.textContent = 'Save', 900);
+    if (saveBtn) {
+      const original = saveBtn.textContent;
+      saveBtn.textContent = 'Saved!';
+      saveBtn.disabled = true;
+      setTimeout(() => {
+        saveBtn.textContent = original;
+        saveBtn.disabled = false;
+      }, 900);
+    }
   }
 
   function handleExport() {
