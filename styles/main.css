@@ -246,3 +246,68 @@ textarea, input[type="text"], input[type="email"], input[name="name"]{
   object-fit: cover;
   display: block;
 }
+/* HERO INTRO — Smooth minimal sequence */
+.hero-intro-item {
+  opacity: 0;
+  transform: translateY(18px) scale(.996);
+  transition: opacity 560ms cubic-bezier(.2,.9,.3,1), transform 560ms cubic-bezier(.2,.9,.3,1);
+  will-change: opacity, transform;
+}
+
+.hero-intro-item.intro-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Slight different timing for mockup (gentle scale) */
+.mockup.hero-intro-item {
+  transform-origin: 50% 50%;
+  transform: translateY(6px) scale(.96);
+  transition: opacity 640ms cubic-bezier(.2,.9,.3,1), transform 640ms cubic-bezier(.2,.9,.3,1);
+}
+
+.mockup.hero-intro-item.intro-visible {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* Badge pop */
+.mockup-badge.hero-intro-item {
+  transform: translateY(6px) scale(.98);
+  transition: opacity 420ms cubic-bezier(.2,.9,.3,1), transform 420ms cubic-bezier(.2,.9,.3,1);
+  opacity: 0;
+}
+.mockup-badge.hero-intro-item.intro-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Buttons pop slightly different (more pop) */
+.hero-ctas .btn.hero-intro-item {
+  transform: translateY(14px) scale(.98);
+  transition: opacity 420ms cubic-bezier(.2,.9,.3,1), transform 420ms cubic-bezier(.2,.9,.3,1);
+}
+.hero-ctas .btn.hero-intro-item.intro-visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Glow dots fade gently */
+.hero-glow .float-dot.hero-intro-item { opacity: 0; transform: translateY(6px) scale(1); transition: opacity 880ms ease, transform 880ms ease; }
+.hero-glow .float-dot.hero-intro-item.intro-visible { opacity: 0.22; transform: translateY(0) scale(1); }
+
+/* Ensure initial state on non-JS pages is still visible */
+.no-js .hero-intro-item { opacity: 1; transform: none; transition: none; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .hero-intro-item,
+  .mockup.hero-intro-item,
+  .mockup-badge.hero-intro-item,
+  .hero-ctas .btn.hero-intro-item,
+  .hero-glow .float-dot.hero-intro-item {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
