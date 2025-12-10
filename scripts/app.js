@@ -332,6 +332,120 @@
       console.info('openProject1 clicked');
     }
   });
+   
+/* HERO INTRO — Smooth minimal sequence (plays once per session)
+   Usage: window.playHeroIntro(forceReplay = false)
+*/
+(function(){
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const playedKey = 'novadev_hero_intro_played_v1';
+
+  function qs(sel, ctx=document){ return ctx.querySelector(sel); }
+  function qsa(sel, ctx=document){ return Array.from(ctx.querySelectorAll(sel)); }
+
+  function addIntroClass(el){
+    if (!el) return;
+    el.classList.add('hero-intro-item');
+    // ensure initial hidden state computed
+    el.style.willChange = 'opacity, transform';
+  }
+
+  function makeSequence() {
+    // Order of appearance, tuned for smooth/minimal feel
+    const seq = [];
+
+    // 1. background glow (subtle)
+    qsa('.hero-glow .float-dot').forEach(dot => seq.push(dot));
+
+    // 2. hero-left title block: name/title/subject (we'll reveal hero-left children)
+    const heroLeft = qs('.hero-left');
+    if (heroLeft) {
+      // prefer specific elements if available
+      const title = qs('.hero-title', heroLeft);
+      const sub  = qs('.hero-sub', heroLeft);
+      const profile = qs('.hero-profile', heroLeft) || qs('.hero-profile');
+      if (title) seq.push(title);
+      if (sub) seq.push(sub);
+      if (profile) seq.push(profile);
+    }
+
+    // 3. CTA buttons
+    qsa('.hero-ctas .btn').forEach(btn => seq.push(btn));
+
+    // 4. mockup (visual) then badge
+    const mock = qs('.mockup');
+    if (mock) seq.push(mock);
+    const badge = qs('.mockup-badge');
+    if (badge) seq.push(badge);
+
+    return seq.filter(Boolean);
+  }
+
+  function showItem(el, delay){
+    if (!el) return;
+    // ensure it has the base class
+    addIntroClass(el);
+    // Use rAF to avoid layout thrashing
+    window.setTimeout(() => {
+      requestAnimationFrame(() => el.classList.add('intro-visible'));
+    }, Math.max(0, delay));
+  }
+
+  function playHeroIntro(forceReplay = false){
+    if (prefersReduced) return; // don't animate if user prefers reduced motion
+    try {
+      if (!forceReplay && sessionStorage.getItem(playedKey)) return;
+      const seq = makeSequence();
+      if (!seq.length) {
+        // nothing to animate
+        sessionStorage.setItem(playedKey, '1');
+        return;
+      }
+
+      // prepare elements: make them intro items so CSS applies
+      seq.forEach(el => addIntroClass(el));
+
+      // timings (ms)
+      let t = 80;
+      const stagger = 120; // ms between items
+      // small extra gaps for visual rhythm
+      const gapAfterTitle = 80;
+
+      // start with subtle background glow earlier
+      seq.forEach((el, idx) => {
+        // logic to create a pleasant rhythm:
+        // first two (glow) should be slightly earlier
+        const isGlow = el.matches && el.matches('.hero-glow .float-dot, .hero-glow .float-dot');
+        const baseDelay = isGlow ? 0 : t;
+        showItem(el, baseDelay);
+        if (!isGlow) t += stagger;
+        // after title reveal add small gap
+        if (idx === 1) t += gapAfterTitle;
+      });
+
+      // mark played
+      sessionStorage.setItem(playedKey, '1');
+    } catch (err) {
+      console.warn('Hero intro failed', err);
+    }
+  }
+
+  // Auto run on DOM ready (if hero exists)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      // slight delay to let fonts render
+      setTimeout(() => playHeroIntro(false), 220);
+    });
+  } else {
+    setTimeout(() => playHeroIntro(false), 220);
+  }
+
+  // Expose for manual replay
+  window.playHeroIntro = function(force){
+    playHeroIntro(Boolean(force));
+  };
+
+})();
 
   console.info('NovaDev Suite script loaded');
 })();
