@@ -48,6 +48,20 @@ body{
 .nav a{color:var(--muted);text-decoration:none;padding:8px;border-radius:8px}
 .nav a.cta{background:linear-gradient(90deg,var(--accent-1),var(--accent-2));color:#071422;padding:8px 12px}
 
+/* FADE IN */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInMove 0.8s ease-out forwards;
+}
+
+@keyframes fadeInMove {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* HERO */
 .hero{padding:48px 0}
 .hero-grid {
