@@ -91,6 +91,29 @@ body{
 .hero-right .hero-profile {
   margin-bottom: 32px;
 }
+/* Avatar tweaks + accessible focus ring */
+.hero-profile .avatar {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent-1);
+  background: #0b1a27;
+  transition: transform 220ms ease, box-shadow 220ms;
+}
+
+.hero-profile .avatar:focus,
+.hero-profile .avatar:focus-visible {
+  outline: none;
+  box-shadow: 0 6px 20px rgba(110,231,247,0.14);
+  transform: translateY(-4px);
+}
+
+/* smaller avatar on narrow screens */
+@media (max-width:680px) {
+  .hero-profile .avatar { width: 96px; height: 96px; border-radius:12px; }
+  .hero-personal .hero-name { font-size:1.15rem; }
+}
 
 /* Mockup */
 .mockup{position:relative;overflow:hidden;border-radius:14px;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,0.02)}
@@ -188,4 +211,18 @@ textarea, input[type="text"], input[type="email"], input[name="name"]{
 @media (max-width:980px) {
   .editor-body { grid-template-columns: 1fr; }
   #editorPreview { min-height:260px; }
+}
+/* Ensure hero mockup has a stable height and sits above glow */
+.mockup {
+  min-height: 320px;         /* stable visual area */
+  height: auto;
+  z-index: 2;                /* sits above the hero-glow */
+}
+
+/* Make mockup images behave responsively but preserve cover */
+.mockup img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
