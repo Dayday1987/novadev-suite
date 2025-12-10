@@ -50,7 +50,13 @@ body{
 
 /* HERO */
 .hero{padding:48px 0}
-.hero-grid{display:grid;grid-template-columns:1fr 420px;gap:28px;align-items:center;position:relative}
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr minmax(320px, 420px);
+  gap: 28px;
+  align-items: center;
+  position: relative;
+}
 .hero-title{font-size:40px;margin:0}
 .hero-sub{color:var(--muted);margin-top:8px}
 .hero-ctas{margin-top:16px;display:flex;gap:12px}
