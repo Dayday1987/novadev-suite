@@ -6,14 +6,14 @@
   <title>NovaDevStudio — NovaDev Suite</title>
   <meta name="description" content="NovaDev Suite — Portfolio & Tools by NovaDev Studio (David Munoz). Meme maker, prompt library, and interactive demos." />
   <meta property="og:image" content="assets/og-img.png">
-<meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="assets/og-img.png">
-  <link rel="stylesheet" href="styles.css" />
-  <!-- Put inside <head> -->
-<link rel="icon" href='data:image/svg+xml;utf8,
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="assets/og-img.png">
+  <link rel="stylesheet" href="style.css" />
+  <!-- Inline SVG favicon -->
+  <link rel="icon" href='data:image/svg+xml;utf8,
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
     <defs>
       <linearGradient id="a" x1="0" x2="1">
@@ -74,19 +74,19 @@
             <div class="float-dot dot-b"></div>
             <div class="float-dot dot-c"></div>
           </div>
-          
-          <!-- profile (replace hero-right image or add beside mockup) -->
-<div class="hero-profile">
-  <img src="assets/avatar.png" alt="David Munoz — NovaDev Studio" class="avatar" ...
-  <div class="hero-personal">
-    <div class="hero-name">David Munoz</div>
-    <div class="hero-role">Founder • Full-stack & Front-end Dev</div>
-  </div>
-</div>
 
+          <!-- profile (replace hero-right image or add beside mockup) -->
+          <div class="hero-profile">
+            <img src="assets/avatar.png" alt="David Munoz — NovaDev Studio" class="avatar" width="220" height="220" loading="lazy" />
+            <div class="hero-personal">
+              <div class="hero-name">David Munoz</div>
+              <div class="hero-role">Founder • Full-stack & Front-end Dev</div>
+            </div>
+          </div>
+
+          <!-- mockup -->
           <div class="mockup fade-in">
-  <img src="assets/hero-mock.png" alt="Project mockups"/>
-  ...
+            <img src="assets/hero-mock.png" alt="Project mockups"/>
             <div class="mockup-badge">NovaDev Suite — Demo</div>
           </div>
         </div>
@@ -133,40 +133,41 @@
 
     <!-- TOOLS -->
     <!-- CODE EDITOR / LIVE PREVIEW -->
-<section id="editor" class="section">
-  <div class="wrap">
-    <h2 class="reveal fade-in">Live Code Editor</h2>
+    <section id="editor" class="section">
+      <div class="wrap">
+        <h2 class="reveal fade-in">Live Code Editor</h2>
 
-    <div class="editor-shell reveal">
-      <div class="editor-topbar">
-        <div class="file-tabs" role="tablist" aria-label="Files">
-          <button class="file-tab active fade-in" data-file="index.html">index.html</button>
-          <button class="file-tab fade-in" data-file="styles.css">styles.css</button>
-          <button class="file-tab fade-in" data-file="script.js">script.js</button>
-        </div>
+        <div class="editor-shell reveal">
+          <div class="editor-topbar">
+            <div class="file-tabs" role="tablist" aria-label="Files">
+              <button class="file-tab active fade-in" data-file="index.html">index.html</button>
+              <button class="file-tab fade-in" data-file="styles.css">styles.css</button>
+              <button class="file-tab fade-in" data-file="script.js">script.js</button>
+            </div>
 
-        <div class="editor-actions">
-          <button id="editorRun" class="btn btn--glow fade-in">Run</button>
-          <button id="editorSave" class="btn fade-in">Save</button>
-          <button id="editorExport" class="btn ghost fade-in">Export ZIP</button>
+            <div class="editor-actions">
+              <button id="editorRun" class="btn btn--glow fade-in">Run</button>
+              <button id="editorSave" class="btn fade-in">Save</button>
+              <button id="editorExport" class="btn ghost fade-in">Export ZIP</button>
+            </div>
+          </div>
+
+          <div class="editor-body">
+            <div id="editorContainer" class="monaco-editor-container" aria-label="Code editor"></div>
+
+            <div class="preview-pane">
+              <div class="preview-toolbar fade-in">Live Preview</div>
+              <iframe id="editorPreview" sandbox="allow-scripts allow-same-origin" title="Live preview"></iframe>
+            </div>
+          </div>
+
+          <div class="editor-footer muted">
+            Tip: edit HTML / CSS / JS, then click <strong>Run</strong>. Projects are saved locally.
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="editor-body">
-        <div id="editorContainer" class="monaco-editor-container" aria-label="Code editor"></div>
-
-        <div class="preview-pane">
-          <div class="preview-toolbar fade-in">Live Preview</div>
-          <iframe id="editorPreview" sandbox="allow-scripts allow-same-origin" title="Live preview"></iframe>
-        </div>
-      </div>
-
-      <div class="editor-footer muted">
-        Tip: edit HTML / CSS / JS, then click <strong>Run</strong>. Projects are saved locally.
-      </div>
-    </div>
-  </div>
-</section>
     <section id="tools" class="section tools-section">
       <div class="wrap">
         <h2 class="reveal fade-in">Tools</h2>
@@ -244,7 +245,7 @@
         <a href="https://app.netlify.com" target="_blank" rel="noopener">Netlify</a>
         <a href="https://codesandbox.io" target="_blank" rel="noopener">CodeSandbox</a>
         <!-- Replace old VS Code link with this -->
-<a href="https://vscode.dev/github/Dayday1987/novadev-suite" target="_blank" rel="noopener">VSCode</a>
+        <a href="https://vscode.dev/github/Dayday1987/novadev-suite" target="_blank" rel="noopener">VSCode</a>
         <a href="https://developer.mozilla.org" target="_blank" rel="noopener">MDN</a>
       </div>
 
@@ -258,6 +259,7 @@
       </div>
     </div>
   </footer>
+
   <script src="script.js"></script>
 </body>
 </html>
