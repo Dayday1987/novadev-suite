@@ -1,16 +1,15 @@
-// Wheelie — safer physics / correct geometry / mobile-friendly
-// Overwrite previous game.js with this file.
+// Wheelie — corrected start height, torque sign, gentler tap/hold behavior
+// Overwrite current game.js with this file.
 
 (function () {
   'use strict';
 
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
-
   const scoreEl = document.getElementById('score');
   const restartBtn = document.getElementById('restart');
 
-  // --- Resize & DPI ---
+  // Resize / DPR
   function resize() {
     const rect = canvas.getBoundingClientRect();
     const ratio = window.devicePixelRatio || 1;
@@ -26,7 +25,6 @@
   let VIEW = resize();
   window.addEventListener('resize', () => { VIEW = resize(); });
 
-  // --- Visual params computed from viewport so visuals scale ---
   function visuals() {
     const W = VIEW.w;
     return {
@@ -36,38 +34,30 @@
     };
   }
 
-  // --- Physics tuning (conservative & predictable) ---
+  // Physics (conservative)
   const PHY = {
     inertia: 1.0,
-    liftFull: 0.0075,    // full torque (small)
-    gravity: 0.0095,     // restoring torque
-    damping: 0.985,      // angular damping (0-1)
-    crashAngle: Math.PI * 0.55,
-    maxAngVel: 0.9,      // clamp so no slingshot
-    rampMs: 260          // longer ramp so taps are gentle
+    liftFull: 0.0065,     // reduced full lift torque
+    gravity: 0.0105,      // restoring torque
+    damping: 0.986,
+    crashAngle: Math.PI * 0.58,
+    maxAngVel: 0.8,       // clamp velocity so no slingshot
+    rampMs: 260           // ramp so hold takes some time to reach full torque
   };
 
-  // --- World state (CSS pixels after transform) ---
-  const world = {
-    rearX: 220,
-    yGround: VIEW.h - 80,
-    angle: 0,
-    angVel: 0
-  };
+  // world
+  const world = { rearX: 220, yGround: VIEW.h - 48, angle: 0, angVel: 0 };
 
   let running = true;
   let lastTime = performance.now();
   let timeBalance = 0;
   let best = 0;
 
-  // input
   let applying = false;
   let applyingStart = 0;
-
-  // road parallax offset
   let roadOffset = 0;
 
-  // pointer (prevent selection)
+  // prevent selection on touch
   canvas.style.touchAction = 'none';
   canvas.addEventListener('pointerdown', (e) => {
     applying = true;
@@ -77,8 +67,7 @@
   }, { passive: false });
 
   canvas.addEventListener('pointerup', (e) => {
-    applying = false;
-    applyingStart = 0;
+    applying = false; applyingStart = 0;
     try { canvas.releasePointerCapture && canvas.releasePointerCapture(e.pointerId); } catch (err) {}
   });
   canvas.addEventListener('pointercancel', () => { applying = false; applyingStart = 0; });
@@ -93,24 +82,25 @@
 
   restartBtn.addEventListener('click', reset);
 
-  // --- Reset: compute ground & positions so rear wheel sits on road and front wheel matches ---
+  // --- Reset: set yGround so rear wheel sits on road (no floating) ---
   function reset() {
     VIEW = resize();
     const V = visuals();
 
-    // ground and rearX tuned to viewport
-    world.yGround = VIEW.h - Math.max(80, Math.round(V.rearR * 2.6));
-    world.rearX = Math.max(160, Math.round(V.frameLen * 0.9));
+    // choose a near-bottom ground so wheel sits on road visually
+    const groundMargin = Math.max(44, Math.round(V.rearR * 1.9));
+    world.yGround = VIEW.h - groundMargin;
+    world.rearX = Math.max(140, Math.round(V.frameLen * 0.9));
 
-    // compute initial angle so both wheel centers touch ground:
+    // initial angle so both wheel centers lie on the same ground line:
     // rearCenterY = yGround - rearR
     // frontCenterY = yGround - frontR
     // sin(angle) = (frontCenterY - rearCenterY) / frameLen = (rearR - frontR) / frameLen
-    const num = (V.rearR - V.frontR) / V.frameLen;
-    world.angle = (Math.abs(num) <= 1) ? Math.asin(num) : 0;
+    const ratio = (V.rearR - V.frontR) / V.frameLen;
+    world.angle = (Math.abs(ratio) <= 1) ? -Math.asin(ratio) : 0; // NEGATIVE so front is slightly higher (nose up)
     world.angVel = 0;
 
-    // tiny settling micro-steps (no visible bounce)
+    // tiny micro-steps to settle without visible bounce
     for (let i = 0; i < 3; i++) {
       const torqueG = -PHY.gravity * Math.sin(world.angle);
       world.angVel += (torqueG / PHY.inertia) * (1/60);
@@ -127,17 +117,16 @@
     scoreEl.textContent = '0.00s';
   }
 
-  // --- Drawing ---
+  // environment drawing (road dashes parallax)
   function drawEnvironment() {
     const W = VIEW.w, H = VIEW.h;
     ctx.fillStyle = '#071422';
     ctx.fillRect(0, 0, W, H);
 
-    const roadTop = world.yGround + 30;
+    const roadTop = world.yGround + 28;
     ctx.fillStyle = '#0b1a27';
     ctx.fillRect(0, roadTop, W, H - roadTop);
 
-    // subtle moving dashed road
     ctx.fillStyle = 'rgba(255,255,255,0.03)';
     const dash = 52, gap = dash;
     const base = Math.floor(roadOffset % (dash + gap));
@@ -181,27 +170,27 @@
     const frontCx = rearCx + Math.cos(ang) * V.frameLen;
     const frontCy = rearCy + Math.sin(ang) * V.frameLen;
 
-    // draw frame centered between wheel centers (rotated)
+    // frame between wheel centers
     ctx.save();
     ctx.translate(rearCx, rearCy);
     ctx.rotate(ang);
 
-    // small shadow under frame
-    ctx.fillStyle = 'rgba(0,0,0,0.14)';
+    // subtle shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
     ctx.fillRect(18, -6 + 8, V.frameLen - 20, 12);
 
-    // frame bar
+    // main frame bar
     ctx.fillStyle = '#6EE7F7';
     ctx.fillRect(12, -12, V.frameLen - 14, 12);
 
     // seat
     ctx.fillStyle = '#071422';
-    ctx.fillRect(28, -32, 64, 12);
+    ctx.fillRect(28, -32, 60, 12);
 
     // handlebar mast
     ctx.fillRect(V.frameLen - 22, -32, 10, 36);
 
-    // accent
+    // accent circle
     ctx.fillStyle = '#7C5CFF';
     ctx.beginPath();
     ctx.arc(V.frameLen - 8, -10, 7, 0, Math.PI * 2);
@@ -209,58 +198,59 @@
 
     ctx.restore();
 
-    // wheels
+    // wheels (draw after frame)
     drawWheel(rearCx, rearCy, V.rearR, world.angVel * 16);
     drawWheel(frontCx, frontCy, V.frontR, world.angVel * 14);
   }
 
-  // --- Physics update ---
+  // physics update
   function update(dt, now) {
     if (!running) return;
-
     const V = visuals();
 
-    // input ramping: longer ramp, avoid instant big impulse
+    // ramping for input (longer ramp = gentler response)
     let inputFactor = 0;
     if (applying) {
       const elapsed = Math.max(0, now - applyingStart);
       inputFactor = Math.min(1, elapsed / PHY.rampMs);
-      // tiny tap boost is removed to avoid slingshot; very short taps apply fraction
-      if (elapsed < 80) inputFactor *= 0.14;
+      if (elapsed < 80) inputFactor *= 0.12; // quick taps are small
     } else {
       inputFactor = 0;
     }
 
-    const torqueInput = PHY.liftFull * inputFactor;
+    // lift torque is NEGATIVE so it reduces angle (front goes UP)
+    const torqueInput = -PHY.liftFull * inputFactor;
+    // gravity restoring torque - when angle is negative, -gravity * sin(angle) is positive and pushes angle up towards 0
     const torqueGravity = -PHY.gravity * Math.sin(world.angle);
     const torque = torqueInput + torqueGravity;
 
-    // angular acceleration (straightforward, scaled by dt)
     const angAcc = torque / PHY.inertia;
     world.angVel += angAcc * dt;
 
-    // clamp angular velocity to safe range
+    // clamp angular velocity strictly (prevents slingshot)
     if (world.angVel > PHY.maxAngVel) world.angVel = PHY.maxAngVel;
     if (world.angVel < -PHY.maxAngVel) world.angVel = -PHY.maxAngVel;
 
-    // damping & integrate
+    // damping and integrate
     world.angVel *= Math.pow(PHY.damping, dt * 60);
     world.angle += world.angVel * dt * 60;
 
-    // scoring while front is up
-    if (world.angle > 0.12 && running) {
+    // score while front is lifted (angle negative indicates front up)
+    if (world.angle < -0.12 && running) {
       timeBalance += dt;
       scoreEl.textContent = timeBalance.toFixed(2) + 's';
     } else {
       scoreEl.textContent = timeBalance.toFixed(2) + 's';
     }
 
-    if (Math.abs(world.angle) > PHY.crashAngle) crash();
+    if (Math.abs(world.angle) > PHY.crashAngle) {
+      crash();
+    }
 
-    // road parallax: small baseline + small extra while holding
-    const baseline = 8; // px/sec
+    // gentle road parallax
+    const base = 8;
     const extra = applying ? 22 : 0;
-    roadOffset += (baseline + extra) * dt;
+    roadOffset += (base + extra) * dt;
   }
 
   function crash() {
@@ -269,9 +259,7 @@
     scoreEl.textContent = timeBalance.toFixed(2) + 's (crash) Best: ' + best.toFixed(2) + 's';
   }
 
-  function clear() {
-    ctx.clearRect(0, 0, VIEW.w, VIEW.h);
-  }
+  function clear() { ctx.clearRect(0, 0, VIEW.w, VIEW.h); }
 
   function loop(now) {
     const dt = Math.min(0.033, (now - lastTime) / 1000);
@@ -302,7 +290,6 @@
   reset();
   requestAnimationFrame(loop);
 
-  // expose debug helpers
+  // expose debug
   window.wheelie = { reset };
-
 })();
