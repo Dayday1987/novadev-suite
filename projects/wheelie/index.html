@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Wheelie — NovaDev Studio</title>
+  <meta name="description" content="Wheelie demo — simple physics wheelie balancing game (NovaDev Studio)" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="hud">
+      <div class="title">Wheelie — NovaDev Studio</div>
+      <div class="controls">Hold <kbd>Space</kbd> or touch & hold to lift</div>
+    </header>
+
+    <section class="game-area">
+      <canvas id="game" width="1000" height="540" aria-label="Wheelie game canvas"></canvas>
+
+      <div class="overlay top-right">
+        <div id="score">0.0s</div>
+        <button id="restart" class="btn">Restart</button>
+        <a class="btn ghost" href="../..">Back</a>
+      </div>
+
+      <div class="instructions">
+        <p>Keep the bike balanced on the rear wheel. If the bike tilts too far forward or backward you crash.</p>
+      </div>
+    </section>
+
+    <footer class="meta">
+      <small>Built by NovaDev Studio — lightweight canvas demo</small>
+    </footer>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
