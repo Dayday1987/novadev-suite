@@ -255,25 +255,35 @@
 
   /* ===== ANIMATIONS & CLOCK ===== */
   safe(() => {
-    // reveal on scroll
-    const revealElems = $$('.reveal');
-    if ('IntersectionObserver' in window && revealElems.length) {
-      const io = new IntersectionObserver((entries) => {
+    // Improved reveal-on-scroll: supports .reveal, .fade-scroll, .fade-in, with gentle staggering
+    const selector = '.reveal, .fade-scroll, .fade-in';
+    const elems = Array.from(document.querySelectorAll(selector));
+    if (!('IntersectionObserver' in window) || !elems.length) {
+      // fallback: show everything
+      elems.forEach(el => {
+        el.classList.add('is-visible');
+        el.classList.add('visible');
+      });
+    } else {
+      const io = new IntersectionObserver((entries, obs) => {
         entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            io.unobserve(entry.target);
-          }
+          if (!entry.isIntersecting) return;
+          const el = entry.target;
+          el.classList.add('is-visible'); // for legacy .reveal CSS
+          el.classList.add('visible');    // for transition-based .fade-in / .fade-scroll
+          obs.unobserve(el);
         });
-      }, { root: null, rootMargin: '0px 0px -6% 0px', threshold: 0.12 });
+      }, {
+        root: null,
+        rootMargin: '0px 0px -12% 0px', // trigger a little before element fully enters
+        threshold: 0.08
+      });
 
-      revealElems.forEach((el, i) => {
-        if (!el.dataset.delay) el.dataset.delay = String(Math.min(3, Math.floor(i/2)));
+      elems.forEach((el, i) => {
+        if (!el.dataset.delay) el.dataset.delay = String(Math.min(6, Math.floor(i/2)));
         el.style.transitionDelay = `${(parseInt(el.dataset.delay, 10)||0) * 70}ms`;
         io.observe(el);
       });
-    } else {
-      revealElems.forEach(el => el.classList.add('is-visible'));
     }
 
     // project tilt
@@ -310,7 +320,7 @@
     updateClock();
     setInterval(updateClock, 1000);
 
-    // hero entrance
+    // hero entrance (keep small immediate reveal on left, staged right)
     const heroLeft = $('.hero-left');
     const heroRight = $('.hero-right');
     if (heroLeft) heroLeft.classList.add('reveal', 'is-visible');
@@ -568,12 +578,12 @@
           });
 
           // When switching models via tabs, set model
-          document.querySelectorAll('.file-tab').forEach(btn => {
-            btn.addEventListener('click', (ev) => {
-              const f = btn.dataset.file;
-              switchFile(f);
+            document.querySelectorAll('.file-tab').forEach(btn => {
+              btn.addEventListener('click', (ev) => {
+                const f = btn.dataset.file;
+                switchFile(f);
+              });
             });
-          });
 
           // keyboard shortcuts
           monacoEditor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, () => {
@@ -609,7 +619,7 @@
   }
 
   function buildPreviewHTML(files) {
-    // We will inject styles and scripts into index.html safely.
+    // We will inject styles.css content before </head> if present, otherwise inject at top
     let html = files['index.html'];
 
     // Inject styles.css content before </head> if present, otherwise inject at top
