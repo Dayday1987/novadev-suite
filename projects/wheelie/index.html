@@ -1,38 +1,31 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Wheelie — NovaDev Studio</title>
-  <meta name="description" content="Wheelie demo — simple physics wheelie balancing game (NovaDev Studio)" />
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Throttle Up - Wheelie Challenge</title>
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="wrap">
-    <header class="hud">
-      <div class="title">Wheelie — NovaDev Studio</div>
-      <div class="controls">Hold <kbd>Space</kbd> or touch & hold to lift</div>
-    </header>
+<div id="game-container">
+  <canvas id="gameCanvas" width="480" height="320" aria-label="Motorcycle wheelie game"></canvas>
 
-    <section class="game-area">
-      <canvas id="game" width="1000" height="540" aria-label="Wheelie game canvas"></canvas>
+  <div id="ui">
+    <div id="instructions">
+      <h1>Throttle Up - Wheelie Challenge</h1>
+      <p>Hold Space or Tap/Hold screen to pull the front wheel up</p>
+      <p>Avoid obstacles and keep your wheelie going!</p>
+    </div>
+    <div id="scoreboard">
+      <div>Wheelie Time: <span id="score">0.00</span>s</div>
+      <div>Distance: <span id="distance">0</span>m</div>
+      <div>Coins: <span id="coins">0</span></div>
+      <div>High Score: <span id="highscore">0.00</span>s</div>
+    </div>
+    <button id="restartBtn" aria-label="Restart game">Restart</button>
+  </div>
+</div>
 
-      <div class="overlay top-right">
-        <div id="score">0.0s</div>
-        <button id="restart" class="btn">Restart</button>
-        <a class="btn ghost" href="../..">Back</a>
-      </div>
-
-      <div class="instructions">
-        <p>Keep the bike balanced on the rear wheel. If the bike tilts too far forward or backward you crash.</p>
-      </div>
-    </section>
-
-    <footer class="meta">
-      <small>Built by NovaDev Studio — lightweight canvas demo</small>
-    </footer>
-  </main>
-
-  <script src="game.js"></script>
+<script src="game.js"></script>
 </body>
 </html>
