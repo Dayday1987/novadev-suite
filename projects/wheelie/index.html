@@ -12,23 +12,32 @@
 
   <div id="ui-top">
     <div id="scoreboard">
-      <div>Score: <span id="score">0</span></div>
       <div>Wheelie Time: <span id="wheelieTime">0.00</span>s</div>
-      <div>Distance: <span id="distance">0</span>m</div>
       <div>Coins: <span id="coins">0</span></div>
+      <div>Distance: <span id="distance">0</span>m</div>
       <div>High Score: <span id="highscore">0</span></div>
     </div>
     <button id="infoBtn" aria-label="Game instructions">ℹ️</button>
   </div>
 
-  <button id="restartBtn" aria-label="Restart game">Restart</button>
+  <button id="restartBtn" aria-label="Restart game" hidden>Restart</button>
 
   <div id="infoPopup" role="dialog" aria-modal="true" aria-labelledby="infoTitle" hidden>
     <h2 id="infoTitle">Game Instructions</h2>
     <p>Hold Space (desktop) or Tap and Hold the screen (mobile) to lift the front wheel and perform a wheelie.</p>
-    <p>Avoid obstacles and collect coins while keeping your wheelie going.</p>
+    <p>Use A/D keys or swipe left/right to change lanes and avoid obstacles or collect coins.</p>
     <p>Your score is based on wheelie time plus coins collected.</p>
     <button id="closeInfoBtn" aria-label="Close instructions">Close</button>
+  </div>
+
+  <div id="countdownOverlay" hidden>
+    <div id="lights">
+      <div id="lightYellow1" class="light yellow"></div>
+      <div id="lightYellow2" class="light yellow"></div>
+      <div id="lightGreen" class="light green"></div>
+    </div>
+    <div id="countdownNumber"></div>
+    <div id="goText" hidden>GO!</div>
   </div>
 
   <footer>Developed By NovaDev Studio and ChatGPT 5 mini</footer>
