@@ -1,7 +1,6 @@
 (() => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
-  const scoreEl = document.getElementById('score');
   const wheelieTimeEl = document.getElementById('wheelieTime');
   const distanceEl = document.getElementById('distance');
   const coinsEl = document.getElementById('coins');
@@ -10,43 +9,59 @@
   const infoBtn = document.getElementById('infoBtn');
   const infoPopup = document.getElementById('infoPopup');
   const closeInfoBtn = document.getElementById('closeInfoBtn');
+  const countdownOverlay = document.getElementById('countdownOverlay');
+  const lightYellow1 = document.getElementById('lightYellow1');
+  const lightYellow2 = document.getElementById('lightYellow2');
+  const lightGreen = document.getElementById('lightGreen');
+  const countdownNumber = document.getElementById('countdownNumber');
+  const goText = document.getElementById('goText');
 
   const WIDTH = canvas.width;
   const HEIGHT = canvas.height;
 
   // Game constants
-  const GRAVITY = 0.5;
-  const TORQUE = -0.15; // lifting force when holding controls
-  const MAX_FRONT_ANGLE = Math.PI / 3; // max front wheel lift angle (~60 degrees)
+  const GRAVITY = 0.25;
+  const TORQUE = -0.05; // reduced torque for smooth wheelie
+  const MAX_FRONT_ANGLE = Math.PI / 3; // ~60 degrees max front wheel lift
   const MIN_FRONT_ANGLE = 0; // bike horizontal
   const OBSTACLE_WIDTH = 20;
   const OBSTACLE_HEIGHT = 30;
   const OBSTACLE_GAP_MIN = 150;
   const OBSTACLE_GAP_MAX = 300;
-  const OBSTACLE_SPEED = 3;
+  const OBSTACLE_SPEED_BASE = 2;
+  const OBSTACLE_SPEED_MAX = 6;
   const COIN_RADIUS = 8;
-  const COIN_SPEED = OBSTACLE_SPEED;
   const BIKE_WIDTH = 80;
   const BIKE_HEIGHT = 40;
 
-  // Bike starts flat (angle=0), moves left across screen (x decreases)
+  // Lane Y positions
+  const LANES_Y = [HEIGHT - 60, HEIGHT - 60 - 60]; // two lanes
+
+  // Game state
   let bike = {
-    x: WIDTH - 80,
-    y: HEIGHT - 60,
-    angle: 0, // front wheel lift angle in radians
+    x: 80,
+    y: LANES_Y[0],
+    lane: 0,
+    angle: 0,
     angleVelocity: 0,
     wheelieTime: 0,
     distance: 0,
     coins: 0,
     crashed: false,
+    speed: 0,
   };
 
   let obstacles = [];
   let coins = [];
-  let frameCount = 0;
   let lastTimestamp = 0;
   let isHolding = false;
   let highscore = parseFloat(localStorage.getItem('wheelieHighscore')) || 0;
+  let gameStarted = false;
+  let gameRunning = false;
+
+  // Swipe detection for lane change on mobile
+  let touchStartX = null;
+  let touchStartY = null;
 
   // Sound effects
   let wheelSpinOscillator = null;
@@ -83,7 +98,6 @@
     audioCtx = null;
   }
 
-  // Play short beep for crash
   function playCrashSound() {
     if (!window.AudioContext) return;
     const crashAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -105,40 +119,37 @@
     }, 300);
   }
 
-  // Generate obstacles at intervals
+  // Spawn obstacles on left side in random lane
   function spawnObstacle() {
     const lastObstacle = obstacles[obstacles.length - 1];
     let x = -OBSTACLE_WIDTH - Math.random() * (OBSTACLE_GAP_MAX - OBSTACLE_GAP_MIN) - OBSTACLE_GAP_MIN;
     if (lastObstacle) x = lastObstacle.x - Math.random() * (OBSTACLE_GAP_MAX - OBSTACLE_GAP_MIN) - OBSTACLE_GAP_MIN;
 
-    // Random lane: 0 = left lane, 1 = right lane
-    const laneY = HEIGHT - 60 - OBSTACLE_HEIGHT;
-    const laneOffset = Math.random() < 0.5 ? 0 : 60;
+    const lane = Math.random() < 0.5 ? 0 : 1;
 
     obstacles.push({
       x,
-      y: laneY + laneOffset,
+      y: LANES_Y[lane],
       width: OBSTACLE_WIDTH,
       height: OBSTACLE_HEIGHT,
-      passed: false,
+      lane,
     });
   }
 
-  // Generate coins at intervals
+  // Spawn coins on left side in random lane
   function spawnCoin() {
     const lastCoin = coins[coins.length - 1];
     let x = -COIN_RADIUS * 2 - Math.random() * (OBSTACLE_GAP_MAX - OBSTACLE_GAP_MIN) - OBSTACLE_GAP_MIN;
     if (lastCoin) x = lastCoin.x - Math.random() * (OBSTACLE_GAP_MAX - OBSTACLE_GAP_MIN) - OBSTACLE_GAP_MIN;
 
-    // Random lane coin height between lanes
-    const laneY = HEIGHT - 100;
-    const laneOffset = Math.random() < 0.5 ? 0 : 60;
+    const lane = Math.random() < 0.5 ? 0 : 1;
 
     coins.push({
       x,
-      y: laneY + laneOffset,
+      y: LANES_Y[lane] - 40,
       radius: COIN_RADIUS,
       collected: false,
+      lane,
     });
   }
 
@@ -150,44 +161,44 @@
     bike.distance = 0;
     bike.coins = 0;
     bike.crashed = false;
-    bike.x = WIDTH - 80;
+    bike.speed = 0;
+    bike.x = 80;
+    bike.lane = 0;
+    bike.y = LANES_Y[bike.lane];
     obstacles = [];
     coins = [];
-    frameCount = 0;
     lastTimestamp = 0;
     isHolding = false;
+    gameStarted = false;
+    gameRunning = false;
+    restartBtn.hidden = true;
+    countdownOverlay.hidden = true;
     spawnObstacle();
     spawnCoin();
     updateUI();
   }
 
-  // Update UI elements
+  // Update scoreboard UI
   function updateUI() {
-    // Score = wheelieTime * 100 + coins * 50 (example formula)
-    const score = Math.floor(bike.wheelieTime * 100 + bike.coins * 50);
-    scoreEl.textContent = score;
     wheelieTimeEl.textContent = bike.wheelieTime.toFixed(2);
-    distanceEl.textContent = Math.floor(bike.distance);
     coinsEl.textContent = bike.coins;
+    distanceEl.textContent = Math.floor(bike.distance);
     highscoreEl.textContent = Math.floor(highscore);
   }
 
-  // Draw 2-lane paved road with dotted center line
+  // Draw two-lane road with dotted center line and starting line
   function drawRoad() {
-    // Road background
+    // Road base
     ctx.fillStyle = '#444';
     ctx.fillRect(0, HEIGHT - 100, WIDTH, 100);
 
-    // Lane lines
+    // Outer solid lines
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
-
-    // Outer solid lines
     ctx.beginPath();
     ctx.moveTo(0, HEIGHT - 100);
     ctx.lineTo(WIDTH, HEIGHT - 100);
     ctx.stroke();
-
     ctx.beginPath();
     ctx.moveTo(0, HEIGHT - 20);
     ctx.lineTo(WIDTH, HEIGHT - 20);
@@ -196,9 +207,9 @@
     // Dotted center line
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 3;
+    let x = 0;
     const dashLength = 15;
     const gapLength = 15;
-    let x = 0;
     while (x < WIDTH) {
       ctx.beginPath();
       ctx.moveTo(x, HEIGHT - 60);
@@ -206,21 +217,30 @@
       ctx.stroke();
       x += dashLength + gapLength;
     }
+
+    // Starting line (vertical white line near left side)
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(80, HEIGHT - 100);
+    ctx.lineTo(80, HEIGHT - 20);
+    ctx.stroke();
   }
 
-  // Draw bike as a more realistic sportbike and rider
+  // Draw bike with realistic sportbike and rider, front wheel lifts only
   function drawBike(x, y, angle) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(-angle);
 
-    // Wheels
+    // Wheels: back wheel stays on ground
     ctx.fillStyle = '#111';
     ctx.beginPath();
-    ctx.arc(-25, 15, 14, 0, Math.PI * 2);
+    ctx.arc(-25, 15, 14, 0, Math.PI * 2); // back wheel
     ctx.fill();
+
     ctx.beginPath();
-    ctx.arc(25, 15, 14, 0, Math.PI * 2);
+    ctx.arc(25, 15, 14, 0, Math.PI * 2); // front wheel
     ctx.fill();
 
     // Wheel rims
@@ -233,10 +253,9 @@
     ctx.arc(25, 15, 9, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Sportbike body (inspired by Ninja H2R)
+    // Sportbike body (Ninja H2R inspired)
     ctx.fillStyle = '#0f9d58'; // bright green
     ctx.beginPath();
-    // Body main shape
     ctx.moveTo(-40, 15);
     ctx.lineTo(-20, -10);
     ctx.lineTo(20, -10);
@@ -309,7 +328,6 @@
     ctx.fillStyle = '#b22222';
     obstacles.forEach(o => {
       ctx.fillRect(o.x, o.y, o.width, o.height);
-      // Add simple shading
       ctx.strokeStyle = '#7a1212';
       ctx.lineWidth = 2;
       ctx.strokeRect(o.x, o.y, o.width, o.height);
@@ -339,7 +357,6 @@
 
   // Check collision between bike and obstacles
   function checkCollision() {
-    // Bike bounding box approximation
     const bikeBox = {
       x: bike.x - 40,
       y: bike.y - 40,
@@ -375,127 +392,77 @@
     }
   }
 
-  // Game loop
-  function gameLoop(timestamp) {
-    if (!lastTimestamp) lastTimestamp = timestamp;
-    const delta = (timestamp - lastTimestamp) / 1000;
-    lastTimestamp = timestamp;
-
-    if (!bike.crashed) {
-      // Update bike angle velocity based on controls and gravity
-      if (isHolding) {
-        bike.angleVelocity += TORQUE;
-        startWheelSpinSound();
-      } else {
-        bike.angleVelocity += GRAVITY * 0.1;
-        stopWheelSpinSound();
-      }
-
-      // Clamp angle velocity and angle
-      bike.angleVelocity = Math.min(Math.max(bike.angleVelocity, -0.5), 0.5);
-      bike.angle += bike.angleVelocity;
-
-      if (bike.angle > MAX_FRONT_ANGLE) {
-        bike.angle = MAX_FRONT_ANGLE;
-        bike.angleVelocity = 0;
-      }
-      if (bike.angle < MIN_FRONT_ANGLE) {
-        bike.angle = MIN_FRONT_ANGLE;
-        bike.angleVelocity = 0;
-      }
-
-      // Update distance (bike moves left)
-      bike.distance += OBSTACLE_SPEED * delta * 60;
-
-      // Move bike left
-      bike.x -= OBSTACLE_SPEED;
-      if (bike.x < 80) bike.x = 80; // keep bike visible on left side
-
-      // Update obstacles and coins positions (move right to left)
-      obstacles.forEach(o => (o.x += OBSTACLE_SPEED));
-      coins.forEach(c => (c.x += COIN_SPEED));
-
-      // Remove offscreen obstacles and coins (right side)
-      obstacles = obstacles.filter(o => o.x < WIDTH + OBSTACLE_WIDTH);
-      coins = coins.filter(c => c.x < WIDTH + COIN_RADIUS);
-
-      // Spawn new obstacles and coins on left side
-      if (obstacles.length === 0 || obstacles[obstacles.length - 1].x > OBSTACLE_GAP_MIN) {
-        spawnObstacle();
-      }
-      if (coins.length === 0 || coins[coins.length - 1].x > OBSTACLE_GAP_MIN) {
-        spawnCoin();
-      }
-
-      // Check collisions
-      if (checkCollision()) {
-        bike.crashed = true;
-        stopWheelSpinSound();
-        playCrashSound();
-      }
-
-      // Check coin collection
-      checkCoinCollection();
-
-      // Update wheelie time if front wheel is lifted
-      if (bike.angle > 0.1) {
-        bike.wheelieTime += delta;
-      }
-
-      // Update highscore
-      const currentScore = bike.wheelieTime * 100 + bike.coins * 50;
-      if (currentScore > highscore) {
-        highscore = currentScore;
-        localStorage.setItem('wheelieHighscore', highscore.toFixed(0));
-      }
-    }
-
-    // Clear canvas
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
-
-    // Draw road
-    drawRoad();
-
-    // Draw obstacles and coins
-    drawObstacles();
-    drawCoins();
-
-    // Draw bike
-    drawBike(bike.x, bike.y, bike.angle);
-
-    // If crashed, show crash effect
-    if (bike.crashed) {
-      ctx.fillStyle = 'rgba(255,0,0,0.5)';
-      ctx.fillRect(0, 0, WIDTH, HEIGHT);
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 28px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('CRASHED!', WIDTH / 2, HEIGHT / 2);
-    }
-
-    updateUI();
-
-    requestAnimationFrame(gameLoop);
+  // Handle lane change (0 or 1)
+  function changeLane(newLane) {
+    if (newLane === bike.lane) return;
+    if (newLane < 0 || newLane > 1) return;
+    bike.lane = newLane;
+    bike.y = LANES_Y[bike.lane];
   }
 
   // Input handlers
   function onPointerDown(e) {
     e.preventDefault();
-    if (!bike.crashed) {
+    if (!gameStarted) {
+      startGameSequence();
+    }
+    if (!bike.crashed && gameRunning) {
       isHolding = true;
+      startWheelSpinSound();
     }
   }
   function onPointerUp(e) {
     e.preventDefault();
     isHolding = false;
+    stopWheelSpinSound();
+  }
+
+  // Swipe detection for lane change
+  function onTouchStart(e) {
+    if (e.touches.length === 1) {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
+  }
+
+  function onTouchEnd(e) {
+    if (!touchStartX || !touchStartY) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const dx = touchEndX - touchStartX;
+    const dy = touchEndY - touchStartY;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    // Horizontal swipe detection (threshold 30px)
+    if (absDx > 30 && absDx > absDy) {
+      if (dx > 0) {
+        changeLane(bike.lane + 1);
+      } else {
+        changeLane(bike.lane - 1);
+      }
+    }
+
+    touchStartX = null;
+    touchStartY = null;
   }
 
   function onKeyDown(e) {
+    if (!gameStarted) {
+      startGameSequence();
+    }
     if (e.code === 'Space') {
       e.preventDefault();
-      if (!bike.crashed) {
+      if (!bike.crashed && gameRunning) {
         isHolding = true;
+        startWheelSpinSound();
       }
+    }
+    if (e.key === 'a' || e.key === 'A' || e.code === 'ArrowLeft') {
+      changeLane(bike.lane - 1);
+    }
+    if (e.key === 'd' || e.key === 'D' || e.code === 'ArrowRight') {
+      changeLane(bike.lane + 1);
     }
   }
 
@@ -503,6 +470,7 @@
     if (e.code === 'Space') {
       e.preventDefault();
       isHolding = false;
+      stopWheelSpinSound();
     }
   }
 
@@ -519,15 +487,173 @@
     infoPopup.hidden = true;
   });
 
+  // Start game countdown sequence
+  async function startGameSequence() {
+    if (gameStarted) return;
+    gameStarted = true;
+    restartBtn.hidden = true;
+
+    countdownOverlay.hidden = false;
+    goText.hidden = true;
+    countdownNumber.style.display = 'block';
+
+    // Blink yellow 1
+    lightYellow1.classList.add('active');
+    countdownNumber.textContent = '3';
+    await delay(1000);
+
+    // Blink yellow 2
+    lightYellow1.classList.remove('active');
+    lightYellow2.classList.add('active');
+    countdownNumber.textContent = '2';
+    await delay(1000);
+
+    // Green light
+    lightYellow2.classList.remove('active');
+    lightGreen.classList.add('active');
+    countdownNumber.textContent = '1';
+    await delay(1000);
+
+    // GO!
+    countdownNumber.style.display = 'none';
+    goText.hidden = false;
+    await delay(1000);
+
+    countdownOverlay.hidden = true;
+    lightGreen.classList.remove('active');
+
+    gameRunning = true;
+    bike.speed = OBSTACLE_SPEED_BASE;
+  }
+
+  // Delay helper
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  // Game loop
+  function gameLoop(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    const delta = (timestamp - lastTimestamp) / 1000;
+    lastTimestamp = timestamp;
+
+    if (gameRunning && !bike.crashed) {
+      // Smooth torque for front wheel lift
+      if (isHolding) {
+        bike.angleVelocity += TORQUE;
+      } else {
+        bike.angleVelocity += GRAVITY * 0.1;
+      }
+
+      // Clamp angle velocity and angle
+      bike.angleVelocity = Math.min(Math.max(bike.angleVelocity, -0.15), 0.15);
+      bike.angle += bike.angleVelocity;
+
+      if (bike.angle > MAX_FRONT_ANGLE) {
+        bike.angle = MAX_FRONT_ANGLE;
+        bike.angleVelocity = 0;
+      }
+      if (bike.angle < MIN_FRONT_ANGLE) {
+        bike.angle = MIN_FRONT_ANGLE;
+        bike.angleVelocity = 0;
+      }
+
+      // Accelerate bike speed while holding wheelie, decelerate otherwise
+      if (isHolding) {
+        bike.speed += 0.01;
+        if (bike.speed > OBSTACLE_SPEED_MAX) bike.speed = OBSTACLE_SPEED_MAX;
+      } else {
+        bike.speed -= 0.02;
+        if (bike.speed < OBSTACLE_SPEED_BASE) bike.speed = OBSTACLE_SPEED_BASE;
+      }
+
+      // Move bike forward (left to right)
+      bike.x += bike.speed;
+      if (bike.x > WIDTH - 80) bike.x = WIDTH - 80;
+
+      // Update distance traveled
+      bike.distance += bike.speed * delta * 60;
+
+      // Move obstacles and coins right to left (relative to bike)
+      obstacles.forEach(o => (o.x += bike.speed));
+      coins.forEach(c => (c.x += bike.speed));
+
+      // Remove offscreen obstacles and coins (right side)
+      obstacles = obstacles.filter(o => o.x < WIDTH + OBSTACLE_WIDTH);
+      coins = coins.filter(c => c.x < WIDTH + COIN_RADIUS);
+
+      // Spawn new obstacles and coins on left side
+      if (obstacles.length === 0 || obstacles[obstacles.length - 1].x > OBSTACLE_GAP_MIN) {
+        spawnObstacle();
+      }
+      if (coins.length === 0 || coins[coins.length - 1].x > OBSTACLE_GAP_MIN) {
+        spawnCoin();
+      }
+
+      // Check collisions
+      if (checkCollision()) {
+        bike.crashed = true;
+        gameRunning = false;
+        stopWheelSpinSound();
+        playCrashSound();
+        restartBtn.hidden = false;
+      }
+
+      // Check coin collection
+      checkCoinCollection();
+
+      // Update wheelie time if front wheel lifted
+      if (bike.angle > 0.1) {
+        bike.wheelieTime += delta;
+      }
+
+      // Update highscore (score = wheelieTime * 100 + coins * 50)
+      const currentScore = bike.wheelieTime * 100 + bike.coins * 50;
+      if (currentScore > highscore) {
+        highscore = currentScore;
+        localStorage.setItem('wheelieHighscore', highscore.toFixed(0));
+      }
+    }
+
+    // Clear canvas
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+    // Draw road and starting line
+    drawRoad();
+
+    // Draw obstacles and coins
+    drawObstacles();
+    drawCoins();
+
+    // Draw bike
+    drawBike(bike.x, bike.y, bike.angle);
+
+    // If crashed, overlay red and show message
+    if (bike.crashed) {
+      ctx.fillStyle = 'rgba(255,0,0,0.5)';
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 28px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('CRASHED!', WIDTH / 2, HEIGHT / 2);
+    }
+
+    updateUI();
+
+    requestAnimationFrame(gameLoop);
+  }
+
   // Setup input listeners
   canvas.addEventListener('touchstart', onPointerDown, { passive: false });
   canvas.addEventListener('touchend', onPointerUp, { passive: false });
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+  canvas.addEventListener('touchend', onTouchEnd, { passive: false });
   canvas.addEventListener('mousedown', onPointerDown);
   canvas.addEventListener('mouseup', onPointerUp);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
 
-  // Initialize
+  // Initialize game
   resetGame();
   requestAnimationFrame(gameLoop);
 })();
