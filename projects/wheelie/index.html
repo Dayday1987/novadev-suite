@@ -4,26 +4,34 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 <title>Throttle Up - Wheelie Challenge</title>
-<link rel="stylesheet" src="style.css" />
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div id="game-container">
   <canvas id="gameCanvas" width="480" height="320" aria-label="Motorcycle wheelie game"></canvas>
 
-  <div id="ui">
-    <div id="instructions">
-      <h1>Throttle Up - Wheelie Challenge</h1>
-      <p>Hold Space or Tap/Hold screen to pull the front wheel up</p>
-      <p>Avoid obstacles and keep your wheelie going!</p>
-    </div>
+  <div id="ui-top">
     <div id="scoreboard">
-      <div>Wheelie Time: <span id="score">0.00</span>s</div>
+      <div>Score: <span id="score">0</span></div>
+      <div>Wheelie Time: <span id="wheelieTime">0.00</span>s</div>
       <div>Distance: <span id="distance">0</span>m</div>
       <div>Coins: <span id="coins">0</span></div>
-      <div>High Score: <span id="highscore">0.00</span>s</div>
+      <div>High Score: <span id="highscore">0</span></div>
     </div>
-    <button id="restartBtn" aria-label="Restart game">Restart</button>
+    <button id="infoBtn" aria-label="Game instructions">ℹ️</button>
   </div>
+
+  <button id="restartBtn" aria-label="Restart game">Restart</button>
+
+  <div id="infoPopup" role="dialog" aria-modal="true" aria-labelledby="infoTitle" hidden>
+    <h2 id="infoTitle">Game Instructions</h2>
+    <p>Hold Space (desktop) or Tap and Hold the screen (mobile) to lift the front wheel and perform a wheelie.</p>
+    <p>Avoid obstacles and collect coins while keeping your wheelie going.</p>
+    <p>Your score is based on wheelie time plus coins collected.</p>
+    <button id="closeInfoBtn" aria-label="Close instructions">Close</button>
+  </div>
+
+  <footer>Developed By NovaDev Studio and ChatGPT 5 mini</footer>
 </div>
 
 <script src="game.js"></script>
