@@ -31,14 +31,19 @@ body {
 }
 
 canvas {
-  background: linear-gradient(to top, #4a8c1f 0%, #8fd14f 60%, #cdebbd 100%);
-  border-radius: 8px;
-  width: 100%;
-  height: auto;
-  touch-action: none;
-  image-rendering: pixelated;
-  display: block;
-  margin-top: 4px;
+  background: linear-gradient(to bottom, 
+  #87ceeb 0%,       /* Sky blue */
+  #87ceeb 60%,      /* Sky blue continues */
+  #4a8c1f 60%,      /* Dark green grass starts */
+  #8fd14f 100%      /* Lighter green grass at bottom */
+);
+border-radius: 8px;
+width: 100%;
+height: auto;
+touch-action: none;
+image-rendering: pixelated;
+display: block;
+margin-top: 4px;
 }
 
 #ui-top {
