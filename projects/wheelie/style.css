@@ -23,16 +23,15 @@ body {
 -ms-user-select: none;      /* IE 10+ */
 -moz-user-select: none;     /* Firefox */
 
-  background: #a8d5a2;
+  background: #222;
   border-radius: 12px;
-  box-shadow: 0 0 15px rgba(126, 195, 77, 0.3);
+  box-shadow: 0 0 20px #0008;
   width: 100vw;
   max-width: 480px;
   padding: 8px 12px 12px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  position: relative;
 }
 
 canvas {
