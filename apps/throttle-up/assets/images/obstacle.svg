@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 30" width="20" height="30">
+  <!-- Red obstacle/barrier -->
+  <defs>
+    <linearGradient id="obstacleGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#d32f2f;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#b22222;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect x="0" y="0" width="20" height="30" fill="url(#obstacleGrad)" stroke="#7a1212" stroke-width="2" rx="2"/>
+  
+  <!-- Warning stripes -->
+  <rect x="0" y="5" width="20" height="3" fill="#fff" opacity="0.3"/>
+  <rect x="0" y="13" width="20" height="3" fill="#fff" opacity="0.3"/>
+  <rect x="0" y="21" width="20" height="3" fill="#fff" opacity="0.3"/>
+</svg>

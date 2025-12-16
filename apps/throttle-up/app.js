@@ -186,29 +186,79 @@
     highscoreEl.textContent = Math.floor(highscore);
   }
 
-  // Draw two-lane road with dotted center line and starting line
+  // Draw race track environment with crowd
   function drawRoad() {
-    // Road base
-    ctx.fillStyle = '#444';
-    ctx.fillRect(0, HEIGHT - 100, WIDTH, 100);
+    // Sky gradient (already in CSS, but we can add clouds)
+    // Draw simple clouds
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.beginPath();
+    ctx.ellipse(100, 40, 30, 15, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(300, 60, 40, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Outer solid lines
+    // Grandstand/Crowd in background (simplified)
+    const crowdY = HEIGHT - 180;
+    ctx.fillStyle = '#555';
+    ctx.fillRect(0, crowdY, WIDTH, 40);
+    
+    // Crowd heads (colorful dots)
+    for (let i = 0; i < WIDTH; i += 12) {
+      const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#a8e6cf', '#ff8b94'];
+      ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+      ctx.beginPath();
+      ctx.arc(i + Math.random() * 8, crowdY + 10 + Math.random() * 20, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Barrier/fence
+    ctx.fillStyle = '#d32f2f';
+    ctx.fillRect(0, HEIGHT - 130, WIDTH, 8);
+    ctx.fillStyle = '#fff';
+    for (let i = 0; i < WIDTH; i += 30) {
+      ctx.fillRect(i, HEIGHT - 130, 3, 8);
+    }
+
+    // Grass strip before track
+    ctx.fillStyle = '#4a8c1f';
+    ctx.fillRect(0, HEIGHT - 120, WIDTH, 20);
+
+    // Race track surface (asphalt)
+    const trackGrad = ctx.createLinearGradient(0, HEIGHT - 100, 0, HEIGHT - 20);
+    trackGrad.addColorStop(0, '#3a3a3a');
+    trackGrad.addColorStop(0.5, '#2a2a2a');
+    trackGrad.addColorStop(1, '#3a3a3a');
+    ctx.fillStyle = trackGrad;
+    ctx.fillRect(0, HEIGHT - 100, WIDTH, 80);
+
+    // Track texture (subtle noise)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
+    for (let i = 0; i < 200; i++) {
+      ctx.fillRect(Math.random() * WIDTH, HEIGHT - 100 + Math.random() * 80, 2, 2);
+    }
+
+    // Outer solid lines (bright white/yellow)
     ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, HEIGHT - 100);
     ctx.lineTo(WIDTH, HEIGHT - 100);
     ctx.stroke();
+    
+    // Bottom line
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(0, HEIGHT - 20);
     ctx.lineTo(WIDTH, HEIGHT - 20);
     ctx.stroke();
 
-    // Dotted center line
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 3;
+    // Dotted center line (yellow for race track)
+    ctx.strokeStyle = '#ffeb3b';
+    ctx.lineWidth = 4;
     let x = 0;
-    const dashLength = 15;
+    const dashLength = 20;
     const gapLength = 15;
     while (x < WIDTH) {
       ctx.beginPath();
@@ -218,13 +268,13 @@
       x += dashLength + gapLength;
     }
 
-    // Starting line (vertical white line near left side)
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(80, HEIGHT - 100);
-    ctx.lineTo(80, HEIGHT - 20);
-    ctx.stroke();
+    // Starting line (checkered pattern)
+    ctx.fillStyle = '#fff';
+    for (let i = 0; i < 5; i++) {
+      ctx.fillRect(80, HEIGHT - 100 + (i * 16), 6, 8);
+      ctx.fillStyle = i % 2 === 0 ? '#fff' : '#222';
+      ctx.fillRect(80, HEIGHT - 100 + (i * 16) + 8, 6, 8);
+    }
   }
 
   // Draw bike with realistic sportbike and rider, front wheel lifts only
@@ -323,34 +373,65 @@
     ctx.restore();
   }
 
-  // Draw obstacles as red rectangles in lanes
+  // Draw obstacles as bright red traffic cones/barriers
   function drawObstacles() {
-    ctx.fillStyle = '#b22222';
     obstacles.forEach(o => {
+      // Bright orange/red cone
+      const grad = ctx.createLinearGradient(o.x, o.y, o.x, o.y + o.height);
+      grad.addColorStop(0, '#ff4444');
+      grad.addColorStop(1, '#cc0000');
+      ctx.fillStyle = grad;
       ctx.fillRect(o.x, o.y, o.width, o.height);
-      ctx.strokeStyle = '#7a1212';
+      
+      // White stripes
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(o.x, o.y + 5, o.width, 3);
+      ctx.fillRect(o.x, o.y + 13, o.width, 3);
+      ctx.fillRect(o.x, o.y + 21, o.width, 3);
+      
+      // Border
+      ctx.strokeStyle = '#8b0000';
       ctx.lineWidth = 2;
       ctx.strokeRect(o.x, o.y, o.width, o.height);
     });
   }
 
-  // Draw coins as shiny yellow circles
+  // Draw coins as bright shiny gold circles
   function drawCoins() {
     coins.forEach(c => {
       if (!c.collected) {
-        const grad = ctx.createRadialGradient(c.x, c.y, c.radius / 3, c.x, c.y, c.radius);
-        grad.addColorStop(0, '#fff700');
-        grad.addColorStop(1, '#c9a700');
+        // Outer glow
+        const glowGrad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, c.radius + 4);
+        glowGrad.addColorStop(0, 'rgba(255, 215, 0, 0.6)');
+        glowGrad.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        ctx.fillStyle = glowGrad;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.radius + 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Main coin
+        const grad = ctx.createRadialGradient(c.x - 2, c.y - 2, c.radius / 4, c.x, c.y, c.radius);
+        grad.addColorStop(0, '#fffacd');
+        grad.addColorStop(0.3, '#ffd700');
+        grad.addColorStop(0.7, '#ffb700');
+        grad.addColorStop(1, '#cc9500');
         ctx.fillStyle = grad;
         ctx.beginPath();
         ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = '#a38700';
+        // Border
+        ctx.strokeStyle = '#b8860b';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
         ctx.stroke();
+
+        // Shine highlight
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.beginPath();
+        ctx.arc(c.x - 2, c.y - 2, c.radius / 3, 0, Math.PI * 2);
+        ctx.fill();
       }
     });
   }

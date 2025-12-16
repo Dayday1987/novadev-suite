@@ -460,6 +460,162 @@
   console.info('NovaDev Suite script loaded');
 })();
 
+/* ==== Blog Comments System ==== */
+(() => {
+  const COMMENTS_KEY = 'novadev_blog_comments_v1';
+
+  // Load comments from localStorage
+  function loadComments() {
+    try {
+      return JSON.parse(localStorage.getItem(COMMENTS_KEY) || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+
+  // Save comments to localStorage
+  function saveComments(comments) {
+    localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
+  }
+
+  // Render comments for a post
+  function renderComments(postId) {
+    const comments = loadComments();
+    const postComments = comments[postId] || [];
+    const container = document.querySelector(`.comments-section[data-post-id="${postId}"] .comments-list`);
+    
+    if (!container) return;
+
+    if (postComments.length === 0) {
+      container.innerHTML = '<p class="muted">No comments yet. Be the first to comment!</p>';
+      return;
+    }
+
+    container.innerHTML = postComments.map(comment => `
+      <div class="comment-item">
+        <div class="comment-header">
+          <span class="comment-author">${escapeHtml(comment.name)}</span>
+          <span class="comment-date">${new Date(comment.date).toLocaleDateString()}</span>
+        </div>
+        <div class="comment-text">${escapeHtml(comment.text)}</div>
+      </div>
+    `).join('');
+
+    // Update comment count
+    updateCommentCount(postId, postComments.length);
+  }
+
+  // Update comment count badge
+  function updateCommentCount(postId, count) {
+    const badge = document.querySelector(`.toggle-comments[data-post-id="${postId}"] .comment-count`);
+    if (badge) {
+      badge.textContent = count;
+    }
+  }
+
+  // Escape HTML to prevent XSS
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Toggle comments section
+  document.querySelectorAll('.toggle-comments').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const postId = btn.dataset.postId;
+      const section = document.querySelector(`.comments-section[data-post-id="${postId}"]`);
+      if (section) {
+        section.classList.toggle('hidden');
+        if (!section.classList.contains('hidden')) {
+          renderComments(postId);
+        }
+      }
+    });
+  });
+
+  // Handle comment form submissions
+  document.querySelectorAll('.comment-form').forEach(form => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const postId = form.closest('.comments-section').dataset.postId;
+      const name = form.querySelector('[name="name"]').value.trim();
+      const text = form.querySelector('[name="comment"]').value.trim();
+
+      if (!name || !text) return;
+
+      // Load existing comments
+      const comments = loadComments();
+      if (!comments[postId]) {
+        comments[postId] = [];
+      }
+
+      // Add new comment
+      comments[postId].push({
+        name,
+        text,
+        date: new Date().toISOString()
+      });
+
+      // Save and render
+      saveComments(comments);
+      renderComments(postId);
+
+      // Reset form
+      form.reset();
+
+      // Show success message
+      const btn = form.querySelector('button[type="submit"]');
+      const originalText = btn.textContent;
+      btn.textContent = 'Comment Posted!';
+      btn.disabled = true;
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }, 2000);
+    });
+  });
+
+  // Initialize comment counts on page load
+  document.querySelectorAll('.blog-post').forEach(post => {
+    const postId = post.dataset.postId;
+    const comments = loadComments();
+    const count = (comments[postId] || []).length;
+    updateCommentCount(postId, count);
+  });
+})();
+
+/* ==== Contact Forms Enhancement ==== */
+(() => {
+  // Add success messages to all forms
+  const forms = ['sponsorForm', 'contributorForm', 'contactForm'];
+  
+  forms.forEach(formId => {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    form.addEventListener('submit', (e) => {
+      // Netlify will handle the actual submission
+      // We just add visual feedback
+      const btn = form.querySelector('button[type="submit"]');
+      const originalText = btn.textContent;
+      
+      btn.textContent = 'Sending...';
+      btn.disabled = true;
+
+      // Netlify handles the redirect, but we add a timeout fallback
+      setTimeout(() => {
+        btn.textContent = 'Sent! ✓';
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }, 2000);
+      }, 1000);
+    });
+  });
+})();
+
 /* ==== In-page Monaco editor + live preview (NovaDevStudio) ==== */
 (() => {
   // Config

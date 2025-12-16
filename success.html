@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Thank You - NovaDev Suite</title>
+  <link rel="stylesheet" href="styles/main.css" />
+  <style>
+    .success-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    .success-card {
+      max-width: 600px;
+      background: var(--card);
+      padding: 48px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .success-icon {
+      font-size: 64px;
+      margin-bottom: 24px;
+    }
+    .success-title {
+      font-size: 2rem;
+      margin-bottom: 16px;
+      background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .success-message {
+      color: var(--muted);
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="success-container">
+    <div class="success-card">
+      <div class="success-icon">✅</div>
+      <h1 class="success-title">Thank You!</h1>
+      <p class="success-message">
+        Your message has been received. I'll get back to you as soon as possible!
+      </p>
+      <a href="/" class="btn primary btn--glow">Back to Home</a>
+    </div>
+  </div>
+</body>
+</html>

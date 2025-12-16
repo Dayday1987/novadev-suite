@@ -6,7 +6,7 @@
 
 body {
   margin: 0;
-  background: #f0f0f0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   font-family: 'Roboto Mono', monospace, monospace;
   color: #222;
   display: flex;
@@ -23,29 +23,30 @@ body {
 -ms-user-select: none;      /* IE 10+ */
 -moz-user-select: none;     /* Firefox */
 
-  background: #222;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   border-radius: 12px;
-  box-shadow: 0 0 20px #0008;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
   width: 100vw;
   max-width: 480px;
   padding: 8px 12px 12px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 canvas {
   background: linear-gradient(to bottom, 
-  #87ceeb 0%,       /* Sky blue */
-  #87ceeb 60%,      /* Sky blue continues */
-  #4a8c1f 60%,      /* Dark green grass starts */
-  #8fd14f 100%      /* Lighter green grass at bottom */
+  #4a90e2 0%,       /* Bright sky blue */
+  #87ceeb 40%,      /* Light sky blue */
+  #b8e6f5 70%,      /* Horizon light blue */
+  #8fd14f 100%      /* Grass at bottom */
 );
 border-radius: 8px;
 width: 100%;
 height: auto;
 touch-action: none;
-image-rendering: pixelated;
+image-rendering: crisp-edges;
 display: block;
 margin-top: 4px;
 }

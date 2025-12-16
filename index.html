@@ -41,6 +41,7 @@
 
       <nav class="nav" aria-label="Primary">
         <a href="#projects">Projects</a>
+        <a href="#blog">Blog</a>
         <a href="#tools">Tools</a>
         <a href="#contact" class="cta btn btn--glow">Contact</a>
       </nav>
@@ -101,32 +102,135 @@
 
         <div class="projects-grid">
           <article class="card project reveal fade-in" tabindex="0" aria-labelledby="p1-title">
-            <img src="assets/project1.png" alt="AI Portfolio screenshot"/>
-            <h3 id="p1-title" class="fade-in">AI Portfolio</h3>
-            <p class="fade-in">Interactive portfolio with polished UI and project demos.</p>
+            <img src="assets/project4.svg" alt="NovaDev IDE screenshot"/>
+            <h3 id="p1-title" class="fade-in">NovaDev IDE</h3>
+            <p class="fade-in">Professional web development environment with Monaco Editor.</p>
             <div class="card-actions">
-              <a class="btn fade-in" href="#" target="_blank" rel="noopener">View</a>
-              <a class="btn ghost fade-in" href="#" target="_blank" rel="noopener">Code</a>
+              <a class="btn fade-in" href="apps/novadev-ide/index.html" target="_blank" rel="noopener">Launch</a>
+              <a class="btn ghost fade-in" href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/novadev-ide" target="_blank" rel="noopener">Code</a>
             </div>
           </article>
 
           <article class="card project reveal fade-in" tabindex="0" aria-labelledby="p2-title">
             <img src="assets/project2.png" alt="Wheelie game screenshot"/>
-            <h3 id="p2-title" class="fade-in">Motorcycle Wheelie Game</h3>
-            <p class="fade-in">Canvas-based balance game — coming soon.</p>
+            <h3 id="p2-title" class="fade-in">Throttle Up - Wheelie Challenge</h3>
+            <p class="fade-in">Canvas-based motorcycle balance game with two lanes.</p>
             <div class="card-actions">
-              <a class="btn" href="https://raw.githack.com/Dayday1987/novadev-suite/refs/heads/main/projects/wheelie/index.html">Play</a>
-              <a class="btn ghost fade-in" href="#" target="_blank" rel="noopener">Code</a>
+              <a class="btn fade-in" href="apps/throttle-up/index.html" target="_blank" rel="noopener">Play</a>
+              <a class="btn ghost fade-in" href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/throttle-up" target="_blank" rel="noopener">Code</a>
             </div>
           </article>
 
           <article class="card project reveal fade-in" tabindex="0" aria-labelledby="p3-title">
             <img src="assets/project3.png" alt="Meme maker screenshot"/>
             <h3 id="p3-title" class="fade-in">Meme Maker</h3>
-            <p class="fade-in">Fast client-side editor — upload, text, download.</p>
+            <p class="fade-in">Client-side meme editor with canvas rendering.</p>
             <div class="card-actions">
-              <a class="btn fade-in" href="#tools">Open Tool</a>
-              <a class="btn ghost fade-in" href="#" target="_blank" rel="noopener">Code</a>
+              <a class="btn fade-in" href="apps/meme-maker/index.html" target="_blank" rel="noopener">Open</a>
+              <a class="btn ghost fade-in" href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/meme-maker" target="_blank" rel="noopener">Code</a>
+            </div>
+          </article>
+
+          <article class="card project reveal fade-in" tabindex="0" aria-labelledby="p4-title">
+            <img src="assets/project1.png" alt="AI Prompt Library screenshot"/>
+            <h3 id="p4-title" class="fade-in">AI Prompt Library</h3>
+            <p class="fade-in">Save and manage AI prompts with localStorage.</p>
+            <div class="card-actions">
+              <a class="btn fade-in" href="apps/ai.portfolio/index.html" target="_blank" rel="noopener">View</a>
+              <a class="btn ghost fade-in" href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/ai.portfolio" target="_blank" rel="noopener">Code</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- BLOG ---->
+    <section id="blog" class="section" aria-labelledby="blog-heading">
+      <div class="wrap">
+        <h2 id="blog-heading" class="reveal fade-in">Blog & Updates</h2>
+
+        <div class="blog-grid">
+          <!-- Blog Post 1 -->
+          <article class="card blog-post reveal fade-in" data-post-id="1">
+            <div class="blog-header">
+              <h3 class="fade-in">Welcome to NovaDev Suite</h3>
+              <div class="blog-meta">
+                <span class="author">David Munoz</span>
+                <span class="date">December 16, 2024</span>
+              </div>
+            </div>
+            <div class="blog-content fade-in">
+              <p>Excited to launch NovaDev Suite - a collection of web development tools and games built with modern web technologies. This portfolio showcases my work in JavaScript, canvas graphics, and web-based IDEs.</p>
+              <p>Check out the NovaDev IDE - a full-featured code editor running entirely in your browser!</p>
+            </div>
+            <div class="blog-actions">
+              <button class="btn ghost toggle-comments" data-post-id="1">
+                <span class="comment-count">0</span> Comments
+              </button>
+            </div>
+            <div class="comments-section hidden" data-post-id="1">
+              <div class="comments-list"></div>
+              <form class="comment-form">
+                <input type="text" name="name" placeholder="Your name" required />
+                <textarea name="comment" placeholder="Leave a comment..." required></textarea>
+                <button type="submit" class="btn primary">Post Comment</button>
+              </form>
+            </div>
+          </article>
+
+          <!-- Blog Post 2 -->
+          <article class="card blog-post reveal fade-in" data-post-id="2">
+            <div class="blog-header">
+              <h3 class="fade-in">Throttle Up: Building a Canvas Game</h3>
+              <div class="blog-meta">
+                <span class="author">David Munoz</span>
+                <span class="date">December 16, 2024</span>
+              </div>
+            </div>
+            <div class="blog-content fade-in">
+              <p>Throttle Up is a motorcycle wheelie game featuring a Kawasaki Ninja H2R. Built with HTML5 Canvas, it demonstrates physics simulation, collision detection, and responsive game design.</p>
+              <p>The game features a race track environment with crowds, realistic bike graphics, and smooth gameplay mechanics.</p>
+            </div>
+            <div class="blog-actions">
+              <button class="btn ghost toggle-comments" data-post-id="2">
+                <span class="comment-count">0</span> Comments
+              </button>
+            </div>
+            <div class="comments-section hidden" data-post-id="2">
+              <div class="comments-list"></div>
+              <form class="comment-form">
+                <input type="text" name="name" placeholder="Your name" required />
+                <textarea name="comment" placeholder="Leave a comment..." required></textarea>
+                <button type="submit" class="btn primary">Post Comment</button>
+              </form>
+            </div>
+          </article>
+
+          <!-- Blog Post 3 -->
+          <article class="card blog-post reveal fade-in" data-post-id="3">
+            <div class="blog-header">
+              <h3 class="fade-in">Looking for Contributors!</h3>
+              <div class="blog-meta">
+                <span class="author">David Munoz</span>
+                <span class="date">December 16, 2024</span>
+              </div>
+            </div>
+            <div class="blog-content fade-in">
+              <p>NovaDev Suite is growing! I'm looking for developers, designers, and sponsors to help take this project to the next level.</p>
+              <p>Whether you want to contribute code, design assets, or sponsor development - there's a place for you. Check out the contact forms below to get involved!</p>
+            </div>
+            <div class="blog-actions">
+              <button class="btn ghost toggle-comments" data-post-id="3">
+                <span class="comment-count">0</span> Comments
+              </button>
+            </div>
+            <div class="comments-section hidden" data-post-id="3">
+              <div class="comments-list"></div>
+              <form class="comment-form">
+                <input type="text" name="name" placeholder="Your name" required />
+                <textarea name="comment" placeholder="Leave a comment..." required></textarea>
+                <button type="submit" class="btn primary">Post Comment</button>
+              </form>
             </div>
           </article>
         </div>
@@ -212,26 +316,92 @@
       <div class="wrap">
         <h2 id="contact-heading" class="reveal fade-in">Get in touch</h2>
 
-        <div class="card contact reveal fade-in">
-          <h3 class="fade-in">Contact</h3>
-          <p class="muted fade-in">Clients — reach out for quotes. Contributors — interested in collaborating? Drop a message below.</p>
+        <div class="contact-grid">
+          <!-- Sponsor Form -->
+          <div class="card contact reveal fade-in">
+            <h3 class="fade-in">💎 Become a Sponsor</h3>
+            <p class="muted fade-in">Support NovaDev Suite development and get your brand featured.</p>
 
-          <form id="contactForm" class="contact-form fade-in" name="contactForm" method="POST" data-netlify="true" netlify>
-            <div class="tool-row">
+            <form id="sponsorForm" class="contact-form fade-in" name="sponsorForm" method="POST" data-netlify="true" action="/success.html" netlify>
+              <input name="company" placeholder="Company name" required />
+              <input name="name" placeholder="Your name" required />
+              <input name="email" type="email" placeholder="you@company.com" required />
+              
+              <select name="sponsorship-tier" required>
+                <option value="">Select sponsorship tier</option>
+                <option value="bronze">Bronze - $500/month</option>
+                <option value="silver">Silver - $1,000/month</option>
+                <option value="gold">Gold - $2,500/month</option>
+                <option value="platinum">Platinum - $5,000/month</option>
+                <option value="custom">Custom - Let's discuss</option>
+              </select>
+
+              <textarea name="message" placeholder="Tell us about your sponsorship goals..." required></textarea>
+
+              <div class="tool-row">
+                <button type="submit" class="btn primary btn--glow fade-in">Submit Inquiry</button>
+                <button type="reset" class="btn ghost fade-in">Reset</button>
+              </div>
+
+              <input type="hidden" name="form-name" value="sponsorForm" />
+            </form>
+          </div>
+
+          <!-- Contributor Form -->
+          <div class="card contact reveal fade-in">
+            <h3 class="fade-in">🤝 Join as Contributor</h3>
+            <p class="muted fade-in">Developers, designers, and creators — let's build together!</p>
+
+            <form id="contributorForm" class="contact-form fade-in" name="contributorForm" method="POST" data-netlify="true" action="/success.html" netlify>
               <input name="name" placeholder="Your name" required />
               <input name="email" type="email" placeholder="you@example.com" required />
-            </div>
+              
+              <select name="role" required>
+                <option value="">What's your expertise?</option>
+                <option value="frontend">Frontend Developer</option>
+                <option value="backend">Backend Developer</option>
+                <option value="fullstack">Full-stack Developer</option>
+                <option value="designer">UI/UX Designer</option>
+                <option value="game-dev">Game Developer</option>
+                <option value="devops">DevOps Engineer</option>
+                <option value="other">Other</option>
+              </select>
 
-            <textarea name="message" placeholder="Tell me about your project..." required></textarea>
+              <input name="github" type="url" placeholder="GitHub profile (optional)" />
+              <input name="portfolio" type="url" placeholder="Portfolio URL (optional)" />
 
-            <div class="tool-row">
-              <button type="submit" class="btn primary btn--glow fade-in">Send</button>
-              <button type="reset" class="btn ghost fade-in">Reset</button>
-            </div>
+              <textarea name="message" placeholder="Tell us about your skills and what you'd like to contribute..." required></textarea>
 
-            <!-- Netlify required hidden field -->
-            <input type="hidden" name="form-name" value="contactForm" />
-          </form>
+              <div class="tool-row">
+                <button type="submit" class="btn primary btn--glow fade-in">Apply to Contribute</button>
+                <button type="reset" class="btn ghost fade-in">Reset</button>
+              </div>
+
+              <input type="hidden" name="form-name" value="contributorForm" />
+            </form>
+          </div>
+
+          <!-- General Contact Form -->
+          <div class="card contact reveal fade-in full-width">
+            <h3 class="fade-in">📧 General Inquiries</h3>
+            <p class="muted fade-in">Questions, feedback, or just want to say hi? Drop a message!</p>
+
+            <form id="contactForm" class="contact-form fade-in" name="contactForm" method="POST" data-netlify="true" action="/success.html" netlify>
+              <div class="tool-row">
+                <input name="name" placeholder="Your name" required />
+                <input name="email" type="email" placeholder="you@example.com" required />
+              </div>
+
+              <textarea name="message" placeholder="Your message..." required></textarea>
+
+              <div class="tool-row">
+                <button type="submit" class="btn primary btn--glow fade-in">Send Message</button>
+                <button type="reset" class="btn ghost fade-in">Reset</button>
+              </div>
+
+              <input type="hidden" name="form-name" value="contactForm" />
+            </form>
+          </div>
         </div>
       </div>
     </section>

@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Meme Maker - NovaDev Suite</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      background: linear-gradient(180deg, #04121a 0%, #071422 60%);
+      color: #e6eef6;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      background: linear-gradient(90deg, #6EE7F7, #7C5CFF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 30px;
+    }
+    .card {
+      background: #0b1a28;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 12px 36px rgba(2,6,23,0.6);
+      border: 1px solid rgba(255,255,255,0.02);
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      background: #070b10;
+      display: block;
+      margin-bottom: 16px;
+    }
+    .tool-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    input[type="file"],
+    input[type="text"] {
+      flex: 1;
+      min-width: 150px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: #e6eef6;
+      font-family: inherit;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      text-decoration: none;
+      font-family: inherit;
+      font-size: 14px;
+      transition: transform 220ms, box-shadow 220ms;
+    }
+    .btn.primary {
+      background: linear-gradient(90deg, #6EE7F7, #7C5CFF);
+      color: #071422;
+      font-weight: 600;
+    }
+    .btn.ghost {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #98a0b3;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+    .muted {
+      color: #98a0b3;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #6EE7F7;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="../../index.html" class="back-link">← Back to Portfolio</a>
+    
+    <h1>Meme Maker</h1>
+    
+    <div class="card">
+      <canvas id="memeCanvas" width="1000" height="600" aria-label="Meme canvas"></canvas>
+
+      <div class="tool-row">
+        <input id="imageInput" type="file" accept="image/*" />
+        <input id="topText" type="text" placeholder="Top text" />
+        <input id="bottomText" type="text" placeholder="Bottom text" />
+      </div>
+
+      <div class="tool-row">
+        <button id="drawMeme" class="btn primary">Draw</button>
+        <button id="downloadMeme" class="btn ghost">Download PNG</button>
+        <button id="resetMeme" class="btn ghost">Reset</button>
+      </div>
+
+      <p class="muted">Tip: Use Impact-style text (uppercase) for classic memes.</p>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('memeCanvas');
+      const ctx = canvas.getContext('2d');
+      const imageInput = document.getElementById('imageInput');
+      const topTextInput = document.getElementById('topText');
+      const bottomTextInput = document.getElementById('bottomText');
+      const drawBtn = document.getElementById('drawMeme');
+      const downloadBtn = document.getElementById('downloadMeme');
+      const resetBtn = document.getElementById('resetMeme');
+
+      const CANVAS_W = 1000;
+      const CANVAS_H = 600;
+      canvas.width = CANVAS_W;
+      canvas.height = CANVAS_H;
+
+      let loadedImage = null;
+
+      function drawBase() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (loadedImage) {
+          const scale = Math.max(canvas.width / loadedImage.width, canvas.height / loadedImage.height);
+          const w = loadedImage.width * scale;
+          const h = loadedImage.height * scale;
+          const x = (canvas.width - w) / 2;
+          const y = (canvas.height - h) / 2;
+          ctx.drawImage(loadedImage, x, y, w, h);
+        } else {
+          ctx.fillStyle = '#071422';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+
+      function wrapAndDrawText(ctx, text, x, y, maxWidth, lineHeight, fromBottom = false) {
+        if (!text) return;
+        const words = text.split(' ');
+        let line = '';
+        const lines = [];
+        for (let i = 0; i < words.length; i++) {
+          const test = (line + words[i] + ' ').trim();
+          if (ctx.measureText(test).width > maxWidth && line) {
+            lines.push(line.trim());
+            line = words[i] + ' ';
+          } else {
+            line = test + ' ';
+          }
+        }
+        if (line) lines.push(line.trim());
+        if (fromBottom) {
+          for (let i = 0; i < lines.length; i++) {
+            const t = lines[lines.length - 1 - i];
+            ctx.strokeText(t, x, y - (i * lineHeight));
+            ctx.fillText(t, x, y - (i * lineHeight));
+          }
+        } else {
+          for (let i = 0; i < lines.length; i++) {
+            const t = lines[i];
+            ctx.strokeText(t, x, y + (i * lineHeight));
+            ctx.fillText(t, x, y + (i * lineHeight));
+          }
+        }
+      }
+
+      function drawMemeCanvas() {
+        drawBase();
+        const top = (topTextInput.value || '').toUpperCase();
+        const bottom = (bottomTextInput.value || '').toUpperCase();
+
+        const baseFont = Math.max(28, Math.round(canvas.width / 15));
+        ctx.fillStyle = 'white';
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = Math.max(6, Math.round(baseFont / 10));
+        ctx.textAlign = 'center';
+        ctx.font = `${baseFont}px Impact, Arial, sans-serif`;
+
+        const padding = Math.round(baseFont * 0.8);
+        const topY = padding + baseFont;
+        const bottomY = canvas.height - padding;
+
+        wrapAndDrawText(ctx, top, canvas.width / 2, topY, canvas.width - 80, baseFont * 1.1, false);
+        wrapAndDrawText(ctx, bottom, canvas.width / 2, bottomY, canvas.width - 80, baseFont * 1.1, true);
+      }
+
+      imageInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) {
+          loadedImage = null;
+          drawMemeCanvas();
+          return;
+        }
+        const url = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          loadedImage = img;
+          drawMemeCanvas();
+          URL.revokeObjectURL(url);
+        };
+        img.onerror = () => {
+          loadedImage = null;
+          drawMemeCanvas();
+          URL.revokeObjectURL(url);
+        };
+        img.src = url;
+      });
+
+      drawBtn.addEventListener('click', drawMemeCanvas);
+      
+      downloadBtn.addEventListener('click', () => {
+        const data = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = data;
+        a.download = 'novadev-meme.png';
+        a.click();
+      });
+      
+      resetBtn.addEventListener('click', () => {
+        loadedImage = null;
+        imageInput.value = '';
+        topTextInput.value = '';
+        bottomTextInput.value = '';
+        drawMemeCanvas();
+      });
+
+      drawMemeCanvas();
+    })();
+  </script>
+</body>
+</html>
