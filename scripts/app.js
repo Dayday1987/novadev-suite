@@ -275,7 +275,7 @@
         });
       }, {
         root: null,
-        rootMargin: '0px 0px -12% 0px', // trigger a little before element fully enters
+        rootMargin: '0px 0px -5% 0px', // trigger when 5% visible
         threshold: 0.08
       });
 
@@ -319,6 +319,15 @@
 
     updateClock();
     setInterval(updateClock, 1000);
+
+    // hamburger menu
+    const hamburger = $('.hamburger');
+    const nav = $('.nav');
+    if (hamburger && nav) {
+      hamburger.addEventListener('click', () => {
+        nav.classList.toggle('show');
+      });
+    }
 
     // hero entrance (keep small immediate reveal on left, staged right)
     const heroLeft = $('.hero-left');

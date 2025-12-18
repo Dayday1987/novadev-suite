@@ -1,7 +1,7 @@
 (() => {
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
-  const wheelieTimeEl = document.getElementById('wheelieTime');
+  const scoreEl = document.getElementById('score');
   const distanceEl = document.getElementById('distance');
   const coinsEl = document.getElementById('coins');
   const highscoreEl = document.getElementById('highscore');
@@ -9,27 +9,36 @@
   const infoBtn = document.getElementById('infoBtn');
   const infoPopup = document.getElementById('infoPopup');
   const closeInfoBtn = document.getElementById('closeInfoBtn');
-  const countdownOverlay = document.getElementById('countdownOverlay');
-  const lightYellow1 = document.getElementById('lightYellow1');
-  const lightYellow2 = document.getElementById('lightYellow2');
-  const lightGreen = document.getElementById('lightGreen');
-  const countdownNumber = document.getElementById('countdownNumber');
-  const goText = document.getElementById('goText');
 
-  const WIDTH = canvas.width;
-  const HEIGHT = canvas.height;
+  const container = document.getElementById('game-container');
+  const aspect = 480 / 320;
+  let clientWidth = container.clientWidth;
+  let clientHeight = container.clientHeight;
+  if (clientWidth / clientHeight > aspect) {
+    canvas.width = clientHeight * aspect;
+    canvas.height = clientHeight;
+  } else {
+    canvas.width = clientWidth;
+    canvas.height = clientWidth / aspect;
+  }
+  const scaleX = canvas.width / 480;
+  const scaleY = canvas.height / 320;
+  const WIDTH = 480;
+  const HEIGHT = 320;
 
   // Game constants
-  const GRAVITY = 0.25;
-  const TORQUE = -0.05; // reduced torque for smooth wheelie
-  const MAX_FRONT_ANGLE = Math.PI / 3; // ~60 degrees max front wheel lift
+  const GRAVITY = 0.3;
+  const TORQUE = 0.05; // positive to lift front wheel
+  const MAX_FRONT_ANGLE = Math.PI / 2.5; // ~72 degrees max front wheel lift
   const MIN_FRONT_ANGLE = 0; // bike horizontal
+  const TAP_BOOST = 0.3; // radians
+  const TAP_SPEED_BOOST = 1;
   const OBSTACLE_WIDTH = 20;
   const OBSTACLE_HEIGHT = 30;
   const OBSTACLE_GAP_MIN = 150;
   const OBSTACLE_GAP_MAX = 300;
-  const OBSTACLE_SPEED_BASE = 2;
-  const OBSTACLE_SPEED_MAX = 6;
+  const OBSTACLE_SPEED_BASE = 1;
+  const OBSTACLE_SPEED_MAX = 5;
   const COIN_RADIUS = 8;
   const BIKE_WIDTH = 80;
   const BIKE_HEIGHT = 40;
@@ -39,12 +48,11 @@
 
   // Game state
   let bike = {
-    x: 80,
+    x: WIDTH / 2,
     y: LANES_Y[0],
     lane: 0,
     angle: 0,
     angleVelocity: 0,
-    wheelieTime: 0,
     distance: 0,
     coins: 0,
     crashed: false,
@@ -55,7 +63,8 @@
   let coins = [];
   let lastTimestamp = 0;
   let isHolding = false;
-  let highscore = parseFloat(localStorage.getItem('wheelieHighscore')) || 0;
+  let pressTime = 0;
+  let highscore = parseFloat(localStorage.getItem('throttleHighscore')) || 0;
   let gameStarted = false;
   let gameRunning = false;
 
@@ -157,22 +166,21 @@
   function resetGame() {
     bike.angle = 0;
     bike.angleVelocity = 0;
-    bike.wheelieTime = 0;
     bike.distance = 0;
     bike.coins = 0;
     bike.crashed = false;
     bike.speed = 0;
-    bike.x = 80;
+    bike.x = WIDTH / 2;
     bike.lane = 0;
     bike.y = LANES_Y[bike.lane];
     obstacles = [];
     coins = [];
     lastTimestamp = 0;
     isHolding = false;
+    pressTime = 0;
     gameStarted = false;
     gameRunning = false;
     restartBtn.hidden = true;
-    countdownOverlay.hidden = true;
     spawnObstacle();
     spawnCoin();
     updateUI();
@@ -180,7 +188,7 @@
 
   // Update scoreboard UI
   function updateUI() {
-    wheelieTimeEl.textContent = bike.wheelieTime.toFixed(2);
+    scoreEl.textContent = Math.floor(bike.distance);
     coinsEl.textContent = bike.coins;
     distanceEl.textContent = Math.floor(bike.distance);
     highscoreEl.textContent = Math.floor(highscore);
@@ -188,7 +196,15 @@
 
   // Draw race track environment with crowd
   function drawRoad() {
-    // Sky gradient (already in CSS, but we can add clouds)
+    // Draw sky gradient
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+    skyGrad.addColorStop(0, '#4a90e2');
+    skyGrad.addColorStop(0.4, '#87ceeb');
+    skyGrad.addColorStop(0.7, '#b8e6f5');
+    skyGrad.addColorStop(1, '#8fd14f');
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
     // Draw simple clouds
     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.beginPath();
@@ -487,13 +503,25 @@
     if (!gameStarted) {
       startGameSequence();
     }
-    if (!bike.crashed && gameRunning) {
+    if (gameRunning && !bike.crashed) {
       isHolding = true;
+      pressTime = Date.now();
       startWheelSpinSound();
     }
   }
   function onPointerUp(e) {
     e.preventDefault();
+    if (isHolding && gameRunning && !bike.crashed) {
+      const duration = Date.now() - pressTime;
+      if (duration < 200) {
+        // tap
+        bike.angle += TAP_BOOST;
+        bike.speed += TAP_SPEED_BOOST;
+        if (bike.angle > MAX_FRONT_ANGLE) bike.angle = MAX_FRONT_ANGLE;
+        if (bike.angle < MIN_FRONT_ANGLE) bike.angle = MIN_FRONT_ANGLE;
+      }
+      // else hold release
+    }
     isHolding = false;
     stopWheelSpinSound();
   }
@@ -530,12 +558,15 @@
 
   function onKeyDown(e) {
     if (!gameStarted) {
-      startGameSequence();
+      gameStarted = true;
+      gameRunning = true;
+      restartBtn.hidden = true;
     }
     if (e.code === 'Space') {
       e.preventDefault();
-      if (!bike.crashed && gameRunning) {
+      if (gameRunning && !bike.crashed) {
         isHolding = true;
+        pressTime = Date.now();
         startWheelSpinSound();
       }
     }
@@ -550,23 +581,20 @@
   function onKeyUp(e) {
     if (e.code === 'Space') {
       e.preventDefault();
+      if (isHolding && gameRunning && !bike.crashed) {
+        const duration = Date.now() - pressTime;
+        if (duration < 200) {
+          // tap
+          bike.angle += TAP_BOOST;
+          bike.speed += TAP_SPEED_BOOST;
+          if (bike.angle > MAX_FRONT_ANGLE) bike.angle = MAX_FRONT_ANGLE;
+          if (bike.angle < MIN_FRONT_ANGLE) bike.angle = MIN_FRONT_ANGLE;
+        }
+      }
       isHolding = false;
       stopWheelSpinSound();
     }
   }
-
-  // Restart button
-  restartBtn.addEventListener('click', () => {
-    resetGame();
-  });
-
-  // Info popup toggle
-  infoBtn.addEventListener('click', () => {
-    infoPopup.hidden = false;
-  });
-  closeInfoBtn.addEventListener('click', () => {
-    infoPopup.hidden = true;
-  });
 
   // Start game countdown sequence
   async function startGameSequence() {
@@ -578,18 +606,18 @@
     goText.hidden = true;
     countdownNumber.style.display = 'block';
 
-    // Blink yellow 1
+    // First yellow light
     lightYellow1.classList.add('active');
     countdownNumber.textContent = '3';
     await delay(1000);
 
-    // Blink yellow 2
+    // Second yellow light
     lightYellow1.classList.remove('active');
     lightYellow2.classList.add('active');
     countdownNumber.textContent = '2';
     await delay(1000);
 
-    // Green light
+    // Green light (go)
     lightYellow2.classList.remove('active');
     lightGreen.classList.add('active');
     countdownNumber.textContent = '1';
@@ -607,10 +635,18 @@
     bike.speed = OBSTACLE_SPEED_BASE;
   }
 
-  // Delay helper
-  function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+  // Restart button
+  restartBtn.addEventListener('click', () => {
+    resetGame();
+  });
+
+  // Info popup toggle
+  infoBtn.addEventListener('click', () => {
+    infoPopup.hidden = false;
+  });
+  closeInfoBtn.addEventListener('click', () => {
+    infoPopup.hidden = true;
+  });
 
   // Game loop
   function gameLoop(timestamp) {
@@ -619,45 +655,48 @@
     lastTimestamp = timestamp;
 
     if (gameRunning && !bike.crashed) {
-      // Smooth torque for front wheel lift
+      // Gravity pulls down
+      bike.angleVelocity -= GRAVITY;
+
+      // Torque if holding
       if (isHolding) {
         bike.angleVelocity += TORQUE;
-      } else {
-        bike.angleVelocity += GRAVITY * 0.1;
       }
 
-      // Clamp angle velocity and angle
-      bike.angleVelocity = Math.min(Math.max(bike.angleVelocity, -0.15), 0.15);
+      // Clamp angle velocity
+      bike.angleVelocity = Math.min(Math.max(bike.angleVelocity, -0.2), 0.2);
+
+      // Update angle
       bike.angle += bike.angleVelocity;
 
-      if (bike.angle > MAX_FRONT_ANGLE) {
-        bike.angle = MAX_FRONT_ANGLE;
-        bike.angleVelocity = 0;
-      }
-      if (bike.angle < MIN_FRONT_ANGLE) {
+      // Check for crash conditions
+      if (bike.angle <= MIN_FRONT_ANGLE) {
         bike.angle = MIN_FRONT_ANGLE;
-        bike.angleVelocity = 0;
-      }
-
-      // Accelerate bike speed while holding wheelie, decelerate otherwise
-      if (isHolding) {
-        bike.speed += 0.01;
-        if (bike.speed > OBSTACLE_SPEED_MAX) bike.speed = OBSTACLE_SPEED_MAX;
+        bike.speed = 0;
+        bike.crashed = true;
+        gameRunning = false;
+        stopWheelSpinSound();
+        playCrashSound();
+        restartBtn.hidden = false;
+      } else if (bike.angle >= MAX_FRONT_ANGLE) {
+        bike.angle = MAX_FRONT_ANGLE;
+        bike.speed = 0;
+        bike.crashed = true;
+        gameRunning = false;
+        stopWheelSpinSound();
+        playCrashSound();
+        restartBtn.hidden = false;
       } else {
-        bike.speed -= 0.02;
-        if (bike.speed < OBSTACLE_SPEED_BASE) bike.speed = OBSTACLE_SPEED_BASE;
+        // Speed based on angle
+        bike.speed = OBSTACLE_SPEED_BASE + (bike.angle / MAX_FRONT_ANGLE) * (OBSTACLE_SPEED_MAX - OBSTACLE_SPEED_BASE);
       }
-
-      // Move bike forward (left to right)
-      bike.x += bike.speed;
-      if (bike.x > WIDTH - 80) bike.x = WIDTH - 80;
 
       // Update distance traveled
       bike.distance += bike.speed * delta * 60;
 
-      // Move obstacles and coins right to left (relative to bike)
-      obstacles.forEach(o => (o.x += bike.speed));
-      coins.forEach(c => (c.x += bike.speed));
+      // Move obstacles and coins left (world scrolls)
+      obstacles.forEach(o => (o.x -= bike.speed));
+      coins.forEach(c => (c.x -= bike.speed));
 
       // Remove offscreen obstacles and coins (right side)
       obstacles = obstacles.filter(o => o.x < WIDTH + OBSTACLE_WIDTH);
@@ -683,21 +722,19 @@
       // Check coin collection
       checkCoinCollection();
 
-      // Update wheelie time if front wheel lifted
-      if (bike.angle > 0.1) {
-        bike.wheelieTime += delta;
-      }
-
-      // Update highscore (score = wheelieTime * 100 + coins * 50)
-      const currentScore = bike.wheelieTime * 100 + bike.coins * 50;
+      // Update highscore (score = distance)
+      const currentScore = Math.floor(bike.distance);
       if (currentScore > highscore) {
         highscore = currentScore;
-        localStorage.setItem('wheelieHighscore', highscore.toFixed(0));
+        localStorage.setItem('throttleHighscore', highscore);
       }
     }
 
     // Clear canvas
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.scale(scaleX, scaleY);
 
     // Draw road and starting line
     drawRoad();
@@ -718,6 +755,8 @@
       ctx.textAlign = 'center';
       ctx.fillText('CRASHED!', WIDTH / 2, HEIGHT / 2);
     }
+
+    ctx.restore();
 
     updateUI();
 

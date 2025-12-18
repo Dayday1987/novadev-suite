@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-<title>Throttle Up - Wheelie Challenge</title>
+<title>Throttle Up - Motorcycle Game</title>
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,37 +12,28 @@
 
   <div id="ui-top">
     <div id="scoreboard">
-      <div>Wheelie Time: <span id="wheelieTime">0.00</span>s</div>
+      <div>Score: <span id="score">0</span></div>
       <div>Coins: <span id="coins">0</span></div>
       <div>Distance: <span id="distance">0</span>m</div>
       <div>High Score: <span id="highscore">0</span></div>
     </div>
     <button id="infoBtn" aria-label="Game instructions">ℹ️</button>
   </div>
-<canvas id="gameCanvas" width="480" height="320" aria-label="Motorcycle wheelie game"></canvas>
+<canvas id="gameCanvas" width="480" height="320" aria-label="Motorcycle game"></canvas>
   <button id="restartBtn" aria-label="Restart game" hidden>Restart</button>
 
   <div id="infoPopup" role="dialog" aria-modal="true" aria-labelledby="infoTitle" hidden>
     <h2 id="infoTitle">Game Instructions</h2>
-    <p>Hold Space (desktop) or Tap and Hold the screen (mobile) to lift the front wheel and perform a wheelie.</p>
-    <p>Use A/D keys or swipe left/right to change lanes and avoid obstacles or collect coins.</p>
-    <p>Your score is based on wheelie time plus coins collected.</p>
+    <p>Tap the screen for a quick boost or hold to gradually lift the front wheel and increase speed.</p>
+    <p>Keep the front tire off the ground to continue the game. If it touches or you hit an obstacle, game over.</p>
+    <p>Use A/D keys or swipe left/right to change lanes and collect coins.</p>
+    <p>Your score is based on distance traveled.</p>
     <button id="closeInfoBtn" aria-label="Close instructions">Close</button>
-  </div>
-
-  <div id="countdownOverlay" hidden>
-    <div id="lights">
-      <div id="lightYellow1" class="light yellow"></div>
-      <div id="lightYellow2" class="light yellow"></div>
-      <div id="lightGreen" class="light green"></div>
-    </div>
-    <div id="countdownNumber"></div>
-    <div id="goText" hidden>GO!</div>
   </div>
 
   <footer>NovaDev Studio Games</footer>
 </div>
 
-<script src="game.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

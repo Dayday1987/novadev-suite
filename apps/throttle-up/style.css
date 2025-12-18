@@ -12,7 +12,8 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 100%;
+  overflow: hidden;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -23,29 +24,21 @@ body {
 -ms-user-select: none;      /* IE 10+ */
 -moz-user-select: none;     /* Firefox */
 
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border-radius: 12px;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  background: #000;
   width: 100vw;
   max-width: 480px;
   padding: 8px 12px 12px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  height: 100%;
 }
 
 canvas {
-  background: linear-gradient(to bottom, 
-  #4a90e2 0%,       /* Bright sky blue */
-  #87ceeb 40%,      /* Light sky blue */
-  #b8e6f5 70%,      /* Horizon light blue */
-  #8fd14f 100%      /* Grass at bottom */
-);
-border-radius: 8px;
+  background: none;
 width: 100%;
-height: auto;
-touch-action: none;
+flex: 1;
+touch-action: auto;
 image-rendering: crisp-edges;
 display: block;
 margin-top: 4px;
