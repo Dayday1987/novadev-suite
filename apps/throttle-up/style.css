@@ -44,12 +44,30 @@ display: block;
 margin-top: 4px;
 }
 
-#ui-top {
-  width: 100%;
+#top-buttons {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
+  gap: 8px;
+}
+
+#homeBtn {
+  font-size: 1.4rem;
+  background: #4a8c1f;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 10px;
+  color: #eee;
+  cursor: pointer;
+  user-select: none;
+  min-width: 40px;
+  height: 38px;
+  line-height: 1;
+  transition: background-color 0.3s ease;
+}
+
+#homeBtn:hover,
+#homeBtn:focus {
+  background: #7ec34d;
+  outline: none;
 }
 
 #scoreboard {

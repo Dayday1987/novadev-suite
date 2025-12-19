@@ -9,6 +9,7 @@
   const infoBtn = document.getElementById('infoBtn');
   const infoPopup = document.getElementById('infoPopup');
   const closeInfoBtn = document.getElementById('closeInfoBtn');
+  const homeBtn = document.getElementById('homeBtn');
   const backBtn = document.getElementById('backBtn');
 
   const container = document.getElementById('game-container');
@@ -655,6 +656,14 @@
   });
   closeInfoBtn.addEventListener('touchstart', () => {
     infoPopup.hidden = true;
+  });
+
+  // Home button
+  homeBtn.addEventListener('click', () => {
+    window.location.href = '/';
+  });
+  homeBtn.addEventListener('touchstart', () => {
+    window.location.href = '/';
   });
 
   // Back button
