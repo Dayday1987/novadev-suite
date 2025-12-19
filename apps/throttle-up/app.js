@@ -769,12 +769,12 @@
   }
 
   // Setup input listeners
-  canvas.addEventListener('touchstart', onPointerDown, { passive: false });
-  canvas.addEventListener('touchend', onPointerUp, { passive: false });
-  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
-  canvas.addEventListener('touchend', onTouchEnd, { passive: false });
-  canvas.addEventListener('mousedown', onPointerDown);
-  canvas.addEventListener('mouseup', onPointerUp);
+  container.addEventListener('touchstart', onPointerDown, { passive: false });
+  container.addEventListener('touchend', onPointerUp, { passive: false });
+  container.addEventListener('touchstart', onTouchStart, { passive: false });
+  container.addEventListener('touchend', onTouchEnd, { passive: false });
+  container.addEventListener('mousedown', onPointerDown);
+  container.addEventListener('mouseup', onPointerUp);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
 

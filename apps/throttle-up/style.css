@@ -38,7 +38,7 @@ canvas {
   background: none;
 width: 100%;
 flex: 1;
-touch-action: auto;
+touch-action: none;
 image-rendering: crisp-edges;
 display: block;
 margin-top: 4px;
