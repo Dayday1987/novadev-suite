@@ -86,6 +86,28 @@ button#infoBtn:focus {
   outline: none;
 }
 
+button#backBtn {
+  font-size: 1.4rem;
+  background: #4a8c1f;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 10px;
+  color: #eee;
+  cursor: pointer;
+  user-select: none;
+  min-width: 40px;
+  height: 38px;
+  line-height: 1;
+  transition: background-color 0.3s ease;
+  margin-right: 8px;
+}
+
+button#backBtn:hover,
+button#backBtn:focus {
+  background: #7ec34d;
+  outline: none;
+}
+
 button#restartBtn {
   background: #4a8c1f;
   border: none;

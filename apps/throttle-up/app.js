@@ -9,6 +9,7 @@
   const infoBtn = document.getElementById('infoBtn');
   const infoPopup = document.getElementById('infoPopup');
   const closeInfoBtn = document.getElementById('closeInfoBtn');
+  const backBtn = document.getElementById('backBtn');
 
   const container = document.getElementById('game-container');
   const aspect = 480 / 320;
@@ -597,7 +598,7 @@
   }
 
   // Start game countdown sequence
-  async function startGameSequence() {
+  function startGameSequence() {
     if (gameStarted) return;
     gameStarted = true;
     restartBtn.hidden = true;
@@ -609,30 +610,29 @@
     // First yellow light
     lightYellow1.classList.add('active');
     countdownNumber.textContent = '3';
-    await delay(1000);
-
-    // Second yellow light
-    lightYellow1.classList.remove('active');
-    lightYellow2.classList.add('active');
-    countdownNumber.textContent = '2';
-    await delay(1000);
-
-    // Green light (go)
-    lightYellow2.classList.remove('active');
-    lightGreen.classList.add('active');
-    countdownNumber.textContent = '1';
-    await delay(1000);
-
-    // GO!
-    countdownNumber.style.display = 'none';
-    goText.hidden = false;
-    await delay(1000);
-
-    countdownOverlay.hidden = true;
-    lightGreen.classList.remove('active');
-
-    gameRunning = true;
-    bike.speed = OBSTACLE_SPEED_BASE;
+    setTimeout(() => {
+      // Second yellow light
+      lightYellow1.classList.remove('active');
+      lightYellow2.classList.add('active');
+      countdownNumber.textContent = '2';
+      setTimeout(() => {
+        // Green light (go)
+        lightYellow2.classList.remove('active');
+        lightGreen.classList.add('active');
+        countdownNumber.textContent = '1';
+        setTimeout(() => {
+          // GO!
+          countdownNumber.style.display = 'none';
+          goText.hidden = false;
+          setTimeout(() => {
+            countdownOverlay.hidden = true;
+            lightGreen.classList.remove('active');
+            gameRunning = true;
+            bike.speed = OBSTACLE_SPEED_BASE;
+          }, 1000);
+        }, 1000);
+      }, 1000);
+    }, 1000);
   }
 
   // Restart button
@@ -646,6 +646,11 @@
   });
   closeInfoBtn.addEventListener('click', () => {
     infoPopup.hidden = true;
+  });
+
+  // Back button
+  backBtn.addEventListener('click', () => {
+    window.location.href = '../../index.html';
   });
 
   // Game loop
