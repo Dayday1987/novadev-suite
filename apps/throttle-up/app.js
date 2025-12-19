@@ -639,12 +639,21 @@
   restartBtn.addEventListener('click', () => {
     resetGame();
   });
+  restartBtn.addEventListener('touchstart', () => {
+    resetGame();
+  });
 
   // Info popup toggle
   infoBtn.addEventListener('click', () => {
     infoPopup.hidden = false;
   });
+  infoBtn.addEventListener('touchstart', () => {
+    infoPopup.hidden = false;
+  });
   closeInfoBtn.addEventListener('click', () => {
+    infoPopup.hidden = true;
+  });
+  closeInfoBtn.addEventListener('touchstart', () => {
     infoPopup.hidden = true;
   });
 
