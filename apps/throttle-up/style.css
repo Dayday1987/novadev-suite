@@ -278,3 +278,12 @@ footer {
     font-size: 5rem;
   }
 }
+
+@media (max-width: 768px) {
+  #game-container {
+    padding: 0;
+  }
+  #ui-top {
+    margin-bottom: 8px;
+  }
+}
