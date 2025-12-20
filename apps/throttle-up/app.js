@@ -10,7 +10,6 @@
   const infoPopup = document.getElementById('infoPopup');
   const closeInfoBtn = document.getElementById('closeInfoBtn');
   const homeBtn = document.getElementById('homeBtn');
-  const backBtn = document.getElementById('backBtn');
 
   const container = document.getElementById('game-container');
   const aspect = 480 / 320;
@@ -664,11 +663,6 @@
   });
   homeBtn.addEventListener('touchstart', () => {
     window.location.href = '/';
-  });
-
-  // Back button
-  backBtn.addEventListener('click', () => {
-    window.location.href = '../../index.html';
   });
 
   // Game loop
