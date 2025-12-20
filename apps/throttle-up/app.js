@@ -236,6 +236,11 @@
     if (!lastTimestamp) lastTimestamp = timestamp;
     const delta = (timestamp - lastTimestamp) / 1000;
     lastTimestamp = timestamp;
+    
+    const delta = Math.min(
+  (timestamp - lastTimestamp) / 1000,
+  0.033 // max 30 FPS step
+);
 
     if (gameState === STATE.COUNTDOWN) {
       updateCountdown(delta);
