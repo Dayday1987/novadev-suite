@@ -10,6 +10,12 @@
   const infoPopup = document.getElementById('infoPopup');
   const closeInfoBtn = document.getElementById('closeInfoBtn');
   const homeBtn = document.getElementById('homeBtn');
+  const countdownOverlay = document.getElementById('countdownOverlay');
+  const lightYellow1 = document.getElementById('lightYellow1');
+  const lightYellow2 = document.getElementById('lightYellow2');
+  const lightGreen = document.getElementById('lightGreen');
+  const countdownNumber = document.getElementById('countdownNumber');
+  const goText = document.getElementById('goText');
 
   const container = document.getElementById('game-container');
   const aspect = 480 / 320;
@@ -30,7 +36,7 @@
   // Game constants
   const GRAVITY = 0.3;
   const TORQUE = 0.5; // positive to lift front wheel
-  const MAX_FRONT_ANGLE = Math.PI / 2.5; // ~72 degrees max front wheel lift
+  const MAX_FRONT_ANGLE = Math.PI / 3; // ~60 degrees max front wheel lift
   const MIN_FRONT_ANGLE = 0; // bike horizontal
   const TAP_BOOST = 0.3; // radians
   const TAP_SPEED_BOOST = 1;
@@ -182,6 +188,7 @@
     gameStarted = false;
     gameRunning = false;
     restartBtn.hidden = true;
+    countdownOverlay.hidden = true;
     spawnObstacle();
     spawnCoin();
     updateUI();
@@ -288,9 +295,9 @@
     // Starting line (checkered pattern)
     ctx.fillStyle = '#fff';
     for (let i = 0; i < 5; i++) {
-      ctx.fillRect(80, HEIGHT - 100 + (i * 16), 6, 8);
+      ctx.fillRect(WIDTH / 2 + 100, HEIGHT - 100 + (i * 16), 6, 8);
       ctx.fillStyle = i % 2 === 0 ? '#fff' : '#222';
-      ctx.fillRect(80, HEIGHT - 100 + (i * 16) + 8, 6, 8);
+      ctx.fillRect(WIDTH / 2 + 100, HEIGHT - 100 + (i * 16) + 8, 6, 8);
     }
   }
 
