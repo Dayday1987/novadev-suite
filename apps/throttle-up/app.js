@@ -29,7 +29,7 @@
 
   // Game constants
   const GRAVITY = 0.3;
-  const TORQUE = 0.05; // positive to lift front wheel
+  const TORQUE = 0.5; // positive to lift front wheel
   const MAX_FRONT_ANGLE = Math.PI / 2.5; // ~72 degrees max front wheel lift
   const MIN_FRONT_ANGLE = 0; // bike horizontal
   const TAP_BOOST = 0.3; // radians
@@ -544,8 +544,8 @@
     const absDx = Math.abs(dx);
     const absDy = Math.abs(dy);
 
-    // Horizontal swipe detection (threshold 30px)
-    if (absDx > 30 && absDx > absDy) {
+    // Horizontal swipe detection (threshold 50px)
+    if (absDx > 50 && absDx > absDy) {
       if (dx > 0) {
         changeLane(bike.lane + 1);
       } else {
@@ -781,12 +781,12 @@
   }
 
   // Setup input listeners
-  container.addEventListener('touchstart', onPointerDown, { passive: false });
-  container.addEventListener('touchend', onPointerUp, { passive: false });
-  container.addEventListener('touchstart', onTouchStart, { passive: false });
-  container.addEventListener('touchend', onTouchEnd, { passive: false });
-  container.addEventListener('mousedown', onPointerDown);
-  container.addEventListener('mouseup', onPointerUp);
+  canvas.addEventListener('touchstart', onPointerDown, { passive: false });
+  canvas.addEventListener('touchend', onPointerUp, { passive: false });
+  canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+  canvas.addEventListener('touchend', onTouchEnd, { passive: false });
+  canvas.addEventListener('mousedown', onPointerDown);
+  canvas.addEventListener('mouseup', onPointerUp);
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
 
