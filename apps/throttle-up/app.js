@@ -21,15 +21,8 @@
   const aspect = 480 / 320;
   let clientWidth = container.clientWidth;
   let clientHeight = container.clientHeight;
-  if (clientWidth / clientHeight > aspect) {
-    canvas.width = clientHeight * aspect;
-    canvas.height = clientHeight;
-  } else {
-    canvas.width = clientWidth;
-    canvas.height = clientWidth / aspect;
-  }
-  const scaleX = canvas.width / 480;
-  const scaleY = canvas.height / 320;
+  canvas.width = 480;
+  canvas.height = 320;
   const WIDTH = 480;
   const HEIGHT = 320;
 
@@ -755,10 +748,7 @@
     }
 
     // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.save();
-    ctx.scale(scaleX, scaleY);
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
     // Draw road and starting line
     drawRoad();
@@ -779,8 +769,6 @@
       ctx.textAlign = 'center';
       ctx.fillText('CRASHED!', WIDTH / 2, HEIGHT / 2);
     }
-
-    ctx.restore();
 
     updateUI();
 
