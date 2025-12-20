@@ -197,23 +197,18 @@
 
   // Draw race track environment with crowd
   function drawRoad() {
-    // Draw sky gradient
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, HEIGHT);
-    skyGrad.addColorStop(0, '#4a90e2');
-    skyGrad.addColorStop(0.4, '#87ceeb');
-    skyGrad.addColorStop(0.7, '#b8e6f5');
-    skyGrad.addColorStop(1, '#8fd14f');
-    ctx.fillStyle = skyGrad;
+    // Draw sky
+    ctx.fillStyle = '#4a90e2';
     ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
     // Draw simple clouds
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.beginPath();
-    ctx.ellipse(100, 40, 30, 15, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(300, 60, 40, 20, 0, 0, Math.PI * 2);
-    ctx.fill();
+    // ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+    // ctx.beginPath();
+    // ctx.ellipse(100, 40, 30, 15, 0, 0, Math.PI * 2);
+    // ctx.fill();
+    // ctx.beginPath();
+    // ctx.ellipse(300, 60, 40, 20, 0, 0, Math.PI * 2);
+    // ctx.fill();
 
     // Grandstand/Crowd in background (simplified)
     const crowdY = HEIGHT - 180;
