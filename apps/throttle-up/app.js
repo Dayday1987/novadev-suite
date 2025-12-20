@@ -358,19 +358,19 @@
     ctx.stroke();
 
     // Rider helmet (realistic shape)
-    ctx.fillStyle = '#222';
-    ctx.strokeStyle = '#555';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.ellipse(0, -40, 15, 20, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
+    // ctx.fillStyle = '#222';
+    // ctx.strokeStyle = '#555';
+    // ctx.lineWidth = 2;
+    // ctx.beginPath();
+    // ctx.ellipse(0, -40, 15, 20, 0, 0, Math.PI * 2);
+    // ctx.fill();
+    // ctx.stroke();
 
     // Helmet visor
-    ctx.fillStyle = 'rgba(100, 150, 255, 0.7)';
-    ctx.beginPath();
-    ctx.ellipse(0, -40, 12, 10, 0, 0, Math.PI);
-    ctx.fill();
+    // ctx.fillStyle = 'rgba(100, 150, 255, 0.7)';
+    // ctx.beginPath();
+    // ctx.ellipse(0, -40, 12, 10, 0, 0, Math.PI);
+    // ctx.fill();
 
     // Rider body
     ctx.fillStyle = '#333';
