@@ -48,6 +48,11 @@
 
   let lastTimestamp = 0;
   let countdownRemaining = 0;
+  let lastUI = {
+  score: 0,
+  coins: 0,
+  distance: 0,
+};
 
   const STATE = {
     IDLE: 0,
@@ -98,11 +103,23 @@
   }
 
   function updateUI() {
-    scoreEl.textContent = Math.floor(bike.distance);
-    coinsEl.textContent = bike.coins;
-    distanceEl.textContent = Math.floor(bike.distance);
-    highscoreEl.textContent = Math.floor(highscore);
+  const score = Math.floor(bike.distance);
+  if (score !== lastUI.score) {
+    scoreEl.textContent = score;
+    distanceEl.textContent = score;
+    lastUI.score = score;
   }
+
+  if (bike.coins !== lastUI.coins) {
+    coinsEl.textContent = bike.coins;
+    lastUI.coins = bike.coins;
+  }
+
+  if (highscore !== lastUI.highscore) {
+    highscoreEl.textContent = Math.floor(highscore);
+    lastUI.highscore = highscore;
+  }
+}
 
   function changeLane(newLane) {
     if (newLane === bike.lane) return;
