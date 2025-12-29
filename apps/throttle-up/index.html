@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
     <title>Throttle-Up</title>
 
     <style>
@@ -10,8 +13,8 @@
       body {
         margin: 0;
         padding: 0;
+        background: black;
         overflow: hidden;
-        background: #000;
         touch-action: none;
       }
 
@@ -22,10 +25,9 @@
   </head>
 
   <body>
-    <!-- REQUIRED -->
     <canvas id="game"></canvas>
 
-    <!-- RELATIVE PATH (CRITICAL) -->
-    <script type="module" src="./main.ts"></script>
+    <!-- PURE JS ENTRY (NO VITE MAGIC) -->
+    <script type="module" src="./main.js"></script>
   </body>
 </html>
