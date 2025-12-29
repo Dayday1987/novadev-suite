@@ -15,8 +15,8 @@ document.body.style.userSelect = "none";
 document.body.style.webkitUserSelect = "none";
 
 // ===== Game constants =====
-const ROAD_HEIGHT = 220;
-const ROAD_Y = () => canvas.height - ROAD_HEIGHT;
+const ROAD_HEIGHT = () => canvas.height * 0.28;
+const ROAD_Y = () => canvas.height - ROAD_HEIGHT();
 const LANE_COUNT = 2;
 
 // ===== Game state =====
@@ -61,29 +61,25 @@ function drawSky() {
 }
 
 function drawEnvironment() {
-  // Grass
   ctx.fillStyle = "#2e7d32";
   ctx.fillRect(0, ROAD_Y() - 60, canvas.width, 60);
 
-  // Road
   ctx.fillStyle = "#333";
-  ctx.fillRect(0, ROAD_Y(), canvas.width, ROAD_HEIGHT);
+  ctx.fillRect(0, ROAD_Y(), canvas.width, ROAD_HEIGHT());
 
-  // Lane divider
   ctx.strokeStyle = "#888";
   ctx.setLineDash([20, 20]);
   ctx.beginPath();
-  ctx.moveTo(0, ROAD_Y() + ROAD_HEIGHT / 2);
-  ctx.lineTo(canvas.width, ROAD_Y() + ROAD_HEIGHT / 2);
+  ctx.moveTo(0, ROAD_Y() + ROAD_HEIGHT() / 2);
+  ctx.lineTo(canvas.width, ROAD_Y() + ROAD_HEIGHT() / 2);
   ctx.stroke();
   ctx.setLineDash([]);
 }
 
 function drawBike() {
-  const laneHeight = ROAD_HEIGHT / LANE_COUNT;
+  const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
   const bikeY =
     ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
-
   const bikeX = canvas.width * 0.35;
 
   ctx.save();
@@ -91,33 +87,33 @@ function drawBike() {
 
   // Body
   ctx.fillStyle = "black";
-  ctx.fillRect(-50, -15, 100, 30);
+  ctx.fillRect(-70, -18, 140, 36);
 
   // Wheels (rotate in place)
-const rotation = game.scroll * 0.05;
+  const rotation = game.scroll * 0.05;
 
-ctx.fillStyle = "gray";
+  function drawWheel(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    ctx.fillStyle = "gray";
+    ctx.beginPath();
+    ctx.arc(0, 0, 10, 0, Math.PI * 2);
+    ctx.fill();
 
-function drawWheel(x, y) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(rotation);
-  ctx.beginPath();
-  ctx.arc(0, 0, 10, 0, Math.PI * 2);
-  ctx.fill();
+    ctx.strokeStyle = "#111";
+    ctx.beginPath();
+    ctx.moveTo(-10, 0);
+    ctx.lineTo(10, 0);
+    ctx.stroke();
+    ctx.restore();
+  }
 
-  // simple spoke
-  ctx.strokeStyle = "#111";
-  ctx.beginPath();
-  ctx.moveTo(-10, 0);
-  ctx.lineTo(10, 0);
-  ctx.stroke();
+  drawWheel(-40, 22);
+  drawWheel(40, 22);
 
   ctx.restore();
 }
-
-drawWheel(-30, 20);
-drawWheel(30, 20);
 
 function drawHUD() {
   ctx.fillStyle = "white";
@@ -128,12 +124,10 @@ function drawHUD() {
 // ===== Game loop =====
 function loop() {
   update();
-
   drawSky();
   drawEnvironment();
   drawBike();
   drawHUD();
-
   requestAnimationFrame(loop);
 }
 
