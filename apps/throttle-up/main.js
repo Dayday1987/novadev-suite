@@ -1,4 +1,5 @@
-// ===== Canvas setup =====
+// apps/throttle-up/main.js
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
@@ -9,16 +10,26 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
+// Prevent long-press highlight
+document.body.style.userSelect = "none";
+document.body.style.webkitUserSelect = "none";
+
+// ===== Game constants =====
+const ROAD_HEIGHT = 220;
+const ROAD_Y = () => canvas.height - ROAD_HEIGHT;
+const LANE_COUNT = 2;
+
 // ===== Game state =====
 const game = {
   speed: 0,
-  scrollX: 0,
-  lane: 0, // 0 = left lane, 1 = right lane
+  scroll: 0,
+  lane: 0,
   throttle: false,
 };
 
 // ===== Input =====
-window.addEventListener("touchstart", () => {
+window.addEventListener("touchstart", (e) => {
+  e.preventDefault();
   game.throttle = true;
 });
 
@@ -27,22 +38,20 @@ window.addEventListener("touchend", () => {
 });
 
 window.addEventListener("touchmove", (e) => {
-  const touch = e.touches[0];
-  const y = touch.clientY;
-
+  const y = e.touches[0].clientY;
   game.lane = y < canvas.height / 2 ? 0 : 1;
 });
 
 // ===== Update =====
 function update() {
   if (game.throttle) {
-    game.speed += 0.15;
+    game.speed += 0.2;
   } else {
-    game.speed *= 0.98;
+    game.speed *= 0.96;
   }
 
-  game.speed = Math.min(game.speed, 12);
-  game.scrollX += game.speed;
+  game.speed = Math.min(game.speed, 18);
+  game.scroll += game.speed;
 }
 
 // ===== Render =====
@@ -51,38 +60,46 @@ function drawSky() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawTrack() {
-  const roadY = canvas.height * 0.55;
-  const roadH = canvas.height * 0.22;
-
-  // Grass (top)
+function drawEnvironment() {
+  // Grass
   ctx.fillStyle = "#2e7d32";
-  ctx.fillRect(0, roadY - roadH * 1.2, canvas.width, roadH);
+  ctx.fillRect(0, ROAD_Y() - 60, canvas.width, 60);
 
   // Road
   ctx.fillStyle = "#333";
-  ctx.fillRect(0, roadY, canvas.width, roadH);
+  ctx.fillRect(0, ROAD_Y(), canvas.width, ROAD_HEIGHT);
 
-  // Grass (bottom)
-  ctx.fillRect(0, roadY + roadH, canvas.width, roadH);
+  // Lane divider
+  ctx.strokeStyle = "#888";
+  ctx.setLineDash([20, 20]);
+  ctx.beginPath();
+  ctx.moveTo(0, ROAD_Y() + ROAD_HEIGHT / 2);
+  ctx.lineTo(canvas.width, ROAD_Y() + ROAD_HEIGHT / 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 function drawBike() {
-  const laneY =
-    canvas.height * (game.lane === 0 ? 0.62 : 0.68);
+  const laneHeight = ROAD_HEIGHT / LANE_COUNT;
+  const bikeY =
+    ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
+
+  const bikeX = canvas.width * 0.35;
 
   ctx.save();
-  ctx.translate(canvas.width * 0.35, laneY);
+  ctx.translate(bikeX, bikeY);
 
-  // Bike placeholder
+  // Body
   ctx.fillStyle = "black";
-  ctx.fillRect(-30, -10, 60, 20);
+  ctx.fillRect(-50, -15, 100, 30);
 
-  // Wheels
+  // Wheels (rotate visually with speed)
+  const wheelOffset = (game.scroll * 0.1) % 20;
+
   ctx.fillStyle = "gray";
   ctx.beginPath();
-  ctx.arc(-20, 12, 8, 0, Math.PI * 2);
-  ctx.arc(20, 12, 8, 0, Math.PI * 2);
+  ctx.arc(-30 + wheelOffset, 20, 10, 0, Math.PI * 2);
+  ctx.arc(30 + wheelOffset, 20, 10, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.restore();
@@ -99,7 +116,7 @@ function loop() {
   update();
 
   drawSky();
-  drawTrack();
+  drawEnvironment();
   drawBike();
   drawHUD();
 
