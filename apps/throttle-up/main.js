@@ -99,18 +99,32 @@ function drawSky() {
 }
 
 function drawEnvironment() {
+  // Grass
   ctx.fillStyle = "#2e7d32";
   ctx.fillRect(0, ROAD_Y() - 60, canvas.width, 60);
 
+  // Road
   ctx.fillStyle = "#333";
   ctx.fillRect(0, ROAD_Y(), canvas.width, ROAD_HEIGHT());
 
-  ctx.strokeStyle = "#888";
-  ctx.setLineDash([20, 20]);
+  // Moving lane divider (SCROLLING)
+  ctx.strokeStyle = "#bbb";
+  ctx.lineWidth = 4;
+
+  const dashLength = 40;
+  const gap = 30;
+  const total = dashLength + gap;
+
+  const offset = -(game.scroll % total);
+
+  ctx.setLineDash([dashLength, gap]);
+  ctx.lineDashOffset = offset;
+
   ctx.beginPath();
   ctx.moveTo(0, ROAD_Y() + ROAD_HEIGHT() / 2);
   ctx.lineTo(canvas.width, ROAD_Y() + ROAD_HEIGHT() / 2);
   ctx.stroke();
+
   ctx.setLineDash([]);
 }
 
