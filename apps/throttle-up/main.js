@@ -93,17 +93,31 @@ function drawBike() {
   ctx.fillStyle = "black";
   ctx.fillRect(-50, -15, 100, 30);
 
-  // Wheels (rotate visually with speed)
-  const wheelOffset = (game.scroll * 0.1) % 20;
+  // Wheels (rotate in place)
+const rotation = game.scroll * 0.05;
 
-  ctx.fillStyle = "gray";
+ctx.fillStyle = "gray";
+
+function drawWheel(x, y) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rotation);
   ctx.beginPath();
-  ctx.arc(-30 + wheelOffset, 20, 10, 0, Math.PI * 2);
-  ctx.arc(30 + wheelOffset, 20, 10, 0, Math.PI * 2);
+  ctx.arc(0, 0, 10, 0, Math.PI * 2);
   ctx.fill();
+
+  // simple spoke
+  ctx.strokeStyle = "#111";
+  ctx.beginPath();
+  ctx.moveTo(-10, 0);
+  ctx.lineTo(10, 0);
+  ctx.stroke();
 
   ctx.restore();
 }
+
+drawWheel(-30, 20);
+drawWheel(30, 20);
 
 function drawHUD() {
   ctx.fillStyle = "white";
