@@ -1,40 +1,15 @@
-// main.ts
-
-import { createGame, startGame, updateGame } from "./core/game";
-import { createRenderer2D } from "./render/renderer2d";
-
-const canvas = document.createElement("canvas");
-document.body.style.margin = "0";
-document.body.appendChild(canvas);
+const canvas = document.getElementById("game") as HTMLCanvasElement;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const game = createGame();
-const renderer = createRenderer2D(canvas);
+const ctx = canvas.getContext("2d")!;
 
-let lastTime = performance.now();
-let throttle = 0;
+ctx.fillStyle = "lime";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-canvas.addEventListener("pointerdown", () => {
-  throttle = 1;
-  if (game.phase === "IDLE" || game.phase === "GAME_OVER") {
-    startGame(game);
-  }
-});
+ctx.fillStyle = "black";
+ctx.font = "30px sans-serif";
+ctx.fillText("MAIN.TS IS RUNNING", 40, 80);
 
-canvas.addEventListener("pointerup", () => {
-  throttle = 0;
-});
-
-function loop(time: number) {
-  const dt = (time - lastTime) / 1000;
-  lastTime = time;
-
-  updateGame(game, dt, throttle);
-  renderer.render(game);
-
-  requestAnimationFrame(loop);
-}
-
-requestAnimationFrame(loop);
+console.log("MAIN.TS EXECUTED");
