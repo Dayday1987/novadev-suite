@@ -29,6 +29,15 @@ export function createRenderer2D(canvas: HTMLCanvasElement): Renderer2D {
     ctx.fillRect(0, canvas.height * 0.4, canvas.width, canvas.height * 0.2);
 
     if (sprites) {
+  drawTrack(
+    ctx,
+    canvas,
+    sprites,
+    game.world.scrollX
+  );
+}
+
+    if (sprites) {
       for (const e of game.spawns.entities) {
         drawEntity(ctx, e, canvas, sprites);
       }
