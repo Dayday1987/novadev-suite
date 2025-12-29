@@ -1,3 +1,4 @@
+import { drawTrack } from "./trackRenderer2d";
 import { drawBike } from "./bikeRenderer2d";
 import { drawEntity } from "./entityRenderer2d";
 import { loadSprites } from "./spriteLoader";
