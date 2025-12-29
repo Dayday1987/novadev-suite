@@ -1,5 +1,3 @@
-// apps/throttle-up/main.js
-
 // ===== Canvas setup =====
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
