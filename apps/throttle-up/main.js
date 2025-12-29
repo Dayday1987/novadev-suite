@@ -14,23 +14,36 @@ window.addEventListener("resize", resize);
 document.body.style.userSelect = "none";
 document.body.style.webkitUserSelect = "none";
 
-// ===== Game constants =====
+// ===== Constants =====
 const ROAD_HEIGHT = () => canvas.height * 0.28;
 const ROAD_Y = () => canvas.height - ROAD_HEIGHT();
 const LANE_COUNT = 2;
 
 // ===== Game state =====
 const game = {
+  phase: "IDLE", // IDLE | COUNTDOWN | RACING
   speed: 0,
   scroll: 0,
   lane: 0,
   throttle: false,
+  countdownIndex: 0,
+  countdownTimer: 0,
 };
+
+const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
 
 // ===== Input =====
 window.addEventListener("touchstart", (e) => {
   e.preventDefault();
-  game.throttle = true;
+
+  if (game.phase === "IDLE") {
+    startCountdown();
+    return;
+  }
+
+  if (game.phase === "RACING") {
+    game.throttle = true;
+  }
 });
 
 window.addEventListener("touchend", () => {
@@ -42,8 +55,33 @@ window.addEventListener("touchmove", (e) => {
   game.lane = y < canvas.height / 2 ? 0 : 1;
 });
 
+// ===== Countdown control =====
+function startCountdown() {
+  game.phase = "COUNTDOWN";
+  game.countdownIndex = 0;
+  game.countdownTimer = performance.now();
+}
+
+function updateCountdown(now) {
+  if (now - game.countdownTimer > 800) {
+    game.countdownIndex++;
+    game.countdownTimer = now;
+
+    if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
+      game.phase = "RACING";
+    }
+  }
+}
+
 // ===== Update =====
-function update() {
+function update(now) {
+  if (game.phase === "COUNTDOWN") {
+    updateCountdown(now);
+    return;
+  }
+
+  if (game.phase !== "RACING") return;
+
   if (game.throttle) {
     game.speed += 0.2;
   } else {
@@ -89,7 +127,7 @@ function drawBike() {
   ctx.fillStyle = "black";
   ctx.fillRect(-70, -18, 140, 36);
 
-  // Wheels (rotate in place)
+  // Wheels
   const rotation = game.scroll * 0.05;
 
   function drawWheel(x, y) {
@@ -115,20 +153,50 @@ function drawBike() {
   ctx.restore();
 }
 
+function drawCountdown() {
+  if (game.phase !== "COUNTDOWN") return;
+
+  const light = COUNTDOWN_STEPS[game.countdownIndex];
+  const colors = ["#333", "#333", "#333"];
+
+  if (light === "YELLOW") colors[game.countdownIndex] = "yellow";
+  if (light === "GREEN") colors[2] = "lime";
+
+  const cx = canvas.width / 2;
+  const cy = 100;
+
+  colors.forEach((color, i) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(cx + (i - 1) * 40, cy, 14, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
 function drawHUD() {
   ctx.fillStyle = "white";
   ctx.font = "16px sans-serif";
-  ctx.fillText(`Speed: ${game.speed.toFixed(1)}`, 16, 28);
+
+  if (game.phase === "IDLE") {
+    ctx.fillText("Tap to start", canvas.width / 2 - 40, 40);
+  }
+
+  if (game.phase === "RACING") {
+    ctx.fillText(`Speed: ${game.speed.toFixed(1)}`, 16, 28);
+  }
 }
 
-// ===== Game loop =====
-function loop() {
-  update();
+// ===== Loop =====
+function loop(now) {
+  update(now);
+
   drawSky();
   drawEnvironment();
   drawBike();
+  drawCountdown();
   drawHUD();
+
   requestAnimationFrame(loop);
 }
 
-loop();
+loop(performance.now());
