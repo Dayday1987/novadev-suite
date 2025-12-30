@@ -60,6 +60,12 @@ function startCountdown() {
 }
 
 function updateCountdown(now) {
+
+  if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
+  game.phase = "RACING";
+  if (game.fingerDown) game.throttle = true;
+}
+  
   if (now - game.countdownTimer > 800) {
     game.countdownIndex++;
     game.countdownTimer = now;
