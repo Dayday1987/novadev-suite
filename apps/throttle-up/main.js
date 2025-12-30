@@ -88,9 +88,9 @@ function update(now) {
   // Throttle → torque
   // Forward acceleration
 if (game.throttle) {
-  game.speed += 0.25;
+  game.speed *= 0.25;
 } else {
-  game.speed *= 0.97;
+  game.speed += 0.97;
 }
 game.speed = Math.min(game.speed, 20);
 
