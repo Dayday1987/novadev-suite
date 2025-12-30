@@ -105,7 +105,7 @@ if (game.throttle) {
   const gravityTorque =
   -Math.sign(game.bikeAngle) *
   Math.pow(Math.abs(game.bikeAngle), 1.4) *
-  0.025;
+  0.125;
 
 // Apply gravity torque
 game.bikeAngularVelocity += gravityTorque;
