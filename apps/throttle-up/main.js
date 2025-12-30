@@ -88,7 +88,7 @@ function update(now) {
   // Throttle → torque
   if (game.throttle) {
     game.speed += 0.2;
-    game.bikeAngularVelocity -= 0.001;
+    game.bikeAngularVelocity -= 0.004;
   } else {
     game.speed *= 0.96;
     game.bikeAngularVelocity += 0.003;
@@ -108,7 +108,7 @@ function update(now) {
   game.scroll += game.speed;
 
   // CRASH condition (over-rotation)
-  if (game.bikeAngle > 0.6 || game.bikeAngle < -0.4) {
+  if (game.bikeAngle > -0.4 || game.bikeAngle < 0.6) {
     resetGame();
   }
 }
