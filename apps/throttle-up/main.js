@@ -5,7 +5,11 @@ const ctx = canvas.getContext("2d");
 
 const bikeImage = new Image();
 bikeImage.src = "./assets/bike/ninja-h2r.png";
+const BIKE_SCALE = 0.35;
 
+// These position the image so the rear wheel sits on the road
+const REAR_WHEEL_OFFSET_X = 60;
+const REAR_WHEEL_OFFSET_Y = -5;
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -172,28 +176,29 @@ function drawEnvironment() {
     ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
   const bikeX = canvas.width * 0.35;
 
-  ctx.save();
-
-  // Move to rear wheel contact point
-  ctx.translate(bikeX, bikeY);
-
-  // Rotate around rear wheel
-  ctx.rotate(-game.bikeAngle);
-
-  // Draw bike image
   const w = bikeImage.width * BIKE_SCALE;
   const h = bikeImage.height * BIKE_SCALE;
 
+  ctx.save();
+
+  // Move pivot to rear wheel contact point
+  ctx.translate(bikeX, bikeY);
+
+  // Rotate bike (wheelie)
+  ctx.rotate(-game.bikeAngle);
+
+  // Draw image offset so rear wheel stays planted
   ctx.drawImage(
     bikeImage,
-    -w / 2 - REAR_WHEEL_OFFSET_X,
-    -h / 2 - REAR_WHEEL_OFFSET_Y,
+    -REAR_WHEEL_OFFSET_X,
+    -h + REAR_WHEEL_OFFSET_Y,
     w,
     h
   );
 
   ctx.restore();
 }
+
 function drawWheel(x, y) {
     ctx.save();
     ctx.translate(x, y);
@@ -210,9 +215,6 @@ function drawWheel(x, y) {
     ctx.stroke();
     ctx.restore();
   }
-
-  drawWheel(-40, 22);
-  drawWheel(40, 22);
 
   ctx.restore();
 }
