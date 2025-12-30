@@ -120,7 +120,7 @@ game.bikeAngle += game.bikeAngularVelocity;
   game.scroll += game.speed;
 
   // CRASH condition (over-rotation)
-  if (game.bikeAngle > 0.7 || game.bikeAngle < +0.7) {
+  if (game.bikeAngle > 0.65 || game.bikeAngle < -0.35) {
   resetGame();
 }
 }
