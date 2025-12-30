@@ -113,16 +113,6 @@ game.bikeAngularVelocity *= 0.94;
 // Apply rotation
 game.bikeAngle += game.bikeAngularVelocity;
 
-  // Clamp values
-  game.speed = Math.min(game.speed, 18);
-  game.bikeAngularVelocity *= 0.98;
-
-  // Apply rotation
-  game.bikeAngle += game.bikeAngularVelocity;
-
-  // Gravity pulls bike down
-  game.bikeAngle *= 0.995;
-
   // Scroll world
   game.scroll += game.speed;
 
