@@ -2,7 +2,7 @@
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-
+canvas.style.touchAction = "none";
 const bikeImage = new Image();
 bikeImage.src = "./assets/bike/ninja-h2r.png";
 const BIKE_SCALE = 0.35;
@@ -189,12 +189,12 @@ function drawEnvironment() {
 
   // Draw image offset so rear wheel stays planted
   ctx.drawImage(
-    bikeImage,
-    -REAR_WHEEL_OFFSET_X,
-    -h + REAR_WHEEL_OFFSET_Y,
-    w,
-    h
-  );
+  bikeImage,
+  -REAR_WHEEL_OFFSET_X,
+  -h * 0.85,
+  w,
+  h
+);
 
   ctx.restore();
 }
