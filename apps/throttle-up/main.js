@@ -85,46 +85,46 @@ function update(now) {
 
   if (game.phase !== "RACING") return;
 
-  // Throttle → torque
   // Forward acceleration
-if (game.throttle) {
-  game.speed *= 0.25;
-} else {
-  game.speed *= 0.97;
-}
-game.speed = Math.min(game.speed, 20);
+  if (game.throttle) {
+    game.speed += 0.25;
+  } else {
+    game.speed *= 0.97;
+  }
+  game.speed = Math.min(game.speed, 20);
 
-// ===== Wheelie physics =====
+  // ===== Wheelie physics (Safari-safe) =====
 
-// Throttle torque (rear wheel pushing bike back)
-if (game.throttle) {
-  game.bikeAngularVelocity += 0.0045;
-}
+  if (game.throttle) {
+    game.bikeAngularVelocity += 0.004;
+  }
 
-// Gravity tries to restore bike to flat (angle = 0)
-  const gravityTorque =
-  -Math.sign(game.bikeAngle) *
-  Math.pow(Math.abs(game.bikeAngle), 1.4) *
-  0.025;
+  const angle = game.bikeAngle;
+  if (angle !== 0) {
+    const gravity =
+      -(angle / Math.abs(angle)) *
+      Math.pow(Math.abs(angle), 1.3) *
+      0.02;
+    game.bikeAngularVelocity += gravity;
+  }
 
-// Apply gravity torque
-game.bikeAngularVelocity += gravityTorque;
-
-// Damping (prevents oscillation)
-game.bikeAngularVelocity *= 0.94;
-
-// Apply rotation
-game.bikeAngle += game.bikeAngularVelocity;
+  game.bikeAngularVelocity *= 0.95;
+  game.bikeAngle += game.bikeAngularVelocity;
 
   // Scroll world
   game.scroll += game.speed;
 
-  // CRASH condition (over-rotation)
-  if (game.bikeAngle > -0.65 || game.bikeAngle < 0.35) 
-  resetGame();
-}
-}
+  // Safety
+  if (!Number.isFinite(game.bikeAngle)) {
+    resetGame();
+    return;
+  }
 
+  // Crash limits
+  if (game.bikeAngle > 0.65 || game.bikeAngle < -0.35) {
+    resetGame();
+  }
+}
 // ===== Render =====
 function drawSky() {
   ctx.fillStyle = "#6db3f2";
@@ -169,7 +169,7 @@ function drawBike() {
 
   ctx.save();
   ctx.translate(bikeX, bikeY);
-ctx.rotate(-game.bikeAngle);
+ctx.rotate(game.bikeAngle)
 
   // Body
   ctx.fillStyle = "black";
