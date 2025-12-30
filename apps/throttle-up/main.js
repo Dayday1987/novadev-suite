@@ -192,7 +192,7 @@ ctx.rotate(-game.bikeAngle);
     ctx.restore();
   }
 
-  drawWheel(40, 22);
+  drawWheel(-40, 22);
   drawWheel(40, 22);
 
   ctx.restore();
