@@ -88,10 +88,10 @@ function update(now) {
   // Throttle → torque
   if (game.throttle) {
     game.speed += 0.2;
-    game.bikeAngularVelocity += 0.002;
+    game.bikeAngularVelocity -= 0.003;
   } else {
     game.speed *= 0.96;
-    game.bikeAngularVelocity -= 0.003;
+    game.bikeAngularVelocity += 0.002;
   }
 
   // Clamp values
