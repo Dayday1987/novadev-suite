@@ -199,26 +199,6 @@ function drawEnvironment() {
   ctx.restore();
 }
 
-function drawWheel(x, y) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(rotation);
-    ctx.fillStyle = "gray";
-    ctx.beginPath();
-    ctx.arc(0, 0, 10, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = "#111";
-    ctx.beginPath();
-    ctx.moveTo(-10, 0);
-    ctx.lineTo(10, 0);
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  ctx.restore();
-}
-
 function drawCountdown() {
   if (game.phase !== "COUNTDOWN") return;
 
