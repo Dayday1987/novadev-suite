@@ -5,7 +5,7 @@ const ctx = canvas.getContext("2d");
 canvas.style.touchAction = "none";
 const bikeImage = new Image();
 bikeImage.src = "/assets/bike/ninja-h2r.png";
-
+const BIKE_SCALE = 0.35;
 let bikeReady = false;
 bikeImage.onload = () => {
   bikeReady = true;
