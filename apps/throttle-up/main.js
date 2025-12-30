@@ -74,7 +74,6 @@ function updateCountdown(now) {
 }
     }
   }
-}
 
 // ===== Update =====
 function update(now) {
