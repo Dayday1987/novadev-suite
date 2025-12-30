@@ -43,25 +43,39 @@ fingerDown: false,
 const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
 
 // ===== Input =====
-window.addEventListener("touchstart", (e) => {
-  e.preventDefault();
-  game.fingerDown = true;
-game.throttle = game.phase === "RACING";
+window.addEventListener(
+  "touchstart",
+  (e) => {
+    e.preventDefault();
+    game.fingerDown = true;
+    game.throttle = game.phase === "RACING";
 
-  if (game.phase === "IDLE") {
-    startCountdown();
-  }
-});
+    if (game.phase === "IDLE") {
+      startCountdown();
+    }
+  },
+  { passive: false }
+);
 
-window.addEventListener("touchend", () => {
-  game.fingerDown = false;
-  game.throttle = false;
-});
+window.addEventListener(
+  "touchend",
+  (e) => {
+    e.preventDefault();
+    game.fingerDown = false;
+    game.throttle = false;
+  },
+  { passive: false }
+);
 
-window.addEventListener("touchmove", (e) => {
-  const y = e.touches[0].clientY;
-  game.lane = y < canvas.height / 2 ? 0 : 1;
-});
+window.addEventListener(
+  "touchmove",
+  (e) => {
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    game.lane = y < canvas.height / 2 ? 0 : 1;
+  },
+  { passive: false }
+);
 
 // ===== Countdown control =====
 function startCountdown() {
