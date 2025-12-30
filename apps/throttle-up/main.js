@@ -28,6 +28,9 @@ const game = {
   throttle: false,
   countdownIndex: 0,
   countdownTimer: 0,
+  bikeAngle: 0,
+bikeAngularVelocity: 0,
+fingerDown: false,
 };
 
 const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
@@ -60,18 +63,15 @@ function startCountdown() {
 }
 
 function updateCountdown(now) {
-
-  if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
-  game.phase = "RACING";
-  if (game.fingerDown) game.throttle = true;
-}
   
   if (now - game.countdownTimer > 800) {
     game.countdownIndex++;
     game.countdownTimer = now;
 
-    if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
-      game.phase = "RACING";
+      if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
+  game.phase = "RACING";
+  if (game.fingerDown) game.throttle = true;
+}
     }
   }
 }
@@ -85,14 +85,32 @@ function update(now) {
 
   if (game.phase !== "RACING") return;
 
+  // Throttle → torque
   if (game.throttle) {
     game.speed += 0.2;
+    game.bikeAngularVelocity += 0.002;
   } else {
     game.speed *= 0.96;
+    game.bikeAngularVelocity -= 0.003;
   }
 
+  // Clamp values
   game.speed = Math.min(game.speed, 18);
+  game.bikeAngularVelocity *= 0.98;
+
+  // Apply rotation
+  game.bikeAngle += game.bikeAngularVelocity;
+
+  // Gravity pulls bike down
+  game.bikeAngle *= 0.995;
+
+  // Scroll world
   game.scroll += game.speed;
+
+  // CRASH condition (over-rotation)
+  if (game.bikeAngle > 0.6 || game.bikeAngle < -0.4) {
+    resetGame();
+  }
 }
 
 // ===== Render =====
@@ -139,6 +157,7 @@ function drawBike() {
 
   ctx.save();
   ctx.translate(bikeX, bikeY);
+ctx.rotate(-game.bikeAngle);
 
   // Body
   ctx.fillStyle = "black";
@@ -201,6 +220,15 @@ function drawHUD() {
   if (game.phase === "RACING") {
     ctx.fillText(`Speed: ${game.speed.toFixed(1)}`, 16, 28);
   }
+}
+
+function resetGame() {
+  game.phase = "IDLE";
+  game.speed = 0;
+  game.scroll = 0;
+  game.bikeAngle = 0;
+  game.bikeAngularVelocity = 0;
+  game.throttle = false;
 }
 
 // ===== Loop =====
