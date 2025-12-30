@@ -86,13 +86,32 @@ function update(now) {
   if (game.phase !== "RACING") return;
 
   // Throttle → torque
-  if (game.throttle) {
-    game.speed += 0.2;
-    game.bikeAngularVelocity -= 0.004;
-  } else {
-    game.speed *= 0.96;
-    game.bikeAngularVelocity += 0.003;
-  }
+  // Forward acceleration
+if (game.throttle) {
+  game.speed += 0.25;
+} else {
+  game.speed *= 0.97;
+}
+game.speed = Math.min(game.speed, 20);
+
+// ===== Wheelie physics =====
+
+// Throttle torque (rear wheel pushing bike back)
+if (game.throttle) {
+  game.bikeAngularVelocity += 0.0025;
+}
+
+// Gravity tries to restore bike to flat (angle = 0)
+const gravityTorque = -game.bikeAngle * 0.04;
+
+// Apply gravity torque
+game.bikeAngularVelocity += gravityTorque;
+
+// Damping (prevents oscillation)
+game.bikeAngularVelocity *= 0.94;
+
+// Apply rotation
+game.bikeAngle += game.bikeAngularVelocity;
 
   // Clamp values
   game.speed = Math.min(game.speed, 18);
@@ -108,9 +127,9 @@ function update(now) {
   game.scroll += game.speed;
 
   // CRASH condition (over-rotation)
-  if (game.bikeAngle > -0.4 || game.bikeAngle < 0.6) {
-    resetGame();
-  }
+  if (game.bikeAngle > 0.7 || game.bikeAngle < -0.5) {
+  resetGame();
+}
 }
 
 // ===== Render =====
