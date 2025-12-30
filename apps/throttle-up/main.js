@@ -39,6 +39,7 @@ const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
 window.addEventListener("touchstart", (e) => {
   e.preventDefault();
   game.fingerDown = true;
+game.throttle = game.phase === "RACING";
 
   if (game.phase === "IDLE") {
     startCountdown();
