@@ -3,6 +3,9 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+const bikeImage = new Image();
+bikeImage.src = "./assets/bike/ninja-h2r.png";
+
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
