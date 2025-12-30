@@ -35,18 +35,15 @@ const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
 // ===== Input =====
 window.addEventListener("touchstart", (e) => {
   e.preventDefault();
+  game.fingerDown = true;
 
   if (game.phase === "IDLE") {
     startCountdown();
-    return;
-  }
-
-  if (game.phase === "RACING") {
-    game.throttle = true;
   }
 });
 
 window.addEventListener("touchend", () => {
+  game.fingerDown = false;
   game.throttle = false;
 });
 
