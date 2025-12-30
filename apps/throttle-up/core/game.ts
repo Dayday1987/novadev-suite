@@ -73,11 +73,6 @@ export function updateGame(game: GameState, dt: number, throttle: number) {
   if (Math.abs(game.bike.angle) > BIKE_PHYSICS.crashAngle) {
     game.phase = "GAME_OVER";
   }
-
-  bikeAngle: 0,
-bikeAngularVelocity: 0,
-fingerDown: false,
-
   // World
   updateWorld(game.world, game.bike.speed);
 
