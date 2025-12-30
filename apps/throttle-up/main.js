@@ -194,10 +194,7 @@ function drawEnvironment() {
 
   ctx.restore();
 }
-  // Wheels
-  const rotation = game.scroll * 0.05;
-
-  function drawWheel(x, y) {
+function drawWheel(x, y) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(rotation);
