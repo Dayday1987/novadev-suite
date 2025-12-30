@@ -98,11 +98,14 @@ game.speed = Math.min(game.speed, 20);
 
 // Throttle torque (rear wheel pushing bike back)
 if (game.throttle) {
-  game.bikeAngularVelocity += 0.0025;
+  game.bikeAngularVelocity += 0.0045;
 }
 
 // Gravity tries to restore bike to flat (angle = 0)
-const gravityTorque = -game.bikeAngle * 0.04;
+  const gravityTorque =
+  -Math.sign(game.bikeAngle) *
+  Math.pow(Math.abs(game.bikeAngle), 1.4) *
+  0.025;
 
 // Apply gravity torque
 game.bikeAngularVelocity += gravityTorque;
