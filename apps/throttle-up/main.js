@@ -164,20 +164,36 @@ function drawEnvironment() {
   ctx.setLineDash([]);
 }
 
-function drawBike() {
+ function drawBike() {
+  if (!bikeImage.complete) return;
+
   const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
   const bikeY =
     ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
   const bikeX = canvas.width * 0.35;
 
   ctx.save();
+
+  // Move to rear wheel contact point
   ctx.translate(bikeX, bikeY);
-ctx.rotate(game.bikeAngle)
 
-  // Body
-  ctx.fillStyle = "black";
-  ctx.fillRect(-70, -18, 140, 36);
+  // Rotate around rear wheel
+  ctx.rotate(-game.bikeAngle);
 
+  // Draw bike image
+  const w = bikeImage.width * BIKE_SCALE;
+  const h = bikeImage.height * BIKE_SCALE;
+
+  ctx.drawImage(
+    bikeImage,
+    -w / 2 - REAR_WHEEL_OFFSET_X,
+    -h / 2 - REAR_WHEEL_OFFSET_Y,
+    w,
+    h
+  );
+
+  ctx.restore();
+}
   // Wheels
   const rotation = game.scroll * 0.05;
 
