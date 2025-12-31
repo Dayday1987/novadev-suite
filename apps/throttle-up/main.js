@@ -128,21 +128,22 @@ function update(now) {
 
   // ===== Wheelie physics (Safari-safe) =====
 
-  if (game.throttle) {
-    game.bikeAngularVelocity += 0.004;
-  }
+  // ===== Wheelie physics (corrected) =====
 
-  const angle = game.bikeAngle;
-  if (angle !== 0) {
-    const gravity =
-      -(angle / Math.abs(angle)) *
-      Math.pow(Math.abs(angle), 1.3) *
-      0.02;
-    game.bikeAngularVelocity += gravity;
-  }
+// Throttle torque (rear wheel pushing bike back)
+if (game.throttle) {
+  game.bikeAngularVelocity += 0.006; // <-- lift strength
+}
 
-  game.bikeAngularVelocity *= 0.95;
-  game.bikeAngle += game.bikeAngularVelocity;
+// Gravity pulls bike back toward flat
+const GRAVITY = 0.04;
+game.bikeAngularVelocity += -game.bikeAngle * GRAVITY;
+
+// Damping (stability)
+game.bikeAngularVelocity *= 0.93;
+
+// Apply rotation
+game.bikeAngle += game.bikeAngularVelocity;
 
   // Scroll world
   game.scroll += game.speed;
