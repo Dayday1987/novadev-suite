@@ -4,7 +4,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 canvas.style.touchAction = "none";
 const bikeImage = new Image();
-bikeImage.src = "./assets/bike/IMG_6834.png";
+bikeImage.src = "/assets/bike/IMG_6834.png";
 bikeImage.onload = () => console.log("Bike loaded");
 bikeImage.onerror = () => console.error("Bike failed to load");
 const BIKE_SCALE = 0.35;
