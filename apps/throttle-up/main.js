@@ -20,8 +20,8 @@ bikeImage.onerror = () => {
 };
 
 // These position the image so the rear wheel sits on the road
-const REAR_WHEEL_OFFSET_X = 60;
-const REAR_WHEEL_OFFSET_Y = -5;
+const REAR_WHEEL_OFFSET_X = 60;   // pixels
+const REAR_WHEEL_OFFSET_Y = 0.85; // % of image height
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -201,17 +201,26 @@ function drawBike() {
   const bikeY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
   const bikeX = canvas.width * 0.35;
 
-  const w = bikeImage.width * 0.6;
-  const h = bikeImage.height * 0.6;
+  const w = bikeImage.width * BIKE_SCALE;
+  const h = bikeImage.height * BIKE_SCALE;
 
   ctx.save();
   ctx.translate(bikeX, bikeY);
   ctx.rotate(-game.bikeAngle);
 
+  // Debug box (keep for now)
+  ctx.strokeStyle = "red";
+  ctx.strokeRect(
+    -REAR_WHEEL_OFFSET_X,
+    -h * REAR_WHEEL_OFFSET_Y,
+    w,
+    h
+  );
+
   ctx.drawImage(
     bikeImage,
-    -60,
-    -h * 0.85,
+    -REAR_WHEEL_OFFSET_X,
+    -h * REAR_WHEEL_OFFSET_Y,
     w,
     h
   );
