@@ -198,16 +198,26 @@ function drawBike() {
   if (!bikeReady) return;
 
   const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
-  const bikeY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
-  const bikeX = canvas.width * 0.35;
+  const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
+
+  // Rear wheel ground contact (RIGHT side now)
+  const rearGroundX = canvas.width * 0.35;
 
   const w = bikeImage.width * BIKE_SCALE;
   const h = bikeImage.height * BIKE_SCALE;
 
   ctx.save();
-  ctx.translate(bikeX, bikeY);
-  ctx.rotate(-game.bikeAngle);
 
+  // 1️⃣ Move origin to rear wheel contact point
+  ctx.translate(rearGroundX, groundY);
+
+  // 2️⃣ Apply wheelie rotation
+  ctx.rotate(game.bikeAngle);
+
+  // 3️⃣ Flip bike so it faces LEFT
+  ctx.scale(-1, 1);
+
+  // 4️⃣ Draw image so rear wheel stays planted
   ctx.drawImage(
     bikeImage,
     -REAR_WHEEL_OFFSET_X,
@@ -215,17 +225,6 @@ function drawBike() {
     w,
     h
   );
-  // rear wheel marker
-ctx.fillStyle = "red";
-ctx.beginPath();
-ctx.arc(0, 0, 6, 0, Math.PI * 2);
-ctx.fill();
-
-// front wheel marker (estimated)
-ctx.fillStyle = "blue";
-ctx.beginPath();
-ctx.arc(120, 0, 6, 0, Math.PI * 2);
-ctx.fill();
 
   ctx.restore();
 }
