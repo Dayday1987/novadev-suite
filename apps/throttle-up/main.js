@@ -205,24 +205,9 @@ function drawBike() {
   const h = bikeImage.height * BIKE_SCALE;
 
   ctx.save();
-
-  // 1️⃣ Move origin to rear wheel contact point
-  ctx.translate(rearX, groundY);
-
-  // 2️⃣ Rotate for wheelie
-  ctx.rotate(-game.bikeAngle);
-
-  // 3️⃣ Draw bike forward & upward from rear wheel
-  ctx.drawImage(
-    bikeImage,
-    -REAR_WHEEL_OFFSET_X,
-    -h + REAR_WHEEL_OFFSET_Y,
-    w,
-    h
-  );
-
-  ctx.restore();
-}
+ctx.translate(bikeX, bikeY);
+ctx.drawImage(bikeImage, 0, -h, w, h);
+ctx.restore();
  
 function drawCountdown() {
   if (game.phase !== "COUNTDOWN") return;
