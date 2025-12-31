@@ -215,6 +215,17 @@ function drawBike() {
     w,
     h
   );
+  // rear wheel marker
+ctx.fillStyle = "red";
+ctx.beginPath();
+ctx.arc(0, 0, 6, 0, Math.PI * 2);
+ctx.fill();
+
+// front wheel marker (estimated)
+ctx.fillStyle = "blue";
+ctx.beginPath();
+ctx.arc(120, 0, 6, 0, Math.PI * 2);
+ctx.fill();
 
   ctx.restore();
 }
