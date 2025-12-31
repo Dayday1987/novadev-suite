@@ -5,14 +5,17 @@ const ctx = canvas.getContext("2d");
 canvas.style.touchAction = "none";
 const bikeImage = new Image();
 bikeImage.src = "./assets/bike/ninja-h2r.svg";
-bikeImage.onload = () => console.log("Bike loaded");
-bikeImage.onerror = () => console.error("Bike failed to load");
+
 const BIKE_SCALE = 0.35;
 let bikeReady = false;
+
 bikeImage.onload = () => {
   bikeReady = true;
+  console.log("Bike loaded:", bikeImage.src);
 };
+
 bikeImage.onerror = () => {
+  bikeReady = false;
   console.error("Bike image failed to load:", bikeImage.src);
 };
 
@@ -191,15 +194,15 @@ function drawEnvironment() {
   ctx.setLineDash([]);
 }
 
- function drawBike() {
+function drawBike() {
   if (!bikeReady) return;
 
   const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
   const bikeY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
   const bikeX = canvas.width * 0.35;
 
-  const w = bikeImage.width * BIKE_SCALE;
-  const h = bikeImage.height * BIKE_SCALE;
+  const w = bikeImage.width * 0.6;
+  const h = bikeImage.height * 0.6;
 
   ctx.save();
   ctx.translate(bikeX, bikeY);
@@ -207,7 +210,7 @@ function drawEnvironment() {
 
   ctx.drawImage(
     bikeImage,
-    -REAR_WHEEL_OFFSET_X,
+    -60,
     -h * 0.85,
     w,
     h
@@ -215,7 +218,7 @@ function drawEnvironment() {
 
   ctx.restore();
 }
-
+ 
 function drawCountdown() {
   if (game.phase !== "COUNTDOWN") return;
 
