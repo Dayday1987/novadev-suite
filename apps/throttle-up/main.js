@@ -20,8 +20,8 @@ bikeImage.onerror = () => {
 };
 
 // These position the image so the rear wheel sits on the road
-const REAR_WHEEL_OFFSET_X = 60;   // pixels
-const REAR_WHEEL_OFFSET_Y = -5; // % of image height
+const REAR_WHEEL_OFFSET_X = -5;   // pixels
+const REAR_WHEEL_OFFSET_Y = 60; // % of image height
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
