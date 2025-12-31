@@ -198,17 +198,27 @@ function drawBike() {
   if (!bikeReady) return;
 
   const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
-  const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
-  const rearX = canvas.width * 0.35;
+  const bikeY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
+  const bikeX = canvas.width * 0.35;
 
   const w = bikeImage.width * BIKE_SCALE;
   const h = bikeImage.height * BIKE_SCALE;
 
   ctx.save();
-ctx.translate(bikeX, bikeY);
-ctx.drawImage(bikeImage, 0, -h, w, h);
-ctx.restore();
+  ctx.translate(bikeX, bikeY);
+  ctx.rotate(-game.bikeAngle);
+
+  ctx.drawImage(
+    bikeImage,
+    -REAR_WHEEL_OFFSET_X,
+    -h,
+    w,
+    h
+  );
+
+  ctx.restore();
 }
+
 function drawCountdown() {
   if (game.phase !== "COUNTDOWN") return;
 
