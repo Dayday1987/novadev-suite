@@ -208,7 +208,7 @@ function drawBike() {
 ctx.translate(bikeX, bikeY);
 ctx.drawImage(bikeImage, 0, -h, w, h);
 ctx.restore();
- 
+}
 function drawCountdown() {
   if (game.phase !== "COUNTDOWN") return;
 
