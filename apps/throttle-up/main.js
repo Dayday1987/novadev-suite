@@ -6,7 +6,7 @@ canvas.style.touchAction = "none";
 const bikeImage = new Image();
 bikeImage.src = "./assets/bike/ninja-h2r.svg";
 
-const BIKE_SCALE = 0.35;
+const BIKE_SCALE = 1.2;
 let bikeReady = false;
 
 bikeImage.onload = () => {
