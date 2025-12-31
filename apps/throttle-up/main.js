@@ -21,7 +21,7 @@ bikeImage.onerror = () => {
 
 // These position the image so the rear wheel sits on the road
 const REAR_WHEEL_OFFSET_X = 60;   // pixels
-const REAR_WHEEL_OFFSET_Y = 0.85; // % of image height
+const REAR_WHEEL_OFFSET_Y = -5; // % of image height
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -199,29 +199,25 @@ function drawBike() {
   if (!bikeReady) return;
 
   const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
-  const bikeY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
-  const bikeX = canvas.width * 0.35;
+  const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
+  const rearX = canvas.width * 0.35;
 
   const w = bikeImage.width * BIKE_SCALE;
   const h = bikeImage.height * BIKE_SCALE;
 
   ctx.save();
-  ctx.translate(bikeX, bikeY);
+
+  // 1️⃣ Move origin to rear wheel contact point
+  ctx.translate(rearX, groundY);
+
+  // 2️⃣ Rotate for wheelie
   ctx.rotate(-game.bikeAngle);
 
-  // Debug box (keep for now)
-  ctx.strokeStyle = "red";
-  ctx.strokeRect(
-    -REAR_WHEEL_OFFSET_X,
-    -h * REAR_WHEEL_OFFSET_Y,
-    w,
-    h
-  );
-
+  // 3️⃣ Draw bike forward & upward from rear wheel
   ctx.drawImage(
     bikeImage,
     -REAR_WHEEL_OFFSET_X,
-    -h * REAR_WHEEL_OFFSET_Y,
+    -h + REAR_WHEEL_OFFSET_Y,
     w,
     h
   );
