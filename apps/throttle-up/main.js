@@ -20,8 +20,8 @@ bikeImage.onerror = () => {
 };
 
 // These position the image so the rear wheel sits on the road
-const REAR_WHEEL_OFFSET_X = -5;   // pixels
-const REAR_WHEEL_OFFSET_Y = 60; // % of image height
+const REAR_WHEEL_OFFSET_Y = 60;   // pixels
+const REAR_WHEEL_OFFSET_X = -5; // % of image height
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -125,8 +125,7 @@ function update(now) {
     game.speed *= 0.97;
   }
   game.speed = Math.min(game.speed, 20);
-
-  // ===== Wheelie physics (Safari-safe) =====
+  
 
   // ===== Wheelie physics (corrected) =====
 
@@ -216,8 +215,8 @@ function drawBike() {
   // 3️⃣ Draw bike forward & upward from rear wheel
   ctx.drawImage(
     bikeImage,
-    -REAR_WHEEL_OFFSET_X,
-    -h + REAR_WHEEL_OFFSET_Y,
+    -REAR_WHEEL_OFFSET_Y,
+    -h + REAR_WHEEL_OFFSET_X,
     w,
     h
   );
