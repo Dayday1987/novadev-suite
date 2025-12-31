@@ -125,21 +125,23 @@ function update(now) {
     game.speed *= 0.97;
   }
   game.speed = Math.min(game.speed, 20);
-  
 
-  // ===== Wheelie physics (corrected) =====
+// ===== Wheelie physics (SINGLE source of truth) =====
 
-// Throttle torque (rear wheel pushing bike back)
+// Throttle torque (rear wheel pushing bike forward)
 if (game.throttle) {
-  game.bikeAngularVelocity += 0.006; // <-- lift strength
+  const torque = 0.003 + game.speed * 0.0004;
+  game.bikeAngularVelocity += torque;
 }
 
-// Gravity pulls bike back toward flat
-const GRAVITY = 0.04;
-game.bikeAngularVelocity += -game.bikeAngle * GRAVITY;
+// Gravity restoring force
+const gravityForce =
+  -game.bikeAngle * (0.05 + Math.abs(game.bikeAngle) * 0.4);
 
-// Damping (stability)
-game.bikeAngularVelocity *= 0.93;
+game.bikeAngularVelocity += gravityForce;
+
+// Damping (air + suspension)
+game.bikeAngularVelocity *= 0.92;
 
 // Apply rotation
 game.bikeAngle += game.bikeAngularVelocity;
@@ -225,7 +227,13 @@ function drawBike() {
     w,
     h
   );
-
+  
+// DEBUG: rear wheel contact point
+ctx.fillStyle = "red";
+ctx.beginPath();
+ctx.arc(0, 0, 5, 0, Math.PI * 2);
+ctx.fill();
+  
   ctx.restore();
 }
 
