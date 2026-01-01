@@ -9,6 +9,9 @@ bikeImage.src = "./assets/bike/ninja-h2r.svg";
 const BIKE_SCALE = 1.2;
 let bikeReady = false;
 
+const BALANCE_ANGLE = 1.45; // ~83 degrees in radians
+const OVER_ROTATE_ANGLE = 1.65; // crash zone
+
 bikeImage.onload = () => {
   bikeReady = true;
   console.log("Bike loaded:", bikeImage.src);
@@ -120,25 +123,53 @@ function update(now) {
 
   // Forward acceleration
   if (game.throttle) {
-    game.speed += 0.25;
-  } else {
-    game.speed *= 0.97;
+  game.speed += 0.6; // stronger pull
+} else {
+  game.speed *= 0.995; // coasting, not braking
+}
+  
+  game.speed = Math.min(game.speed, MAX_SPEED);
+
+  const MAX_SPEED = 120;
+
+  if (
+  game.bikeAngle > OVER_ROTATE_ANGLE ||
+  game.bikeAngle < -0.4
+) {
+  resetGame();
   }
-  game.speed = Math.min(game.speed, 50);
 
 // ===== Wheelie physics (SINGLE source of truth) =====
 
-// Throttle torque (rear wheel pushing bike forward)
+// ---- Wheelie torque ----
 if (game.throttle) {
-  const torque = 0.008 + game.speed * 0.0004;
+  // No real wheelie below 10 mph
+  const speedFactor = Math.max(0, game.speed - 10);
+
+  // Angle leverage (more lift as angle increases)
+  const angleFactor = 1 + Math.abs(game.bikeAngle) * 2;
+
+  const torque =
+    speedFactor * 0.00035 * angleFactor;
+
   game.bikeAngularVelocity += torque;
 }
-
 // Gravity restoring force
-const gravityForce =
-  -game.bikeAngle * (0.05 + Math.abs(game.bikeAngle) * 0.4);
+// ---- Gravity & balance ----
+let gravityStrength = 0.05;
 
-game.bikeAngularVelocity += gravityForce;
+// Strong gravity past balance point
+if (Math.abs(game.bikeAngle) > BALANCE_ANGLE) {
+  gravityStrength +=
+    (Math.abs(game.bikeAngle) - BALANCE_ANGLE) * 1.2;
+}
+
+game.bikeAngularVelocity +=
+  -game.bikeAngle * gravityStrength;
+
+  if (game.throttle && Math.abs(game.bikeAngle) > BALANCE_ANGLE) {
+  game.bikeAngularVelocity *= 0.97;
+}
 
 // Damping (air + suspension)
 game.bikeAngularVelocity *= 0.92;
@@ -154,11 +185,13 @@ game.bikeAngle += game.bikeAngularVelocity;
     resetGame();
     return;
   }
-
-  // Crash limits
-  if (game.bikeAngle > 0.65 || game.bikeAngle < -0.35) {
-    resetGame();
-  }
+  
+  if (
+  game.bikeAngle > OVER_ROTATE_ANGLE ||
+  game.bikeAngle < -0.4
+) {
+  resetGame();
+}
 }
 // ===== Render =====
 function drawSky() {
@@ -220,10 +253,12 @@ function drawBike() {
   ctx.scale(-1, 1);
 
   // 4️⃣ Draw image so rear wheel stays planted
-  ctx.drawImage(
+  const leanBack = Math.max(0, game.bikeAngle) * 40;
+
+ctx.drawImage(
   bikeImage,
   -REAR_WHEEL_OFFSET_X,
-  -h,
+  -h - leanBack,
   w,
   h
 );
