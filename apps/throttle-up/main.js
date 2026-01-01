@@ -203,7 +203,7 @@ function drawBike() {
   const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
 
   // Rear wheel ground contact (RIGHT side now)
-  const rearGroundX = canvas.width * 0.55;
+  const rearGroundX = canvas.width * 0.85;
 
   const w = bikeImage.width * BIKE_SCALE;
   const h = bikeImage.height * BIKE_SCALE;
