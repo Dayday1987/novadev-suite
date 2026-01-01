@@ -10,7 +10,7 @@ function initHamburger() {
   if (!btn || !nav) return;
 
   btn.addEventListener('click', () => {
-    nav.classList.toggle('open');
+    nav.classList.toggle('show');
   });
 }
 
