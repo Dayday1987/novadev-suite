@@ -112,6 +112,8 @@ function updateCountdown(now) {
     }
   }
 
+const MAX_SPEED = 120;
+
 // ===== Update =====
 function update(now) {
   if (game.phase === "COUNTDOWN") {
@@ -130,15 +132,6 @@ function update(now) {
   
   game.speed = Math.min(game.speed, MAX_SPEED);
 
-  const MAX_SPEED = 120;
-
-  if (
-  game.bikeAngle > OVER_ROTATE_ANGLE ||
-  game.bikeAngle < -0.4
-) {
-  resetGame();
-  }
-
 // ===== Wheelie physics (SINGLE source of truth) =====
 
 // ---- Wheelie torque ----
@@ -154,6 +147,7 @@ if (game.throttle) {
 
   game.bikeAngularVelocity += torque;
 }
+  
 // Gravity restoring force
 // ---- Gravity & balance ----
 let gravityStrength = 0.05;
@@ -229,6 +223,7 @@ function drawEnvironment() {
   ctx.setLineDash([]);
 }
 
+//drawBike
 function drawBike() {
   if (!bikeReady) return;
 
