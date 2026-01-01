@@ -221,12 +221,12 @@ function drawBike() {
 
   // 4️⃣ Draw image so rear wheel stays planted
   ctx.drawImage(
-    bikeImage,
-    -REAR_WHEEL_OFFSET_X,
-    -h,
-    w,
-    h
-  );
+  bikeImage,
+  REAR_WHEEL_OFFSET_X - w,
+  -h,
+  w,
+  h
+);
   
 // DEBUG: rear wheel contact point
 ctx.fillStyle = "red";
