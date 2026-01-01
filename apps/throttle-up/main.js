@@ -120,7 +120,7 @@ function update(now) {
 
   // Forward acceleration
   if (game.throttle) {
-    game.speed += 0.25;
+    game.speed += 0.97;
   } else {
     game.speed *= 0.97;
   }
