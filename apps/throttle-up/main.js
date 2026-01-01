@@ -214,7 +214,7 @@ function drawBike() {
   ctx.translate(rearGroundX, groundY);
 
   // 2️⃣ Apply wheelie rotation
-  ctx.rotate(game.bikeAngle);
+  //ctx.rotate(game.bikeAngle);
 
   // 3️⃣ Flip bike so it faces LEFT
   ctx.scale(-1, 1);
@@ -222,13 +222,19 @@ function drawBike() {
   // 4️⃣ Draw image so rear wheel stays planted
   ctx.drawImage(
   bikeImage,
-  REAR_WHEEL_OFFSET_X - w,
+  -REAR_WHEEL_OFFSET_X,
   -h,
   w,
   h
 );
   
 // DEBUG: rear wheel contact point
+ctx.fillStyle = "red";
+ctx.beginPath();
+ctx.arc(0, 0, 5, 0, Math.PI * 2);
+ctx.fill();
+
+  // rear wheel pivot
 ctx.fillStyle = "red";
 ctx.beginPath();
 ctx.arc(0, 0, 5, 0, Math.PI * 2);
