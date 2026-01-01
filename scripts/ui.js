@@ -4,43 +4,6 @@ export function initUI() {
   initClock();
 }
 
-/* 1. Hide hamburger on Desktop */
-.hamburger {
-  display: none; 
-}
-
-/* 2. Show hamburger and adjust Nav on Mobile */
-@media (max-width: 768px) {
-  .hamburger {
-    display: block; /* Make button appear */
-    background: none;
-    border: none;
-    color: var(--text-primary);
-    font-size: 24px;
-    cursor: pointer;
-  }
-
-  .nav {
-    display: none; /* Hide standard horizontal links */
-  }
-
-  /* When JS toggles this class, the menu appears as a dropdown */
-  .nav.show {
-    display: flex;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: var(--navbar);
-    flex-direction: column;
-    padding: 16px;
-    width: 200px;
-    box-shadow: var(--shadow);
-    border: 1px solid rgba(110, 231, 247, 0.1);
-  }
-}
-
-
-
 function initHamburger() {
   const btn = document.querySelector('.hamburger');
   const nav = document.querySelector('.nav');
