@@ -124,7 +124,7 @@ function update(now) {
   } else {
     game.speed *= 0.97;
   }
-  game.speed = Math.min(game.speed, 20);
+  game.speed = Math.min(game.speed, 50);
 
 // ===== Wheelie physics (SINGLE source of truth) =====
 
