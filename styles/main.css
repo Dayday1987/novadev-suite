@@ -71,22 +71,6 @@ p { color: var(--text-secondary); }
 .nav a{color:var(--muted);padding:8px;border-radius:8px}
 .nav a.cta{background:linear-gradient(90deg,var(--accent-1),var(--accent-2));color:#071422;padding:8px 12px}
 
-/* 1. Hide hamburger on Desktop */
-.hamburger {
-  display: none; 
-}
-
-/* 2. Show hamburger and adjust Nav on Mobile */
-@media (max-width: 768px) {
-  .hamburger {
-    display: block; /* Make button appear */
-    background: none;
-    border: none;
-    color: var(--text-primary);
-    font-size: 24px;
-    cursor: pointer;
-  }
-
   .nav {
     display: none; /* Hide standard horizontal links */
   }
@@ -219,12 +203,7 @@ textarea, input[type="text"], input[type="email"], input[name="name"]{
 #year { font-weight:700; }
 .socials { display:flex; gap:10px; margin-left:12px; }
 
-/* -------------------- RESPONSIVE -------------------- */
-@media (max-width: 768px) {
-  .nav { display: none; }
-  .hamburger { display: block; background: none; border: none; color: var(--text-primary); font-size: 24px; cursor: pointer; padding: 8px; }
-  .nav.show { position: absolute; top: 100%; right: 0; background: var(--navbar); flex-direction: column; padding: 16px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3); display: flex; width: 200px; }
-}
+
 
 /* -------------------- EDITOR -------------------- */
 .editor-shell { margin-top:18px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.04); background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent); }
@@ -365,3 +344,60 @@ textarea, input[type="text"], input[type="email"], input[name="name"]{
 .muted { color: var(--muted); }
 .center { text-align:center; }
 .hidden { display:none !important; }
+
+/* -------------------- FINAL RESPONSIVE LOGIC -------------------- */
+
+/* Desktop: Default hidden */
+.hamburger {
+  display: none !important;
+}
+
+/* Mobile: Screens 768px and smaller */
+@media (max-width: 768px) {
+  .hamburger {
+    display: block !important;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 4px 8px;
+    z-index: 101;
+  }
+
+  /* Hide the desktop nav links */
+  .nav {
+    display: none;
+  }
+
+  /* Mobile Dropdown Menu */
+  .nav.show {
+    display: flex !important;
+    flex-direction: column;
+    position: absolute;
+    top: 100%; /* Sits right below the header */
+    right: 0;
+    width: 250px;
+    background: var(--navbar);
+    padding: 20px;
+    border-bottom-left-radius: var(--radius);
+    border-left: 1px solid rgba(110, 231, 247, 0.1);
+    border-bottom: 1px solid rgba(110, 231, 247, 0.1);
+    box-shadow: var(--shadow);
+    z-index: 100;
+  }
+
+  .nav.show a {
+    padding: 12px;
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Desktop Safety: Ensure nav is always visible on large screens */
+@media (min-width: 769px) {
+  .nav {
+    display: flex !important;
+  }
+}
+
