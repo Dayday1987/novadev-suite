@@ -214,7 +214,7 @@ function drawBike() {
   ctx.translate(rearGroundX, groundY);
 
   // 2️⃣ Apply wheelie rotation
-  //ctx.rotate(game.bikeAngle);
+  ctx.rotate(game.bikeAngle);
 
   // 3️⃣ Flip bike so it faces LEFT
   ctx.scale(-1, 1);
