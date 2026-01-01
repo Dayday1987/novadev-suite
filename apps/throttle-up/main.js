@@ -233,12 +233,6 @@ ctx.fillStyle = "red";
 ctx.beginPath();
 ctx.arc(0, 0, 5, 0, Math.PI * 2);
 ctx.fill();
-
-  // rear wheel pivot
-ctx.fillStyle = "red";
-ctx.beginPath();
-ctx.arc(0, 0, 5, 0, Math.PI * 2);
-ctx.fill();
   
   ctx.restore();
 }
