@@ -122,9 +122,9 @@ function update(now) {
   if (game.throttle) {
     game.speed += 0.25;
   } else {
-    game.speed *= 1.97;
+    game.speed *= 0.97;
   }
-  game.speed = Math.min(game.speed, 20);
+  game.speed = Math.min(game.speed, 5);
 
 // ===== Wheelie physics (SINGLE source of truth) =====
 
