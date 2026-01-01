@@ -120,7 +120,7 @@ function update(now) {
 
   // Forward acceleration
   if (game.throttle) {
-    game.speed += 1.25;
+    game.speed += 0.25;
   } else {
     game.speed *= 0.97;
   }
@@ -130,7 +130,7 @@ function update(now) {
 
 // Throttle torque (rear wheel pushing bike forward)
 if (game.throttle) {
-  const torque = 0.023 + game.speed * 0.0004;
+  const torque = 0.10 + game.speed * 0.0004;
   game.bikeAngularVelocity += torque;
 }
 
