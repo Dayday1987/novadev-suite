@@ -4,7 +4,7 @@ const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 canvas.style.touchAction = "none";
 const bikeImage = new Image();
-bikeImage.src = "./assets/bike/ninja-h2r.svg";
+bikeImage.src = "./assets/bike/HEIF Image.png";
 
 const BIKE_SCALE = 1.2;
 let bikeReady = false;
@@ -17,6 +17,7 @@ const BALANCE_ANGLE = 1.45; // ~83 degrees
 bikeImage.onload = () => {
   bikeReady = true;
   console.log("Bike loaded:", bikeImage.src);
+  console.log("Bike size:", bikeImage.width, bikeImage.height);
 };
 
 bikeImage.onerror = () => {
