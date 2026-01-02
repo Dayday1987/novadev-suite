@@ -145,7 +145,7 @@ if (
   game.hasLifted
 ) {
   game.bikeAngularVelocity += 0.022;
-  !game.hasLifted = true;
+  game.hasLifted = true;
 }
 
 // --- Sustained wheelie torque (AFTER lift) ---
@@ -156,7 +156,7 @@ if (game.throttle && game.speed > 8 && game.hasLifted) {
   const angleFade =
     Math.max(0.2, 1 - game.bikeAngle / BALANCE_ANGLE);
 
-  torque = 0.0032 * speedFactor * angleFade;
+  torque = 0.0012 * speedFactor * angleFade;
 }
 
 // Apply torque ONCE
@@ -322,7 +322,7 @@ function resetGame() {
   game.bikeAngle = 0;
   game.bikeAngularVelocity = 0;
   game.throttle = false;
-  game.haslifted = false;
+  game.hasLifted = false;
 }
 
 // ===== Loop =====
