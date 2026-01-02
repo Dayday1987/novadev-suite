@@ -134,22 +134,24 @@ function update(now) {
 
   game.speed = Math.min(game.speed, MAX_SPEED);
 
-  // 2️⃣ Wheelie physics
-  let torque = 0;
+ //wheelie physics
+  // --- Throttle torque ---
+let torque = 0;
 
-  if (game.throttle && game.speed > 10) {
-    const speedFactor = Math.min(game.speed / 40, 1);
-    const angleFade = Math.max(
-      0,
-      1 - game.bikeAngle / BALANCE_ANGLE
-    );
+if (game.throttle && game.speed > 8) {
+  const speedFactor = Math.min(game.speed / 35, 1);
 
-    torque = 0.0018 * speedFactor * angleFade;
-  }
+  // Stronger torque near flat, fades as angle increases
+  const launchAssist =
+    Math.max(0.25, 1 - game.bikeAngle * 0.9);
 
-  game.bikeAngularVelocity += torque;
+  torque = 0.0032 * speedFactor * launchAssist;
+}
 
-  let gravity = game.bikeAngle * 0.035;
+game.bikeAngularVelocity += torque;
+  
+  //Gravity
+let gravity = game.bikeAngle * 0.035;
 
   if (game.bikeAngle > BALANCE_ANGLE) {
     gravity +=
