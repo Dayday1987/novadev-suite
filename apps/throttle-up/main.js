@@ -135,23 +135,10 @@ function update(now) {
 
   game.speed = Math.min(game.speed, MAX_SPEED);
 
- //wheelie physics
-  // --- Throttle torque ---
+  // ===== Wheelie Physics (FINAL & STABLE) =====
 let torque = 0;
 
-if (game.throttle && game.speed > 8 && game.hasLifted) {
-  const speedFactor = Math.min(game.speed / 40, 1);
-
-  // Torque fades as you approach balance
-  const angleFade =
-    Math.max(0.2, 1 - game.bikeAngle / BALANCE_ANGLE);
-
-  torque = 0.0026 * speedFactor * angleFade;
-}
-
-game.bikeAngularVelocity += torque;
-  
-// --- Takeoff impulse (ONE TIME) ---
+// --- Takeoff impulse (ONE TIME ONLY) ---
 if (
   game.throttle &&
   game.speed > 12 &&
@@ -160,15 +147,27 @@ if (
   game.bikeAngularVelocity += 0.015;
   game.hasLifted = true;
 }
-  
+
+// --- Sustained wheelie torque (AFTER lift) ---
+if (game.throttle && game.speed > 8 && game.hasLifted) {
+  const speedFactor = Math.min(game.speed / 40, 1);
+
+  // Strong near flat, fades near balance
+  const angleFade =
+    Math.max(0.2, 1 - game.bikeAngle / BALANCE_ANGLE);
+
+  torque = 0.0026 * speedFactor * angleFade;
+}
+
+// Apply torque ONCE
+game.bikeAngularVelocity += torque;
+
 // --- Gravity (only after lift) ---
 let gravity = 0;
 
-// Do NOT pull down when nearly flat
 if (game.bikeAngle > 0.05) {
   gravity = game.bikeAngle * 0.03;
 
-  // Strong gravity past balance
   if (game.bikeAngle > BALANCE_ANGLE) {
     gravity +=
       (game.bikeAngle - BALANCE_ANGLE) * 0.9;
@@ -177,16 +176,19 @@ if (game.bikeAngle > 0.05) {
 
 game.bikeAngularVelocity -= gravity;
 
-  const damping = game.throttle ? 0.985 : 0.96;
-  game.bikeAngularVelocity *= damping;
+// --- Damping ---
+const damping = game.throttle ? 0.985 : 0.96;
+game.bikeAngularVelocity *= damping;
 
-  game.bikeAngularVelocity = Math.max(
-    -MAX_ANGULAR_VELOCITY,
-    Math.min(MAX_ANGULAR_VELOCITY, game.bikeAngularVelocity)
-  );
+// --- Clamp angular velocity ---
+game.bikeAngularVelocity = Math.max(
+  -MAX_ANGULAR_VELOCITY,
+  Math.min(MAX_ANGULAR_VELOCITY, game.bikeAngularVelocity)
+);
 
-  game.bikeAngle += game.bikeAngularVelocity;
-
+// --- Apply rotation ---
+game.bikeAngle += game.bikeAngularVelocity;
+  
   // 3️⃣ Move world
   game.scroll += game.speed;
 
