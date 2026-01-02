@@ -146,7 +146,7 @@ if (
   game.speed > 12 &&
   !game.hasLifted
 ) {
-  game.bikeAngularVelocity -= 0.022; // 🔥 NEGATIVE
+  game.bikeAngularVelocity += 0.022;// 🔥 positive
   game.hasLifted = true;
 }
   
@@ -157,7 +157,7 @@ if (game.throttle && game.speed > 8 && game.hasLifted) {
   const angleFade =
     Math.max(0.15, 1 - game.bikeAngle / BALANCE_ANGLE);
 
-  torque = -0.0016 * speedFactor * angleFade; // 🔥 NEGATIVE
+   torque = 0.0016 * speedFactor * angleFade;// 🔥 positive
 }
 
 // Apply torque ONCE
@@ -166,7 +166,7 @@ game.bikeAngularVelocity += torque;
 // --- Gravity (only after lift) ---
 let gravity = 0;
 
-if (game.bikeAngle > 0.08) {
+if (game.bikeAngle > 0.05) {
   gravity = game.bikeAngle * 0.03;
 
   if (game.bikeAngle > BALANCE_ANGLE) {
@@ -197,7 +197,7 @@ if (Math.abs(game.bikeAngularVelocity) < EPSILON) {
 game.bikeAngle += game.bikeAngularVelocity;
   
   // 3️⃣ Move world
-  game.scroll += game.speed;
+  game.scroll -= game.speed;
 
   // 4️⃣ Crash
   if (
@@ -232,7 +232,7 @@ function drawEnvironment() {
   const gap = 30;
   const total = dashLength + gap;
 
-  const offset = -(game.scroll % total);
+  const offset = game.scroll % total;
 
   ctx.setLineDash([dashLength, gap]);
   ctx.lineDashOffset = offset;
@@ -253,7 +253,7 @@ function drawBike() {
   const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
 
   // Rear wheel ground contact (RIGHT side now)
-  const rearGroundX = canvas.width * 0.85;
+  const rearGroundX = canvas.width * 0.15;
 
   const w = bikeImage.width * BIKE_SCALE;
   const h = bikeImage.height * BIKE_SCALE;
