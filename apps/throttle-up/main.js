@@ -142,7 +142,7 @@ let torque = 0;
 if (
   game.throttle &&
   game.speed > 12 &&
-  game.hasLifted
+  !game.hasLifted
 ) {
   game.bikeAngularVelocity += 0.022;
   game.hasLifted = true;
@@ -185,6 +185,12 @@ game.bikeAngularVelocity = Math.max(
   -MAX_ANGULAR_VELOCITY,
   Math.min(MAX_ANGULAR_VELOCITY, game.bikeAngularVelocity)
 );
+
+  // --- Kill tiny oscillation near flat ---
+const EPSILON = 0.0005;
+if (Math.abs(game.bikeAngularVelocity) < EPSILON) {
+  game.bikeAngularVelocity = 0;
+}
 
 // --- Apply rotation ---
 game.bikeAngle += game.bikeAngularVelocity;
