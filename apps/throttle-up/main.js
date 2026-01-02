@@ -132,43 +132,62 @@ function update(now) {
   
   game.speed = Math.min(game.speed, MAX_SPEED);
 
-// ===== Wheelie physics (SINGLE source of truth) =====
 
-// ---- Wheelie torque ----
-if (game.throttle) {
-  // No real wheelie below 10 mph
-  const speedFactor = Math.max(0, game.speed - 10);
+// ===== Wheelie physics (BALANCED & CONTROLLABLE) =====
 
-  // Angle leverage (more lift as angle increases)
-  const angleFactor = 1 + Math.abs(game.bikeAngle) * 2;
+// --- Constants ---
+const DEAD_ZONE = 0.15; // radians (~9°) near flat
+const BALANCE_WINDOW = 0.25; // radians around balance
+const THROTTLE_RAMP = 0.12; // smoothing factor
 
-  const torque =
-    speedFactor * 0.00035 * angleFactor;
+// --- Smooth throttle torque ---
+game.targetTorque = 0;
 
-  game.bikeAngularVelocity += torque;
+// No real wheelie below 10 mph
+if (game.throttle && game.speed > 10) {
+  const speedFactor = Math.min(game.speed / 60, 1); // caps influence
+  const angleFactor = 1 + Math.abs(game.bikeAngle) * 1.2;
+
+  game.targetTorque =
+    speedFactor * angleFactor * 0.004;
 }
-  
-// Gravity restoring force
-// ---- Gravity & balance ----
-let gravityStrength = 0.05;
 
-// Strong gravity past balance point
+// Smooth torque application (prevents snap-loops)
+game.bikeAngularVelocity +=
+  (game.targetTorque - game.bikeAngularVelocity) * THROTTLE_RAMP;
+
+// --- Gravity & balance ---
+let gravityStrength = 0;
+
+// Near flat → very weak gravity
+if (Math.abs(game.bikeAngle) > DEAD_ZONE) {
+  gravityStrength = 0.025;
+}
+
+// Near balance → hover zone
+if (
+  Math.abs(game.bikeAngle - BALANCE_ANGLE) <
+  BALANCE_WINDOW
+) {
+  gravityStrength *= 0.15;
+}
+
+// Past balance → strong pull down
 if (Math.abs(game.bikeAngle) > BALANCE_ANGLE) {
   gravityStrength +=
-    (Math.abs(game.bikeAngle) - BALANCE_ANGLE) * 1.2;
+    (Math.abs(game.bikeAngle) - BALANCE_ANGLE) * 1.4;
 }
 
 game.bikeAngularVelocity +=
   -game.bikeAngle * gravityStrength;
 
-  if (game.throttle && Math.abs(game.bikeAngle) > BALANCE_ANGLE) {
-  game.bikeAngularVelocity *= 0.97;
-}
+// --- Damping ---
+const damping =
+  Math.abs(game.bikeAngle) > BALANCE_ANGLE ? 0.94 : 0.97;
 
-// Damping (air + suspension)
-game.bikeAngularVelocity *= 0.92;
+game.bikeAngularVelocity *= damping;
 
-// Apply rotation
+// --- Apply rotation ---
 game.bikeAngle += game.bikeAngularVelocity;
 
   // Scroll world
