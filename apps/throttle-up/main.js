@@ -235,7 +235,7 @@ function drawEnvironment() {
   const offset = game.scroll % total;
 
   ctx.setLineDash([dashLength, gap]);
-  ctx.lineDashOffset = offset;
+  ctx.lineDashOffset = -offset;
 
   ctx.beginPath();
   ctx.moveTo(0, ROAD_Y() + ROAD_HEIGHT() / 2);
