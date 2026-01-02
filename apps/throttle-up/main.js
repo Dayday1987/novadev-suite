@@ -160,16 +160,6 @@ if (
   game.bikeAngularVelocity += 0.015;
   game.hasLifted = true;
 }
-
-  // Stronger torque near flat, fades as angle increases
-  const launchAssist =
-    Math.max(0.25, 1 - game.bikeAngle * 0.9);
-
-  torque = 0.0032 * speedFactor * launchAssist;
-  
-}
-
-game.bikeAngularVelocity += torque;
   
 // --- Gravity (only after lift) ---
 let gravity = 0;
