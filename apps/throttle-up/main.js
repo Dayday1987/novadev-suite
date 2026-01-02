@@ -12,6 +12,8 @@ let bikeReady = false;
 const MAX_ANGULAR_VELOCITY = 0.025;
 const CRASH_ANGLE = 1.6; // ~92°;
 
+const BALANCE_ANGLE = 1.45; // ~83 degrees
+
 bikeImage.onload = () => {
   bikeReady = true;
   console.log("Bike loaded:", bikeImage.src);
