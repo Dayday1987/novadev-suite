@@ -184,7 +184,10 @@ game.bikeAngle += game.bikeAngularVelocity;
 if (
   game.bikeAngle > CRASH_ANGLE ||
   game.bikeAngle < -0.35
-) {
+) 
+// Move world
+game.scroll += game.speed;
+{
   resetGame();
   return;
 }
