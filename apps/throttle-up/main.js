@@ -128,10 +128,12 @@ function update(now) {
 
   // 1️⃣ Forward acceleration
   if (game.throttle) {
-    game.speed += 0.6;
-  } else {
-    game.speed *= 0.995;
-  }
+  game.speed += 0.6;
+} else {
+  game.speed -= 0.8; // braking force
+}
+
+if (game.speed < 0) game.speed = 0;
 
   game.speed = Math.min(game.speed, MAX_SPEED);
 
@@ -144,19 +146,18 @@ if (
   game.speed > 12 &&
   !game.hasLifted
 ) {
-  game.bikeAngularVelocity += 0.022;
+  game.bikeAngularVelocity -= 0.022; // 🔥 NEGATIVE
   game.hasLifted = true;
 }
-
+  
 // --- Sustained wheelie torque (AFTER lift) ---
 if (game.throttle && game.speed > 8 && game.hasLifted) {
   const speedFactor = Math.min(game.speed / 40, 1);
 
-  // Strong near flat, fades near balance
   const angleFade =
-    Math.max(0.2, 1 - game.bikeAngle / BALANCE_ANGLE);
+    Math.max(0.15, 1 - game.bikeAngle / BALANCE_ANGLE);
 
-  torque = 0.0012 * speedFactor * angleFade;
+  torque = -0.0016 * speedFactor * angleFade; // 🔥 NEGATIVE
 }
 
 // Apply torque ONCE
