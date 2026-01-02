@@ -25,8 +25,8 @@ bikeImage.onerror = () => {
 };
 
 // These position the image so the rear wheel sits on the road
-const REAR_WHEEL_OFFSET_X = 60;   // pixels
-const REAR_WHEEL_OFFSET_Y = -5; // % of image height
+const REAR_WHEEL_OFFSET_X = 80;
+const REAR_WHEEL_OFFSET_Y = 0;
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -259,22 +259,17 @@ function drawBike() {
 
   ctx.save();
 
-  // 1️⃣ Move origin to rear wheel contact point
-  ctx.translate(rearGroundX, groundY);
+// 1️⃣ Move origin to rear wheel contact point
+ctx.translate(rearGroundX, groundY);
 
-  // 2️⃣ Apply wheelie rotation
-  ctx.rotate(game.bikeAngle);
+// 2️⃣ Rotate around rear wheel
+ctx.rotate(game.bikeAngle);
 
-  // 3️⃣ Flip bike so it faces LEFT
-  ctx.scale(-1, 1);
-
-  // 4️⃣ Draw image so rear wheel stays planted
-  const leanBack = Math.max(0, game.bikeAngle) * 40;
-
+// 3️⃣ Draw bike normally (facing RIGHT)
 ctx.drawImage(
   bikeImage,
-  -REAR_WHEEL_OFFSET_X,
-  -h - leanBack,
+  -REAR_WHEEL_OFFSET_X, // rear wheel now truly behind pivot
+  -h,
   w,
   h
 );
@@ -283,6 +278,12 @@ ctx.drawImage(
 ctx.fillStyle = "red";
 ctx.beginPath();
 ctx.arc(0, 0, 5, 0, Math.PI * 2);
+ctx.fill();
+
+  // FRONT marker
+ctx.fillStyle = "blue";
+ctx.beginPath();
+ctx.arc(w - REAR_WHEEL_OFFSET_X, 0, 5, 0, Math.PI * 2);
 ctx.fill();
   
   ctx.restore();
