@@ -135,55 +135,65 @@ function update(now) {
 
 // ===== Wheelie physics (BALANCED & CONTROLLABLE) =====
 
-// --- Constants ---
-const DEAD_ZONE = 0.15; // radians (~9°) near flat
-const BALANCE_WINDOW = 0.25; // radians around balance
-const THROTTLE_RAMP = 0.12; // smoothing factor
+// ===== Wheelie physics (HOVERABLE & SPEED SAFE) =====
 
-// --- Smooth throttle torque ---
-game.targetTorque = 0;
+// --- Tunables ---
+const DEAD_ZONE = 0.12;
+const BALANCE_WINDOW = 0.22;
+const TORQUE_RAMP = 0.08;
+const MAX_TORQUE = 0.0038;
 
-// No real wheelie below 10 mph
+// --- Target torque ---
+let targetTorque = 0;
+
+// Allow lift only above 10 mph
 if (game.throttle && game.speed > 10) {
-  const speedFactor = Math.min(game.speed / 60, 1); // caps influence
-  const angleFactor = 1 + Math.abs(game.bikeAngle) * 1.2;
+  // Speed influence drops at high speed (important!)
+  const speedInfluence =
+    1 / (1 + game.speed * 0.03);
 
-  game.targetTorque =
-    speedFactor * angleFactor * 0.004;
+  // Less torque the higher the angle
+  const angleInfluence =
+    1 / (1 + Math.abs(game.bikeAngle) * 1.5);
+
+  targetTorque =
+    MAX_TORQUE * speedInfluence * angleInfluence;
 }
 
-// Smooth torque application (prevents snap-loops)
+// Smooth torque application
 game.bikeAngularVelocity +=
-  (game.targetTorque - game.bikeAngularVelocity) * THROTTLE_RAMP;
+  (targetTorque - game.bikeAngularVelocity) * TORQUE_RAMP;
 
 // --- Gravity & balance ---
-let gravityStrength = 0;
+let gravity = 0;
 
-// Near flat → very weak gravity
+// Only apply gravity when not flat
 if (Math.abs(game.bikeAngle) > DEAD_ZONE) {
-  gravityStrength = 0.025;
+  // Pull toward balance point, NOT zero
+  const balanceError =
+    game.bikeAngle - BALANCE_ANGLE;
+
+  gravity = balanceError * 0.035;
 }
 
-// Near balance → hover zone
+// Strong correction past balance
+if (game.bikeAngle > BALANCE_ANGLE) {
+  gravity +=
+    (game.bikeAngle - BALANCE_ANGLE) * 0.9;
+}
+
+game.bikeAngularVelocity -= gravity;
+
+// --- Damping ---
+let damping = 0.985;
+
+// Less damping when hovering
 if (
   Math.abs(game.bikeAngle - BALANCE_ANGLE) <
   BALANCE_WINDOW
 ) {
-  gravityStrength *= 0.15;
+  damping = 0.992;
 }
-
-// Past balance → strong pull down
-if (Math.abs(game.bikeAngle) > BALANCE_ANGLE) {
-  gravityStrength +=
-    (Math.abs(game.bikeAngle) - BALANCE_ANGLE) * 1.4;
-}
-
-game.bikeAngularVelocity +=
-  -game.bikeAngle * gravityStrength;
-
-// --- Damping ---
-const damping =
-  Math.abs(game.bikeAngle) > BALANCE_ANGLE ? 0.94 : 0.97;
 
 game.bikeAngularVelocity *= damping;
 
