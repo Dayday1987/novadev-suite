@@ -55,6 +55,7 @@ const game = {
   bikeAngle: 0,
 bikeAngularVelocity: 0,
 fingerDown: false,
+  hasLifted: false,
 };
 
 const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
@@ -138,27 +139,53 @@ function update(now) {
   // --- Throttle torque ---
 let torque = 0;
 
-if (game.throttle && game.speed > 8) {
-  const speedFactor = Math.min(game.speed / 35, 1);
+if (game.throttle && game.speed > 8 && game.hasLifted) {
+  const speedFactor = Math.min(game.speed / 40, 1);
+
+  // Torque fades as you approach balance
+  const angleFade =
+    Math.max(0.2, 1 - game.bikeAngle / BALANCE_ANGLE);
+
+  torque = 0.0026 * speedFactor * angleFade;
+}
+
+game.bikeAngularVelocity += torque;
+  
+// --- Takeoff impulse (ONE TIME) ---
+if (
+  game.throttle &&
+  game.speed > 12 &&
+  !game.hasLifted
+) {
+  game.bikeAngularVelocity += 0.015;
+  game.hasLifted = true;
+}
 
   // Stronger torque near flat, fades as angle increases
   const launchAssist =
     Math.max(0.25, 1 - game.bikeAngle * 0.9);
 
   torque = 0.0032 * speedFactor * launchAssist;
+  
 }
 
 game.bikeAngularVelocity += torque;
   
-  //Gravity
-let gravity = game.bikeAngle * 0.035;
+// --- Gravity (only after lift) ---
+let gravity = 0;
 
+// Do NOT pull down when nearly flat
+if (game.bikeAngle > 0.05) {
+  gravity = game.bikeAngle * 0.03;
+
+  // Strong gravity past balance
   if (game.bikeAngle > BALANCE_ANGLE) {
     gravity +=
-      (game.bikeAngle - BALANCE_ANGLE) * 0.8;
+      (game.bikeAngle - BALANCE_ANGLE) * 0.9;
   }
+}
 
-  game.bikeAngularVelocity -= gravity;
+game.bikeAngularVelocity -= gravity;
 
   const damping = game.throttle ? 0.985 : 0.96;
   game.bikeAngularVelocity *= damping;
