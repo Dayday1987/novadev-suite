@@ -188,7 +188,7 @@ if (
   resetGame();
   return;
 }
-
+}
 // ===== Render =====
 function drawSky() {
   ctx.fillStyle = "#6db3f2";
