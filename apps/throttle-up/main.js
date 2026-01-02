@@ -12,6 +12,9 @@ let bikeReady = false;
 const BALANCE_ANGLE = 1.45; // ~83 degrees in radians
 const OVER_ROTATE_ANGLE = 1.65; // crash zone
 
+const MAX_ANGULAR_VELOCITY = 0.035;
+const CRASH_ANGLE = 1.7; // ~97°
+
 bikeImage.onload = () => {
   bikeReady = true;
   console.log("Bike loaded:", bikeImage.src);
@@ -133,50 +136,32 @@ function update(now) {
   game.speed = Math.min(game.speed, MAX_SPEED);
 
 
-// ===== Wheelie physics (BALANCED & CONTROLLABLE) =====
+// ===== Wheelie physics (STABLE & REALISTIC) =====
 
-// ===== Wheelie physics (HOVERABLE & SPEED SAFE) =====
+// --- Torque ---
+let torque = 0;
 
-// --- Tunables ---
-const DEAD_ZONE = 0.12;
-const BALANCE_WINDOW = 0.22;
-const TORQUE_RAMP = 0.08;
-const MAX_TORQUE = 0.0038;
-
-// --- Target torque ---
-let targetTorque = 0;
-
-// Allow lift only above 10 mph
 if (game.throttle && game.speed > 10) {
-  // Speed influence drops at high speed (important!)
-  const speedInfluence =
-    1 / (1 + game.speed * 0.03);
+  const speedFactor =
+    1 / (1 + game.speed * 0.025); // less torque at high speed
 
-  // Less torque the higher the angle
-  const angleInfluence =
-    1 / (1 + Math.abs(game.bikeAngle) * 1.5);
+  const angleFactor =
+    1 / (1 + Math.abs(game.bikeAngle) * 1.3);
 
-  targetTorque =
-    MAX_TORQUE * speedInfluence * angleInfluence;
+  torque = 0.0028 * speedFactor * angleFactor;
 }
 
-// Smooth torque application
-game.bikeAngularVelocity +=
-  (targetTorque - game.bikeAngularVelocity) * TORQUE_RAMP;
+// Apply torque → angular velocity
+game.bikeAngularVelocity += torque;
 
-// --- Gravity & balance ---
-let gravity = 0;
+// --- Gravity toward balance ---
+const balanceError =
+  game.bikeAngle - BALANCE_ANGLE;
 
-// Only apply gravity when not flat
-if (Math.abs(game.bikeAngle) > DEAD_ZONE) {
-  // Pull toward balance point, NOT zero
-  const balanceError =
-    game.bikeAngle - BALANCE_ANGLE;
+let gravity =
+  balanceError * 0.035;
 
-  gravity = balanceError * 0.035;
-}
-
-// Strong correction past balance
+// Strong pull-down if past balance
 if (game.bikeAngle > BALANCE_ANGLE) {
   gravity +=
     (game.bikeAngle - BALANCE_ANGLE) * 0.9;
@@ -185,17 +170,16 @@ if (game.bikeAngle > BALANCE_ANGLE) {
 game.bikeAngularVelocity -= gravity;
 
 // --- Damping ---
-let damping = 0.985;
-
-// Less damping when hovering
-if (
-  Math.abs(game.bikeAngle - BALANCE_ANGLE) <
-  BALANCE_WINDOW
-) {
-  damping = 0.992;
-}
+const damping =
+  game.throttle ? 0.985 : 0.97;
 
 game.bikeAngularVelocity *= damping;
+
+// --- Clamp angular velocity ---
+game.bikeAngularVelocity = Math.max(
+  -MAX_ANGULAR_VELOCITY,
+  Math.min(MAX_ANGULAR_VELOCITY, game.bikeAngularVelocity)
+);
 
 // --- Apply rotation ---
 game.bikeAngle += game.bikeAngularVelocity;
@@ -208,13 +192,14 @@ game.bikeAngle += game.bikeAngularVelocity;
     resetGame();
     return;
   }
-  
   if (
-  game.bikeAngle > OVER_ROTATE_ANGLE ||
-  game.bikeAngle < -0.4
+  game.bikeAngle > CRASH_ANGLE ||
+  game.bikeAngle < -0.45
 ) {
   resetGame();
+  return;
 }
+  
 }
 // ===== Render =====
 function drawSky() {
