@@ -322,6 +322,7 @@ function resetGame() {
   game.bikeAngle = 0;
   game.bikeAngularVelocity = 0;
   game.throttle = false;
+  game.haslifted = false;
 }
 
 // ===== Loop =====
