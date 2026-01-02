@@ -142,7 +142,7 @@ let torque = 0;
 if (
   game.throttle &&
   game.speed > 12 &&
-  !game.hasLifted
+  game.hasLifted
 ) {
   game.bikeAngularVelocity += 0.015;
   game.hasLifted = true;
