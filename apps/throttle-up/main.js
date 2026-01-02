@@ -9,11 +9,8 @@ bikeImage.src = "./assets/bike/ninja-h2r.svg";
 const BIKE_SCALE = 1.2;
 let bikeReady = false;
 
-const BALANCE_ANGLE = 1.45; // ~83 degrees in radians
-const OVER_ROTATE_ANGLE = 1.65; // crash zone
-
 const MAX_ANGULAR_VELOCITY = 0.025;
-const CRASH_ANGLE = 1.6; // ~92°
+const CRASH_ANGLE = 1.6; // ~92°;
 
 bikeImage.onload = () => {
   bikeReady = true;
