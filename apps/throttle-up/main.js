@@ -6,7 +6,7 @@ canvas.style.touchAction = "none";
 const bikeImage = new Image();
 bikeImage.src = "./assets/bike/HEIF Image.png";
 
-const BIKE_SCALE = 0.25;
+const BIKE_SCALE = 0.15;
 let bikeReady = false;
 
 const MAX_ANGULAR_VELOCITY = 0.025;
