@@ -12,8 +12,8 @@ let bikeReady = false;
 const BALANCE_ANGLE = 1.45; // ~83 degrees in radians
 const OVER_ROTATE_ANGLE = 1.65; // crash zone
 
-const MAX_ANGULAR_VELOCITY = 0.035;
-const CRASH_ANGLE = 1.7; // ~97°
+const MAX_ANGULAR_VELOCITY = 0.025;
+const CRASH_ANGLE = 1.6; // ~92°
 
 bikeImage.onload = () => {
   bikeReady = true;
@@ -134,44 +134,41 @@ function update(now) {
 }
   
   game.speed = Math.min(game.speed, MAX_SPEED);
+  
 
+// ===== Wheelie physics (CORRECT MODEL) =====
 
-// ===== Wheelie physics (STABLE & REALISTIC) =====
-
-// --- Torque ---
+// --- Throttle torque ---
 let torque = 0;
 
 if (game.throttle && game.speed > 10) {
   const speedFactor =
-    1 / (1 + game.speed * 0.025); // less torque at high speed
+    Math.min(game.speed / 40, 1); // builds then caps
 
-  const angleFactor =
-    1 / (1 + Math.abs(game.bikeAngle) * 1.3);
+  const angleFade =
+    Math.max(0, 1 - game.bikeAngle / BALANCE_ANGLE);
 
-  torque = 0.0028 * speedFactor * angleFactor;
+  torque = 0.0018 * speedFactor * angleFade;
 }
 
-// Apply torque → angular velocity
+// Apply torque
 game.bikeAngularVelocity += torque;
 
-// --- Gravity toward balance ---
-const balanceError =
-  game.bikeAngle - BALANCE_ANGLE;
-
+// --- Gravity (ALWAYS toward flat = 0) ---
 let gravity =
-  balanceError * 0.035;
+  game.bikeAngle * 0.035;
 
-// Strong pull-down if past balance
+// Strong gravity if past balance
 if (game.bikeAngle > BALANCE_ANGLE) {
   gravity +=
-    (game.bikeAngle - BALANCE_ANGLE) * 0.9;
+    (game.bikeAngle - BALANCE_ANGLE) * 0.8;
 }
 
 game.bikeAngularVelocity -= gravity;
 
 // --- Damping ---
 const damping =
-  game.throttle ? 0.985 : 0.97;
+  game.throttle ? 0.985 : 0.96;
 
 game.bikeAngularVelocity *= damping;
 
@@ -184,23 +181,15 @@ game.bikeAngularVelocity = Math.max(
 // --- Apply rotation ---
 game.bikeAngle += game.bikeAngularVelocity;
 
-  // Scroll world
-  game.scroll += game.speed;
-
-  // Safety
-  if (!Number.isFinite(game.bikeAngle)) {
-    resetGame();
-    return;
-  }
-  if (
+// --- Crash ---
+if (
   game.bikeAngle > CRASH_ANGLE ||
-  game.bikeAngle < -0.45
+  game.bikeAngle < -0.35
 ) {
   resetGame();
   return;
 }
-  
-}
+
 // ===== Render =====
 function drawSky() {
   ctx.fillStyle = "#6db3f2";
