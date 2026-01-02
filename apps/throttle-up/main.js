@@ -125,72 +125,62 @@ function update(now) {
 
   if (game.phase !== "RACING") return;
 
-  // Forward acceleration
+  // 1️⃣ Forward acceleration
   if (game.throttle) {
-  game.speed += 0.6; // stronger pull
-} else {
-  game.speed *= 0.995; // coasting, not braking
-}
-  
+    game.speed += 0.6;
+  } else {
+    game.speed *= 0.995;
+  }
+
   game.speed = Math.min(game.speed, MAX_SPEED);
-  
 
-// ===== Wheelie physics (CORRECT MODEL) =====
+  // 2️⃣ Wheelie physics
+  let torque = 0;
 
-// --- Throttle torque ---
-let torque = 0;
+  if (game.throttle && game.speed > 10) {
+    const speedFactor = Math.min(game.speed / 40, 1);
+    const angleFade = Math.max(
+      0,
+      1 - game.bikeAngle / BALANCE_ANGLE
+    );
 
-if (game.throttle && game.speed > 10) {
-  const speedFactor =
-    Math.min(game.speed / 40, 1); // builds then caps
+    torque = 0.0018 * speedFactor * angleFade;
+  }
 
-  const angleFade =
-    Math.max(0, 1 - game.bikeAngle / BALANCE_ANGLE);
+  game.bikeAngularVelocity += torque;
 
-  torque = 0.0018 * speedFactor * angleFade;
+  let gravity = game.bikeAngle * 0.035;
+
+  if (game.bikeAngle > BALANCE_ANGLE) {
+    gravity +=
+      (game.bikeAngle - BALANCE_ANGLE) * 0.8;
+  }
+
+  game.bikeAngularVelocity -= gravity;
+
+  const damping = game.throttle ? 0.985 : 0.96;
+  game.bikeAngularVelocity *= damping;
+
+  game.bikeAngularVelocity = Math.max(
+    -MAX_ANGULAR_VELOCITY,
+    Math.min(MAX_ANGULAR_VELOCITY, game.bikeAngularVelocity)
+  );
+
+  game.bikeAngle += game.bikeAngularVelocity;
+
+  // 3️⃣ Move world
+  game.scroll += game.speed;
+
+  // 4️⃣ Crash
+  if (
+    game.bikeAngle > CRASH_ANGLE ||
+    game.bikeAngle < -0.35
+  ) {
+    resetGame();
+    return;
+  }
 }
 
-// Apply torque
-game.bikeAngularVelocity += torque;
-
-// --- Gravity (ALWAYS toward flat = 0) ---
-let gravity =
-  game.bikeAngle * 0.035;
-
-// Strong gravity if past balance
-if (game.bikeAngle > BALANCE_ANGLE) {
-  gravity +=
-    (game.bikeAngle - BALANCE_ANGLE) * 0.8;
-}
-
-game.bikeAngularVelocity -= gravity;
-
-// --- Damping ---
-const damping =
-  game.throttle ? 0.985 : 0.96;
-
-game.bikeAngularVelocity *= damping;
-
-// --- Clamp angular velocity ---
-game.bikeAngularVelocity = Math.max(
-  -MAX_ANGULAR_VELOCITY,
-  Math.min(MAX_ANGULAR_VELOCITY, game.bikeAngularVelocity)
-);
-
-// --- Apply rotation ---
-game.bikeAngle += game.bikeAngularVelocity;
-
-// --- Move world ---
-game.scroll += game.speed;
-
-// --- Crash ---
-if (
-  game.bikeAngle > CRASH_ANGLE ||
-  game.bikeAngle < -0.35
-) {
-  resetGame();
-  return;
-}
 // ===== Render =====
 function drawSky() {
   ctx.fillStyle = "#6db3f2";
