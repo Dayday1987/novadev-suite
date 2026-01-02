@@ -145,7 +145,7 @@ if (
   game.hasLifted
 ) {
   game.bikeAngularVelocity += 0.022;
-  game.hasLifted = true;
+  !game.hasLifted = true;
 }
 
 // --- Sustained wheelie torque (AFTER lift) ---
