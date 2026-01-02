@@ -180,17 +180,16 @@ game.bikeAngularVelocity = Math.max(
 // --- Apply rotation ---
 game.bikeAngle += game.bikeAngularVelocity;
 
+// --- Move world ---
+game.scroll += game.speed;
+
 // --- Crash ---
 if (
   game.bikeAngle > CRASH_ANGLE ||
   game.bikeAngle < -0.35
-) 
-// Move world
-game.scroll += game.speed;
-{
+) {
   resetGame();
   return;
-}
 }
 // ===== Render =====
 function drawSky() {
