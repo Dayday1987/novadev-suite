@@ -195,7 +195,7 @@ if (Math.abs(game.bikeAngularVelocity) < EPSILON) {
 }
 
 // --- Apply rotation ---
-game.bikeAngle -= game.bikeAngularVelocity;//MADE NEGATIVE
+game.bikeAngle += game.bikeAngularVelocity;//MADE NEGATIVE
   
   // 3️⃣ Move world
   game.scroll -= game.speed;
