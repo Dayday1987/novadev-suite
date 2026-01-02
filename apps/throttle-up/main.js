@@ -144,7 +144,7 @@ if (
   game.speed > 12 &&
   game.hasLifted
 ) {
-  game.bikeAngularVelocity += 0.015;
+  game.bikeAngularVelocity += 0.022;
   game.hasLifted = true;
 }
 
@@ -156,7 +156,7 @@ if (game.throttle && game.speed > 8 && game.hasLifted) {
   const angleFade =
     Math.max(0.2, 1 - game.bikeAngle / BALANCE_ANGLE);
 
-  torque = 0.0026 * speedFactor * angleFade;
+  torque = 0.0032 * speedFactor * angleFade;
 }
 
 // Apply torque ONCE
@@ -165,7 +165,7 @@ game.bikeAngularVelocity += torque;
 // --- Gravity (only after lift) ---
 let gravity = 0;
 
-if (game.bikeAngle > 0.05) {
+if (game.bikeAngle > 0.08) {
   gravity = game.bikeAngle * 0.03;
 
   if (game.bikeAngle > BALANCE_ANGLE) {
