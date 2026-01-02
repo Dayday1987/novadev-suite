@@ -264,7 +264,7 @@ function drawBike() {
 ctx.translate(rearGroundX, groundY);
 
 // 2️⃣ Rotate around rear wheel
-ctx.rotate(game.bikeAngle);
+ctx.rotate(-game.bikeAngle);
 
 // 3️⃣ Draw bike normally (facing RIGHT)
 ctx.drawImage(
