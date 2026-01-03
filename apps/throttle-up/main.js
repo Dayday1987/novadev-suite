@@ -265,18 +265,20 @@ function drawBike() {
 
     // D. RIDER (Now correctly inside the drawBike function)
     if (riderImage.complete && riderImage.naturalWidth > 0) {
-        const rW = riderImage.width * BIKE_SCALE;
-        const rH = riderImage.height * BIKE_SCALE;
+        // Create a separate scale for the rider (try 0.13 or 0.14)
+        const RIDER_SCALE = BIKE_SCALE * 0.95; 
+        const rW = riderImage.width * RIDER_SCALE;
+        const rH = riderImage.height * RIDER_SCALE;
         
         ctx.drawImage(
           riderImage, 
-          -FRAME_SHIFT_X + (bikeW * 0.25), 
-          -bikeH + (bikeH * 0.15),
+          -FRAME_SHIFT_X + (bikeW * 0.28), // Moved slightly forward
+          -bikeH + (bikeH * 0.22),         // Pushed down into the seat more
           rW, 
           rH
         );
     }
-  ctx.restore(); 
+
 } // <--- Function correctly closed here
 
 //DRAW COUNTDOWN
