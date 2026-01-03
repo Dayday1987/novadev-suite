@@ -331,19 +331,23 @@ function drawCountdown() {
   });
 }
 
-
+// DRAW HUD
 function drawHUD() {
   ctx.fillStyle = "white";
-  ctx.font = "16px sans-serif";
+  ctx.font = "bold 20px sans-serif"; // Made it a bit bolder/larger
+  ctx.textAlign = "center"; 
 
   if (game.phase === "IDLE") {
-    ctx.fillText("Tap to start", canvas.width / 2 - 40, 40);
+    ctx.fillText("TAP TO START", canvas.width / 2, 50);
   }
 
   if (game.phase === "RACING") {
+    ctx.textAlign = "left"; // Reset for the speed text
+    ctx.font = "16px sans-serif";
     ctx.fillText(`Speed: ${game.speed.toFixed(1)}`, 16, 28);
   }
 }
+
 
 function resetGame() {
   game.phase = "IDLE";
