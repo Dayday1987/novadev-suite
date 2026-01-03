@@ -283,6 +283,15 @@ function drawBike() {
     wheelSize
   );
 
+  // 4️⃣ Draw bike frame attached to rear wheel
+ctx.drawImage(
+  bikeImage,
+  -REAR_WHEEL_OFFSET_X,
+  -bikeImage.height * BIKE_SCALE,
+  bikeImage.width * BIKE_SCALE,
+  bikeImage.height * BIKE_SCALE
+);
+
   // DEBUG: pivot
   ctx.fillStyle = "red";
   ctx.beginPath();
