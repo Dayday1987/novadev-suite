@@ -228,6 +228,7 @@ function drawBike() {
           ctx.drawImage(riderImage, totalX, totalY, rW, rH);
         ctx.restore();
     }
+}
 
 
 function drawCountdown() {
