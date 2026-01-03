@@ -126,7 +126,7 @@ function updateCountdown(now) {
     }
   }
 
-const MAX_SPEED = 120;
+const MAX_SPEED = 120; 
 
 // ===== Update =====
 function update(now) {
