@@ -191,7 +191,7 @@ function update(now) {
   }
 }
 
-// ===== Render =====
+// ===== RENDER =====
 function drawSky() {
   ctx.fillStyle = "#6db3f2";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -270,8 +270,8 @@ function drawBike() {
         
         ctx.drawImage(
           riderImage, 
-          -FRAME_SHIFT_X + (bikeW * 0.28), 
-          -bikeH + (bikeH * 0.25), // Pushed down onto seat
+          -FRAME_SHIFT_X + (bikeW * 0.15), //Change rider position
+          -bikeH + (bikeH * 0.12), // Pushed down onto seat
           rW, 
           rH
         );
