@@ -264,18 +264,23 @@ function drawBike() {
 
     // D. RIDER (Shrunk and repositioned)
     if (riderImage.complete && riderImage.naturalWidth > 0) {
-        const RIDER_SCALE = BIKE_SCALE * 0.88; // Scaled down to look "in" the bike
+        // --- SCALE CONTROL ---
+        // Change 0.85 to 0.75 if he is still too big, or 0.95 if too small
+        const RIDER_SCALE = BIKE_SCALE * 0.85; 
+        
         const rW = riderImage.width * RIDER_SCALE;
         const rH = riderImage.height * RIDER_SCALE;
         
         ctx.drawImage(
           riderImage, 
-          -FRAME_SHIFT_X + (bikeW * 0.15), //Change rider position
-          -bikeH + (bikeH * 0.12), // Pushed down onto seat
+          -FRAME_SHIFT_X + (bikeW * 0.05), // Horizontal placement
+          -bikeH - (bikeH * 0.15),         // Vertical placement (seat height)
           rW, 
           rH
         );
     }
+
+  
   ctx.restore(); // 2. Restore state (Crucial for the Sky!)
 }
 
