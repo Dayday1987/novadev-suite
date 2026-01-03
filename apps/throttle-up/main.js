@@ -264,7 +264,7 @@ function drawBike() {
   const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
   
   // Pivot on the rear wheel contact point
-  const rearGroundX = canvas.width * 0.40; 
+  const rearGroundX = canvas.width * 0.18; 
 
   const bikeW = bikeImage.width * BIKE_SCALE;
   const bikeH = bikeImage.height * BIKE_SCALE;
