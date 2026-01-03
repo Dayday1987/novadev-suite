@@ -262,62 +262,65 @@ function drawBike() {
 
   const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
   const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
-  const rearGroundX = canvas.width * 0.40; // The position on the screen
+  
+  // Pivot on the rear wheel contact point
+  const rearGroundX = canvas.width * 0.40; 
 
   const bikeW = bikeImage.width * BIKE_SCALE;
   const bikeH = bikeImage.height * BIKE_SCALE;
   
-  // Adjusted: AXLE_Y_OFFSET sinks the tires into the frame correctly
-  const AXLE_Y_OFFSET = 30; 
-  const wheelSize = bikeH * 0.48; 
+  // --- CALIBRATION SETTINGS ---
+  // 1. Shift the frame LEFT so the rear axle area sits on (0,0)
+  const FRAME_SHIFT_X = bikeW * 0.22; 
+  // 2. Shift the frame DOWN so the axles sit inside the tires
+  const FRAME_SHIFT_Y = bikeH * 0.18; 
+  // 3. Move the front wheel forward to hit the forks
+  const WHEELBASE = bikeW * 0.68;
+  // 4. Match wheel size to the gap in the forks
+  const wheelSize = bikeH * 0.45; 
 
   ctx.save();
-    // 1️⃣ Move to the rear wheel contact point on the road
+    // Move to road contact
     ctx.translate(rearGroundX, groundY);
     ctx.rotate(-game.bikeAngle);
 
-    // 2️⃣ Draw REAR wheel
-    // We draw at -size/2 so the center of the wheel is exactly at (0,0)
+    // A. REAR TIRE (Drawn centered at 0,0)
     ctx.save();
-      ctx.rotate(game.scroll * 0.1); 
-      ctx.drawImage(wheelImage, -wheelSize / 2, -wheelSize / 2, wheelSize, wheelSize);
+      ctx.rotate(game.scroll * 0.1);
+      ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize);
     ctx.restore();
 
-    // 3️⃣ Draw BIKE FRAME
-    // We move LEFT by REAR_WHEEL_OFFSET_X so the frame's rear axle matches (0,0)
+    // B. BIKE FRAME
+    // We subtract FRAME_SHIFT_X to move the image left
     ctx.drawImage(
       bikeImage,
-      -REAR_WHEEL_OFFSET_X, 
-      -bikeH + AXLE_Y_OFFSET, 
-      bikeW,
+      -FRAME_SHIFT_X, 
+      -bikeH + FRAME_SHIFT_Y, 
+      bikeW, 
       bikeH
     );
 
-    // 4️⃣ Draw FRONT wheel
-    // Move forward by the wheelbase distance, then draw centered
-    const WHEELBASE = bikeW * 0.65; // Adjust this until it lines up with front forks
+    // C. FRONT TIRE
+    // Move forward by WHEELBASE, then draw centered
     ctx.save();
       ctx.translate(WHEELBASE, 0);
       ctx.rotate(game.scroll * 0.1);
-      ctx.drawImage(wheelImage, -wheelSize / 2, -wheelSize / 2, wheelSize, wheelSize);
+      ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize);
     ctx.restore();
 
-    // 5️⃣ Draw RIDER
+    // D. RIDER (Positioned relative to the shifted frame)
     if (riderImage.complete) {
-        // Adjust these numbers to sit the rider on the seat
-        const RIDER_X = -REAR_WHEEL_OFFSET_X + (bikeW * 0.25);
-        const RIDER_Y = -bikeH + (AXLE_Y_OFFSET * 0.5);
         ctx.drawImage(
-            riderImage, 
-            RIDER_X, 
-            RIDER_Y, 
-            riderImage.width * BIKE_SCALE, 
-            riderImage.height * BIKE_SCALE
+          riderImage, 
+          -FRAME_SHIFT_X + (bikeW * 0.3), 
+          -bikeH + (FRAME_SHIFT_Y * 1.5), 
+          riderImage.width * BIKE_SCALE, 
+          riderImage.height * BIKE_SCALE
         );
     }
-
   ctx.restore();
 }
+
 
 
 //DRAW COUNTDOWN
