@@ -193,7 +193,7 @@ function update(now) {
   // --- Crash check ---
   if (game.bikeAngle > CRASH_ANGLE || game.bikeAngle < -0.35) {
     resetGame();
-  }p
+  }
 }
 
 
