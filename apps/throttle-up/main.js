@@ -286,15 +286,21 @@ function drawBike() {
     ctx.restore();
 
     // D. RIDER (Positioned relative to the shifted frame)
-    if (riderImage.complete) {
-        ctx.drawImage(
-          riderImage, 
-          -FRAME_SHIFT_X + (bikeW * 0.3), 
-          -bikeH + (FRAME_SHIFT_Y * 1.5), 
-          riderImage.width * BIKE_SCALE, 
-          riderImage.height * BIKE_SCALE
-        );
-    }
+    // D. RIDER (Positioned relative to the shifted frame)
+// We check if the image is loaded AND that it has a width > 0
+if (riderImage.complete && riderImage.naturalWidth !== 0) {
+    const rW = riderImage.width * BIKE_SCALE;
+    const rH = riderImage.height * BIKE_SCALE;
+    
+    ctx.drawImage(
+      riderImage, 
+      -FRAME_SHIFT_X + (bikeW * 0.3), 
+      -bikeH + (FRAME_SHIFT_Y * 1.5), 
+      rW, 
+      rH
+    );
+}
+
   ctx.restore();
 }
 
@@ -302,22 +308,39 @@ function drawBike() {
 function drawCountdown() {
   if (game.phase !== "COUNTDOWN") return;
 
-  const light = COUNTDOWN_STEPS[game.countdownIndex];
-  const colors = ["#333", "#333", "#333"];
-
-  if (light === "YELLOW") colors[game.countdownIndex] = "yellow";
-  if (light === "GREEN") colors[2] = "lime";
-
   const cx = canvas.width / 2;
-  const cy = 100;
+  const cy = 120; 
 
-  colors.forEach((color, i) => {
+  // 1. Draw a dark background box so the lights "pop"
+  ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+  ctx.fillRect(cx - 80, cy - 40, 160, 80);
+
+  // 2. Loop through our 3 steps ("YELLOW", "YELLOW", "GREEN")
+  COUNTDOWN_STEPS.forEach((step, i) => {
+    // Determine the color of this specific light
+    let color = "#222"; // Default "OFF" color (dark gray)
+
+    // Only light up the circle that matches the current game index
+    if (i === game.countdownIndex) {
+      if (step === "YELLOW") color = "#FFD700"; // Bright Gold
+      if (step === "GREEN") color = "#00FF00";  // Neon Green
+    }
+
+    // 3. Draw the light circle
     ctx.fillStyle = color;
     ctx.beginPath();
-    ctx.arc(cx + (i - 1) * 40, cy, 14, 0, Math.PI * 2);
+    ctx.arc(cx + (i - 1) * 50, cy, 22, 0, Math.PI * 2);
     ctx.fill();
+    
+    // 4. Add a white "Active" ring to the light that is currently on
+    if (i === game.countdownIndex) {
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+    }
   });
 }
+
 
 function drawHUD() {
   ctx.fillStyle = "white";
