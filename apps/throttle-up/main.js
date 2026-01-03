@@ -280,21 +280,22 @@ function drawBike() {
     ctx.restore();
 }
 
-        // D. RIDER
+            // D. RIDER
     if (riderImage.complete && riderImage.naturalWidth > 0) {
         const rW = riderImage.width * BIKE_SCALE;
         const rH = riderImage.height * BIKE_SCALE;
         
-        // We position them relative to the FRAME_SHIFT
-        // Subtracting less from bikeH keeps them lower on the seat
         ctx.drawImage(
           riderImage, 
-          -FRAME_SHIFT_X + (bikeW * 0.25), // Slide forward/back
-          -bikeH + (bikeH * 0.1),         // Height adjustment (0.1 = lower)
+          -FRAME_SHIFT_X + (bikeW * 0.25), 
+          -bikeH + (bikeH * 0.15), // Adjusted to sit him on the seat
           rW, 
           rH
         );
     }
+
+  ctx.restore(); // This resets the "camera" so the sky doesn't move with the bike
+} // <--- THIS BRACE CLOSES THE DRAWBIKE FUNCTION
 
 
 //DRAW COUNTDOWN
