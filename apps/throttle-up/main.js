@@ -186,7 +186,7 @@ function drawRoadLines() {
   ctx.stroke();
   ctx.setLineDash([]);
 }
-
+//DRAW BIKE
 function drawBike() {
   if (!bikeReady) return;
   const groundY = ROAD_Y() + (ROAD_HEIGHT() / 2) * (game.lane === 0 ? 0.5 : 1.5);
@@ -195,42 +195,44 @@ function drawBike() {
   const bikeH = bikeImage.height * BIKE_SCALE;
   const wheelSize = bikeH * 0.50; 
 
-  ctx.save(); 
+  ctx.save(); // --- START BIKE COORDS ---
     ctx.translate(rearGroundX, groundY);
     ctx.rotate(-game.bikeAngle);
     
-    // Wheels
-    ctx.save(); ctx.rotate(game.scroll * 0.1); ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize); ctx.restore();
-    // Frame
-    ctx.drawImage(bikeImage, -(bikeW * 0.22), -bikeH + (bikeH * 0.18), bikeW, bikeH);
-    // Front Wheel
-    ctx.save(); ctx.translate(bikeW * 0.68, 0); ctx.rotate(game.scroll * 0.1); ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize); ctx.restore();
+    // 1. Rear Wheel
+    ctx.save(); 
+      ctx.rotate(game.scroll * 0.1); 
+      ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize); 
+    ctx.restore();
 
-    // Rider
-        // D. RIDER (Dynamic Physics Lean)
+    // 2. Bike Frame
+    ctx.drawImage(bikeImage, -(bikeW * 0.22), -bikeH + (bikeH * 0.18), bikeW, bikeH);
+
+    // 3. Front Wheel
+    ctx.save(); 
+      ctx.translate(bikeW * 0.68, 0); 
+      ctx.rotate(game.scroll * 0.1); 
+      ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize); 
+    ctx.restore();
+
+    // 4. D. RIDER (Dynamic Physics Lean)
     if (riderImage.complete && riderImage.naturalWidth > 0) {
         const rW = riderImage.width * (BIKE_SCALE * 0.72);
         const rH = riderImage.height * (BIKE_SCALE * 0.72);
 
-        // 1. Tuck forward at high speeds (Aerodynamics)
-        // At 100mph, he moves forward about 15 pixels
+        // Aerodynamic Tuck & Wheelie Lean
         const speedTuck = (game.speed / MAX_SPEED) * 15;
-        
-        // 2. Lean back during wheelies (Physics)
         const wheelieLean = game.bikeAngle * 25; 
 
-        ctx.save();
-          // Apply independent movement
-          // Moves forward as speed increases, moves back as front wheel lifts
-          const totalX = -(bikeW * 0.12) + speedTuck - wheelieLean;
-          const totalY = -bikeH - (bikeH * 0.05) + (speedTuck * 0.5);
+        const totalX = -(bikeW * 0.12) + speedTuck - wheelieLean;
+        const totalY = -bikeH + (bikeH * 0.08) + (speedTuck * 0.3); // Lowered slightly to sit "in" the bike
 
-          ctx.drawImage(riderImage, totalX, totalY, rW, rH);
-        ctx.restore();
+        ctx.drawImage(riderImage, totalX, totalY, rW, rH);
     }
+  ctx.restore(); // --- END BIKE COORDS (This was missing!) ---
 }
 
-
+// DRAW COUNTDOWN
 function drawCountdown() {
   if (game.phase !== "COUNTDOWN") return;
   const cx = canvas.width / 2;
