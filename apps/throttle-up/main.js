@@ -7,15 +7,17 @@ bikeImage.src = "./assets/bike/ninja-h2r-2.png";
 const wheelImage = new Image();
 wheelImage.src = "./assets/bike/biketire.png";
 const riderImage = new Image();
-riderImage.src = "./assets/bike/bikerider.png"; // Fixed filename here
+riderImage.src = "./assets/bike/bikerider.png";
 
-const BIKE_SCALE = 0.15;
+// ===== Balanced Scaling =====
+const BIKE_SCALE = 0.12; // Scaled down for more reaction time
 let bikeReady = false;
-
-const CRASH_ANGLE = 1.6; 
-const BALANCE_ANGLE = 1.45; 
-
 bikeImage.onload = () => { bikeReady = true; };
+
+// Physics Constants
+const MAX_SPEED = 140;
+const CRASH_ANGLE = 1.7; // Allows slightly past 90 degrees
+const BALANCE_POINT = 1.2; // Point where gravity feels lighter
 
 function resize() {
   canvas.width = window.innerWidth;
@@ -24,12 +26,7 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-// ===== Constants & State =====
-const ROAD_HEIGHT = () => canvas.height * 0.28;
-const ROAD_Y = () => canvas.height - ROAD_HEIGHT();
-const LANE_COUNT = 2;
-const MAX_SPEED = 120; 
-
+// ===== Game State =====
 const game = {
   phase: "IDLE",
   speed: 0,
@@ -40,11 +37,14 @@ const game = {
   countdownTimer: 0,
   bikeAngle: 0,
   bikeAngularVelocity: 0,
-  fingerDown: false,
-  hasLifted: false,
+  fingerDown: false
 };
 
 const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
+
+// Dynamically calculated positions
+const ROAD_HEIGHT = () => canvas.height * 0.22; // Thinner road = more distant look
+const ROAD_Y = () => canvas.height - ROAD_HEIGHT() - 20;
 
 // ===== Input =====
 window.addEventListener("touchstart", (e) => {
@@ -88,38 +88,45 @@ function update(now) {
   if (game.phase === "COUNTDOWN") { updateCountdown(now); return; }
   if (game.phase !== "RACING") return;
 
-  if (game.throttle) game.speed += 0.6;
-  else game.speed -= 0.8; 
+  // Acceleration
+  if (game.throttle) game.speed += 0.5;
+  else game.speed -= 0.7;
   game.speed = Math.max(0, Math.min(game.speed, MAX_SPEED));
 
+  // WHEELIE PHYSICS REFINED
   let torque = 0;
-  if (game.speed > 10) { 
-    if (game.throttle) {
-      if (!game.hasLifted) { game.bikeAngularVelocity += 0.055; game.hasLifted = true; }
-      torque = 0.0038 * (game.speed / 40);
-    }
+  // Rule: No wheelies below 20mph
+  if (game.speed > 20 && game.throttle) {
+    // Torque builds with speed for a smooth power wheelie
+    const speedFactor = game.speed / MAX_SPEED;
+    torque = 0.0035 * speedFactor;
   }
+
   game.bikeAngularVelocity += torque;
 
-  let gravity = 0;
+  // Gravity
   if (game.bikeAngle > 0) {
-    gravity = 0.001 + (game.bikeAngle * 0.038);
-    if (game.bikeAngle > BALANCE_ANGLE) gravity *= 0.6; 
+    let gravityForce = 0.0015 + (game.bikeAngle * 0.015);
+    // Past balance point, bike gets "tippy"
+    if (game.bikeAngle > BALANCE_POINT) gravityForce *= 0.5;
+    game.bikeAngularVelocity -= gravityForce;
   }
-  game.bikeAngularVelocity -= gravity;
-  game.bikeAngularVelocity *= 0.975;
+
+  // Damping & Application
+  game.bikeAngularVelocity *= 0.98;
   game.bikeAngle += game.bikeAngularVelocity;
   game.scroll -= game.speed;
 
+  // Ground Check
   if (game.bikeAngle < 0) {
     game.bikeAngle = 0;
     game.bikeAngularVelocity = 0;
-    game.hasLifted = false;
   }
+
+  // Crash Logic
   if (game.bikeAngle > CRASH_ANGLE) resetGame();
 }
 
-// ===== Render =====
 // ===== Render =====
 function drawSky() {
   ctx.fillStyle = "#6db3f2";
@@ -129,63 +136,47 @@ function drawSky() {
 function drawEnvironment() {
   const horizonY = ROAD_Y() - 100;
 
-  // 1. Distant Grandstands & Crowd
-  const standSpacing = 800;
+  // Grass (The floor for the grandstands)
+  ctx.fillStyle = "#2e7d32";
+  ctx.fillRect(0, horizonY, canvas.width, 100);
+
+  // 1. Distant Grandstands (Now Sitting on the Grass)
+  const standSpacing = 900;
   const standOffset = (game.scroll * 0.15) % standSpacing;
-  
   for (let i = -1; i < (canvas.width / standSpacing) + 1; i++) {
     let x = i * standSpacing + standOffset;
-    
     ctx.fillStyle = "#4a4a4a"; 
-    ctx.fillRect(x, horizonY - 120, 500, 120);
-    
-    ctx.fillStyle = "#222";
-    ctx.fillRect(x + 20, horizonY - 100, 460, 60);
-
-    const colors = ["#e74c3c", "#3498db", "#f1c40f", "#ecf0f1"];
-    for (let dot = 0; dot < 40; dot++) {
-      ctx.fillStyle = colors[dot % 4];
-      ctx.fillRect(x + 30 + (dot * 11), horizonY - 90 + (dot % 3 * 5), 6, 8);
-    }
-    
-    ctx.fillStyle = "#2c3e50";
-    ctx.fillRect(x - 10, horizonY - 130, 520, 15);
+    ctx.fillRect(x, horizonY - 110, 500, 110); // Anchored to horizonY
+    ctx.fillStyle = "#222"; // Crowd Area
+    ctx.fillRect(x + 20, horizonY - 90, 460, 50);
+    ctx.fillStyle = "#2c3e50"; // Roof
+    ctx.fillRect(x - 10, horizonY - 120, 520, 12);
   }
 
-  // 2. Concrete Track Wall
+  // 2. Track Wall
   ctx.fillStyle = "#95a5a6"; 
   const wallOffset = (game.scroll * 0.4) % 200;
   for (let i = -1; i < (canvas.width / 200) + 1; i++) {
     let x = i * 200 + wallOffset;
-    ctx.fillRect(x, ROAD_Y() - 35, 190, 35);
+    ctx.fillRect(x, ROAD_Y() - 30, 195, 30);
     ctx.fillStyle = i % 2 === 0 ? "#e74c3c" : "#ecf0f1";
-    ctx.fillRect(x, ROAD_Y() - 35, 190, 8);
+    ctx.fillRect(x, ROAD_Y() - 30, 195, 6);
   }
 
   // 3. Track Surface
   ctx.fillStyle = "#2c3e50";
   ctx.fillRect(0, ROAD_Y(), canvas.width, ROAD_HEIGHT());
 
-  // 4. Hay Bales
-  const baleOffset = game.scroll % 400;
-  for (let i = -1; i < (canvas.width / 400) + 1; i++) {
-    let x = i * 400 + baleOffset;
-    ctx.fillStyle = "#f1c40f"; 
-    ctx.fillRect(x, ROAD_Y() - 15, 60, 25);
-    ctx.strokeStyle = "#9a7d0a";
-    ctx.strokeRect(x, ROAD_Y() - 15, 60, 25);
-  }
-
+  // 4. Track Stripes (Dashed Lines)
   drawRoadLines();
 }
 
 function drawRoadLines() {
   ctx.strokeStyle = "#ffffff";
   ctx.lineWidth = 4;
-  const dashLength = 60, gap = 40;
-  const total = dashLength + gap;
+  const total = 100;
   const offset = game.scroll % total;
-  ctx.setLineDash([dashLength, gap]);
+  ctx.setLineDash([60, 40]);
   ctx.lineDashOffset = -offset;
   ctx.beginPath();
   ctx.moveTo(0, ROAD_Y() + ROAD_HEIGHT() / 2);
@@ -196,11 +187,13 @@ function drawRoadLines() {
 
 function drawBike() {
   if (!bikeReady) return;
-  const groundY = ROAD_Y() + (ROAD_HEIGHT() / 2) * (game.lane === 0 ? 0.5 : 1.5);
-  const rearGroundX = canvas.width * 0.18; 
+  const laneOffset = (game.lane === 0 ? 0.3 : 0.7);
+  const groundY = ROAD_Y() + ROAD_HEIGHT() * laneOffset;
+  const rearGroundX = canvas.width * 0.15; 
+
   const bikeW = bikeImage.width * BIKE_SCALE;
   const bikeH = bikeImage.height * BIKE_SCALE;
-  const wheelSize = bikeH * 0.50; 
+  const wheelSize = bikeH * 0.48;
 
   ctx.save(); 
     ctx.translate(rearGroundX, groundY);
@@ -208,22 +201,22 @@ function drawBike() {
     
     // Wheels
     ctx.save(); ctx.rotate(game.scroll * 0.1); ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize); ctx.restore();
-    ctx.save(); ctx.translate(bikeW * 0.68, 0); ctx.rotate(game.scroll * 0.1); ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize); ctx.restore();
+    ctx.save(); ctx.translate(bikeW * 0.65, 0); ctx.rotate(game.scroll * 0.1); ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize); ctx.restore();
 
     // Frame
-    ctx.drawImage(bikeImage, -(bikeW * 0.22), -bikeH + (bikeH * 0.18), bikeW, bikeH);
+    ctx.drawImage(bikeImage, -(bikeW * 0.22), -bikeH + (bikeH * 0.15), bikeW, bikeH);
 
     // Rider
-    if (riderImage.complete && riderImage.naturalWidth > 0) {
+    if (riderImage.complete) {
         const rW = riderImage.width * (BIKE_SCALE * 0.75);
         const rH = riderImage.height * (BIKE_SCALE * 0.75);
-        const speedTuck = (game.speed / MAX_SPEED) * 15;
-        const wheelieLean = game.bikeAngle * 25; 
+        const speedTuck = (game.speed / MAX_SPEED) * 12;
+        const wheelieLean = game.bikeAngle * 20;
 
         ctx.drawImage(
           riderImage, 
-          -(bikeW * 0.12) + speedTuck - wheelieLean, 
-          -bikeH + (bikeH * 0.08) + (speedTuck * 0.3), 
+          -(bikeW * 0.1) + speedTuck - wheelieLean, 
+          -bikeH + (bikeH * 0.08), 
           rW, 
           rH
         );
@@ -256,14 +249,14 @@ function drawHUD() {
 }
 
 function resetGame() {
-  game.phase = "IDLE"; game.speed = 0; game.scroll = 0;
-  game.bikeAngle = 0; game.bikeAngularVelocity = 0;
-  game.throttle = false; game.hasLifted = false;
+  game.phase = "IDLE";
+  game.speed = 0;
+  game.bikeAngle = 0;
+  game.bikeAngularVelocity = 0;
 }
 
 function loop(now) {
   update(now);
-  ctx.setLineDash([]);
   drawSky();
   drawEnvironment();
   drawBike();
@@ -272,5 +265,4 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 loop(performance.now());
-
 
