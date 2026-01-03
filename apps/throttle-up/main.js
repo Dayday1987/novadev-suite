@@ -125,7 +125,7 @@ function update(now) {
   // 1️⃣ Handle Countdown phase
   if (game.phase === "COUNTDOWN") {
     updateCountdown(now);
-    return; // Don't run physics during countdown
+    return; 
   }
 
   // 2️⃣ Handle Idle phase
@@ -144,23 +144,26 @@ function update(now) {
 
   // --- Wheelie Physics ---
   let torque = 0;
+
+  // INCREASED Takeoff impulse for a better lift
   if (game.throttle && game.speed > 12 && !game.hasLifted) {
-    game.bikeAngularVelocity += 0.022;
+    game.bikeAngularVelocity += 0.045; 
     game.hasLifted = true;
   }
   
+  // INCREASED Sustained torque to hold the wheelie
   if (game.throttle && game.speed > 8 && game.hasLifted) {
     const speedFactor = Math.min(game.speed / 40, 1);
     const angleFade = Math.max(0.15, 1 - game.bikeAngle / BALANCE_ANGLE);
-    torque = 0.0016 * speedFactor * angleFade;
+    torque = 0.0028 * speedFactor * angleFade; 
   }
 
   game.bikeAngularVelocity += torque;
 
   // --- Gravity ---
   let gravity = 0;
-  if (game.bikeAngle > 0.05) {
-    gravity = game.bikeAngle * 0.03;
+  if (game.bikeAngle > 0.01) { 
+    gravity = game.bikeAngle * 0.035;
     if (game.bikeAngle > BALANCE_ANGLE) {
       gravity += (game.bikeAngle - BALANCE_ANGLE) * 0.9;
     }
@@ -171,21 +174,23 @@ function update(now) {
   const damping = game.throttle ? 0.985 : 0.96;
   game.bikeAngularVelocity *= damping;
 
-  // --- Clamp and Epsilon ---
-  game.bikeAngularVelocity = Math.max(-MAX_ANGULAR_VELOCITY, Math.min(MAX_ANGULAR_VELOCITY, game.bikeAngularVelocity));
-  if (Math.abs(game.bikeAngularVelocity) < 0.0005) {
-    game.bikeAngularVelocity = 0;
-  }
-
   // --- Apply Movement ---
   game.bikeAngle += game.bikeAngularVelocity;
   game.scroll -= game.speed;
 
-  // --- Crash check ---
-  if (game.bikeAngle > CRASH_ANGLE || game.bikeAngle < -0.35) {
+  // 🛑 THE FLOOR: This stops the nose-diving
+  if (game.bikeAngle < 0) {
+    game.bikeAngle = 0;
+    game.bikeAngularVelocity = 0;
+    game.hasLifted = false; // Allows for another "pop" lift
+  }
+
+  // --- Crash check (Only for backflips now) ---
+  if (game.bikeAngle > CRASH_ANGLE) {
     resetGame();
   }
 }
+
 
 // ===== Render =====
 function drawSky() {
