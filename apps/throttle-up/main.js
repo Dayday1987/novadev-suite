@@ -9,7 +9,7 @@ bikeImage.src = "./assets/bike/ninja-h2r-2.png";
 // Bike parts (not rendered yet)
 
 const wheelImage = new Image();
-wheelImage.src = "./assets/bike/bike-tire.png";
+wheelImage.src = "./assets/bike/biketire.png";
 
 const riderImage = new Image();
 riderImage.src = "./assets/bike/bike-rider.png";
