@@ -279,7 +279,7 @@ ctx.drawImage(
 // DEBUG: rear wheel contact point
 ctx.fillStyle = "red";
 ctx.beginPath();
-ctx.arc(0, 0, 5, 0, Math.PI * 2);
+ctx.arc(0, 0, 2, 0, Math.PI * 2);
 ctx.fill();
 
   // FRONT marker
