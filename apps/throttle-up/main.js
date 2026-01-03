@@ -17,7 +17,7 @@ riderImage.src = "./assets/bike/bikerider.png";
 const BIKE_SCALE = 0.15;
 let bikeReady = false;
 
-const WHEEL_SCALE = 0.5; // try 0.6–0.75 later if needed
+const WHEEL_SCALE = 0.7; // try 0.6–0.75 later if needed
 
 const MAX_ANGULAR_VELOCITY = 0.025;
 const CRASH_ANGLE = 1.6; // ~92°;
@@ -266,7 +266,7 @@ function drawBike() {
   // Rear wheel pivot (bike origin)
   const rearGroundX = canvas.width * 0.50;
 
-  const wheelSize = 32; // temporary visual size
+  const wheelSize = 42; // temporary visual size
 
   ctx.save();
 
