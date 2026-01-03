@@ -53,6 +53,7 @@ document.body.style.webkitUserSelect = "none";
 const ROAD_HEIGHT = () => canvas.height * 0.28;
 const ROAD_Y = () => canvas.height - ROAD_HEIGHT();
 const LANE_COUNT = 2;
+const MAX_SPEED = 120; 
 
 // ===== Game state =====
 const game = {
@@ -118,7 +119,6 @@ function updateCountdown(now) {
   }
 }
 
-const MAX_SPEED = 120; 
 
 // ===== Update =====
 function update(now) {
