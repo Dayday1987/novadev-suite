@@ -280,7 +280,7 @@ function drawBike() {
 }
 
 
-} // <--- Function correctly closed here
+ // <--- Function correctly closed here
 
 //DRAW COUNTDOWN
 function drawCountdown() {
