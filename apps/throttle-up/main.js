@@ -14,7 +14,7 @@ wheelImage.src = "./assets/bike/biketire.png";
 const riderImage = new Image();
 riderImage.src = "./assets/bike/bike-rider.png";
 
-const BIKE_SCALE = 0.25;
+const BIKE_SCALE = 0.15;
 let bikeReady = false;
 
 const WHEEL_SCALE = 0.7; // try 0.6–0.75 later if needed
