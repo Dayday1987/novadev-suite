@@ -234,53 +234,36 @@ function drawBike() {
   const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
   const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
   
-  // Pivot on the rear wheel contact point
   const rearGroundX = canvas.width * 0.18; 
-
   const bikeW = bikeImage.width * BIKE_SCALE;
   const bikeH = bikeImage.height * BIKE_SCALE;
   
-  // --- CALIBRATION SETTINGS ---
-  // 1. Shift the frame LEFT so the rear axle area sits on (0,0)
   const FRAME_SHIFT_X = bikeW * 0.22; 
-  // 2. Shift the frame DOWN so the axles sit inside the tires
   const FRAME_SHIFT_Y = bikeH * 0.18; 
-  // 3. Move the front wheel forward to hit the forks
   const WHEELBASE = bikeW * 0.68;
-  // 4. Match wheel size to the gap in the forks
   const wheelSize = bikeH * 0.50; 
 
   ctx.save();
-    // Move to road contact
     ctx.translate(rearGroundX, groundY);
     ctx.rotate(-game.bikeAngle);
 
-    // A. REAR TIRE (Drawn centered at 0,0)
+    // A. REAR TIRE
     ctx.save();
       ctx.rotate(game.scroll * 0.1);
       ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize);
     ctx.restore();
 
     // B. BIKE FRAME
-    // We subtract FRAME_SHIFT_X to move the image left
-    ctx.drawImage(
-      bikeImage,
-      -FRAME_SHIFT_X, 
-      -bikeH + FRAME_SHIFT_Y, 
-      bikeW, 
-      bikeH
-    );
+    ctx.drawImage(bikeImage, -FRAME_SHIFT_X, -bikeH + FRAME_SHIFT_Y, bikeW, bikeH);
 
     // C. FRONT TIRE
-    // Move forward by WHEELBASE, then draw centered
     ctx.save();
       ctx.translate(WHEELBASE, 0);
       ctx.rotate(game.scroll * 0.1);
       ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize);
     ctx.restore();
-}
 
-            // D. RIDER
+    // D. RIDER (Now correctly inside the drawBike function)
     if (riderImage.complete && riderImage.naturalWidth > 0) {
         const rW = riderImage.width * BIKE_SCALE;
         const rH = riderImage.height * BIKE_SCALE;
@@ -288,15 +271,13 @@ function drawBike() {
         ctx.drawImage(
           riderImage, 
           -FRAME_SHIFT_X + (bikeW * 0.25), 
-          -bikeH + (bikeH * 0.15), // Adjusted to sit him on the seat
+          -bikeH + (bikeH * 0.15),
           rW, 
           rH
         );
     }
-
-  ctx.restore(); // This resets the "camera" so the sky doesn't move with the bike
-} // <--- THIS BRACE CLOSES THE DRAWBIKE FUNCTION
-
+  ctx.restore(); 
+} // <--- Function correctly closed here
 
 //DRAW COUNTDOWN
 function drawCountdown() {
@@ -305,28 +286,21 @@ function drawCountdown() {
   const cx = canvas.width / 2;
   const cy = 120; 
 
-  // 1. Draw a dark background box so the lights "pop"
   ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
   ctx.fillRect(cx - 80, cy - 40, 160, 80);
 
-  // 2. Loop through our 3 steps ("YELLOW", "YELLOW", "GREEN")
   COUNTDOWN_STEPS.forEach((step, i) => {
-    // Determine the color of this specific light
-    let color = "#222"; // Default "OFF" color (dark gray)
-
-    // Only light up the circle that matches the current game index
+    let color = "#222"; 
     if (i === game.countdownIndex) {
-      if (step === "YELLOW") color = "#FFD700"; // Bright Gold
-      if (step === "GREEN") color = "#00FF00";  // Neon Green
+      if (step === "YELLOW") color = "#FFD700"; 
+      if (step === "GREEN") color = "#00FF00";  
     }
 
-    // 3. Draw the light circle
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.arc(cx + (i - 1) * 50, cy, 22, 0, Math.PI * 2);
     ctx.fill();
     
-    // 4. Add a white "Active" ring to the light that is currently on
     if (i === game.countdownIndex) {
       ctx.strokeStyle = "white";
       ctx.lineWidth = 4;
@@ -338,7 +312,7 @@ function drawCountdown() {
 // DRAW HUD
 function drawHUD() {
   ctx.fillStyle = "white";
-  ctx.font = "bold 20px sans-serif"; // Made it a bit bolder/larger
+  ctx.font = "bold 20px sans-serif";
   ctx.textAlign = "center"; 
 
   if (game.phase === "IDLE") {
@@ -346,12 +320,11 @@ function drawHUD() {
   }
 
   if (game.phase === "RACING") {
-    ctx.textAlign = "left"; // Reset for the speed text
+    ctx.textAlign = "left"; 
     ctx.font = "16px sans-serif";
     ctx.fillText(`Speed: ${game.speed.toFixed(1)}`, 16, 28);
   }
 }
-
 
 function resetGame() {
   game.phase = "IDLE";
@@ -366,13 +339,11 @@ function resetGame() {
 // ===== Loop =====
 function loop(now) {
   update(now);
-
   drawSky();
   drawEnvironment();
   drawBike();
   drawCountdown();
   drawHUD();
-
   requestAnimationFrame(loop);
 }
 
