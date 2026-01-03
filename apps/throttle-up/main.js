@@ -279,24 +279,22 @@ function drawBike() {
       ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize);
     ctx.restore();
 
-    // D. RIDER (Positioned relative to the shifted frame)
-    // D. RIDER (Positioned relative to the shifted frame)
-// We check if the image is loaded AND that it has a width > 0
-if (riderImage.complete && riderImage.naturalWidth !== 0) {
-    const rW = riderImage.width * BIKE_SCALE;
-    const rH = riderImage.height * BIKE_SCALE;
-    
-    ctx.drawImage(
-      riderImage, 
-      -FRAME_SHIFT_X + (bikeW * 0.3), 
-      -bikeH + (FRAME_SHIFT_Y * 1.5), 
-      rW, 
-      rH
-    );
-}
+        // D. RIDER
+    if (riderImage.complete && riderImage.naturalWidth > 0) {
+        const rW = riderImage.width * BIKE_SCALE;
+        const rH = riderImage.height * BIKE_SCALE;
+        
+        // We position them relative to the FRAME_SHIFT
+        // Subtracting less from bikeH keeps them lower on the seat
+        ctx.drawImage(
+          riderImage, 
+          -FRAME_SHIFT_X + (bikeW * 0.25), // Slide forward/back
+          -bikeH + (bikeH * 0.1),         // Height adjustment (0.1 = lower)
+          rW, 
+          rH
+        );
+    }
 
-  ctx.restore();
-}
 
 //DRAW COUNTDOWN
 function drawCountdown() {
