@@ -255,53 +255,63 @@ function drawEnvironment() {
 
   ctx.setLineDash([]);
 }
-
-//drawBike
+//DRAW BIKE
 function drawBike() {
   if (!bikeReady) return;
 
   const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
   const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
-
-  // Rear wheel pivot (bike origin)
   const rearGroundX = canvas.width * 0.50;
 
-  const wheelSize = 55; // temporary visual size
+  // Calculate dimensions
+  const bikeW = bikeImage.width * BIKE_SCALE;
+  const bikeH = bikeImage.height * BIKE_SCALE;
+  
+  // Use a scale for the wheel relative to the bike size
+  const wheelSize = bikeH * 0.45; 
+
+  // Adjustment: How high the axle is from the bottom of the bike PNG
+  // Increase this number to move the bike frame DOWN relative to the tires
+  const AXLE_Y_OFFSET = 33; 
 
   ctx.save();
+    // 1️⃣ Move to rear wheel contact point
+    ctx.translate(rearGroundX, groundY);
+    ctx.rotate(-game.bikeAngle);
 
-  // 1️⃣ Move origin to rear wheel contact point
-  ctx.translate(rearGroundX, groundY);
+    // 2️⃣ Draw REAR wheel (centered on pivot)
+    // Add rotation to the wheel itself based on speed
+    ctx.save();
+      ctx.rotate(game.scroll * 0.1); 
+      ctx.drawImage(wheelImage, -wheelSize / 2, -wheelSize / 2, wheelSize, wheelSize);
+    ctx.restore();
 
-  // 2️⃣ Rotate with bike angle (wheel follows bike pitch)
-  ctx.rotate(-game.bikeAngle);
+    // 3️⃣ Draw BIKE FRAME
+    ctx.drawImage(
+      bikeImage,
+      -REAR_WHEEL_OFFSET_X,
+      -bikeH + AXLE_Y_OFFSET, // This offset sinks the axle into the frame
+      bikeW,
+      bikeH
+    );
 
-  // 3️⃣ Draw rear wheel centered on pivot
-  ctx.drawImage(
-    wheelImage,
-    -wheelSize / 2,
-    -wheelSize / 2,
-    wheelSize,
-    wheelSize
-  );
+    // 4️⃣ Draw FRONT wheel
+    // We move relative to the rear pivot to find the front forks
+    const WHEELBASE = bikeW * 0.68; // Adjust this until it hits the front forks
+    ctx.save();
+      ctx.translate(WHEELBASE, 0);
+      ctx.rotate(game.scroll * 0.1);
+      ctx.drawImage(wheelImage, -wheelSize / 2, -wheelSize / 2, wheelSize, wheelSize);
+    ctx.restore();
 
-  // 4️⃣ Draw bike frame attached to rear wheel
-ctx.drawImage(
-  bikeImage,
-  -REAR_WHEEL_OFFSET_X,
-  -bikeImage.height * BIKE_SCALE,
-  bikeImage.width * BIKE_SCALE,
-  bikeImage.height * BIKE_SCALE
-);
-
-  // DEBUG: pivot
-  ctx.fillStyle = "red";
-  ctx.beginPath();
-  ctx.arc(0, 0, 3, 0, Math.PI * 2);
-  ctx.fill();
-
+    // DEBUG: Red dot on rear axle
+    ctx.fillStyle = "red";
+    ctx.beginPath();
+    ctx.arc(0, 0, 3, 0, Math.PI * 2);
+    ctx.fill();
   ctx.restore();
 }
+
 //DRAW COUNTDOWN
 function drawCountdown() {
   if (game.phase !== "COUNTDOWN") return;
