@@ -261,7 +261,7 @@ function drawBike() {
 
   const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
   const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
-  const rearGroundX = canvas.width * 0.50;
+  const rearGroundX = canvas.width * 0.75;
 
   // Calculate dimensions
   const bikeW = bikeImage.width * BIKE_SCALE;
