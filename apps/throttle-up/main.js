@@ -277,7 +277,7 @@ function drawBike() {
   // 3. Move the front wheel forward to hit the forks
   const WHEELBASE = bikeW * 0.68;
   // 4. Match wheel size to the gap in the forks
-  const wheelSize = bikeH * 0.45; 
+  const wheelSize = bikeH * 0.50; 
 
   ctx.save();
     // Move to road contact
@@ -320,8 +320,6 @@ function drawBike() {
     }
   ctx.restore();
 }
-
-
 
 //DRAW COUNTDOWN
 function drawCountdown() {
