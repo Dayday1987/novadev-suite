@@ -266,7 +266,7 @@ function drawBike() {
     if (riderImage.complete && riderImage.naturalWidth > 0) {
         // --- SCALE CONTROL ---
         // Change 0.85 to 0.75 if he is still too big, or 0.95 if too small
-        const RIDER_SCALE = BIKE_SCALE * 0.85; 
+        const RIDER_SCALE = BIKE_SCALE * 0.75; 
         
         const rW = riderImage.width * RIDER_SCALE;
         const rH = riderImage.height * RIDER_SCALE;
