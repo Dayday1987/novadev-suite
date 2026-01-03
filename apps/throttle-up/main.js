@@ -227,14 +227,13 @@ function drawEnvironment() {
   ctx.setLineDash([]);
 }
 
-//DRAW BIKE
 function drawBike() {
   if (!bikeReady) return;
 
   const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
   const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
-  
   const rearGroundX = canvas.width * 0.18; 
+
   const bikeW = bikeImage.width * BIKE_SCALE;
   const bikeH = bikeImage.height * BIKE_SCALE;
   
@@ -243,7 +242,7 @@ function drawBike() {
   const WHEELBASE = bikeW * 0.68;
   const wheelSize = bikeH * 0.50; 
 
-  ctx.save();
+  ctx.save(); // 1. Save state
     ctx.translate(rearGroundX, groundY);
     ctx.rotate(-game.bikeAngle);
 
@@ -263,21 +262,23 @@ function drawBike() {
       ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize);
     ctx.restore();
 
-    // D. RIDER (Now correctly inside the drawBike function)
+    // D. RIDER (Shrunk and repositioned)
     if (riderImage.complete && riderImage.naturalWidth > 0) {
-        // Create a separate scale for the rider (try 0.13 or 0.14)
-        const RIDER_SCALE = BIKE_SCALE * 0.95; 
+        const RIDER_SCALE = BIKE_SCALE * 0.88; // Scaled down to look "in" the bike
         const rW = riderImage.width * RIDER_SCALE;
         const rH = riderImage.height * RIDER_SCALE;
         
         ctx.drawImage(
           riderImage, 
-          -FRAME_SHIFT_X + (bikeW * 0.28), // Moved slightly forward
-          -bikeH + (bikeH * 0.22),         // Pushed down into the seat more
+          -FRAME_SHIFT_X + (bikeW * 0.28), 
+          -bikeH + (bikeH * 0.25), // Pushed down onto seat
           rW, 
           rH
         );
     }
+  ctx.restore(); // 2. Restore state (Crucial for the Sky!)
+}
+
 
 } // <--- Function correctly closed here
 
