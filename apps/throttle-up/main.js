@@ -266,7 +266,7 @@ function drawBike() {
   // Rear wheel pivot (bike origin)
   const rearGroundX = canvas.width * 0.50;
 
-  const wheelSize = 42; // temporary visual size
+  const wheelSize = 60; // temporary visual size
 
   ctx.save();
 
