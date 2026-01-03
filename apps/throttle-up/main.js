@@ -122,75 +122,74 @@ const MAX_SPEED = 120;
 
 // ===== Update =====
 function update(now) {
-  // 1️⃣ Handle Countdown phase
+  // 1. Handle Countdown phase
   if (game.phase === "COUNTDOWN") {
     updateCountdown(now);
-    return; 
+    return; // Stop here during countdown
   }
 
-  // 2️⃣ Handle Idle phase
-  if (game.phase !== "RACING") {
-    return; 
-  }
+  // 2. Handle Idle/Reset phase
+  if (game.phase !== "RACING") return;
 
-  // 3️⃣ RACING PHYSICS
+  // 3. Acceleration & Speed
   if (game.throttle) {
     game.speed += 0.6;
   } else {
     game.speed -= 0.8; 
   }
-
   game.speed = Math.max(0, Math.min(game.speed, MAX_SPEED));
 
-  // --- Wheelie Physics ---
+  // 4. Wheelie Physics (Starts only above 10mph)
   let torque = 0;
-
-  // INCREASED Takeoff impulse for a better lift
-  if (game.throttle && game.speed > 12 && !game.hasLifted) {
-    game.bikeAngularVelocity += 0.045; 
-    game.hasLifted = true;
-  }
-  
-  // INCREASED Sustained torque to hold the wheelie
-  if (game.throttle && game.speed > 8 && game.hasLifted) {
-    const speedFactor = Math.min(game.speed / 40, 1);
-    const angleFade = Math.max(0.15, 1 - game.bikeAngle / BALANCE_ANGLE);
-    torque = 0.0028 * speedFactor * angleFade; 
+  if (game.speed > 10) { 
+    if (game.throttle) {
+      // Powerful initial lift (Takeoff)
+      if (!game.hasLifted) {
+        game.bikeAngularVelocity += 0.055; // Aggressive pop
+        game.hasLifted = true;
+      }
+      // Sustained torque: Strong enough to flip the bike if held
+      torque = 0.0038 * (game.speed / 40);
+    } else {
+      // Let off throttle: Torque drops to zero, gravity takes over
+      torque = 0;
+    }
   }
 
   game.bikeAngularVelocity += torque;
 
-  // --- Gravity ---
+  // 5. Gravity (The downward pull)
   let gravity = 0;
-  if (game.bikeAngle > 0.01) { 
-    gravity = game.bikeAngle * 0.035;
+  if (game.bikeAngle > 0) {
+    // Gravity gets stronger as the bike gets higher
+    gravity = 0.001 + (game.bikeAngle * 0.038);
+    
+    // Danger Zone: Past balance point, gravity "weakens" relative to the bike's tilt
     if (game.bikeAngle > BALANCE_ANGLE) {
-      gravity += (game.bikeAngle - BALANCE_ANGLE) * 0.9;
+      gravity *= 0.6; 
     }
   }
   game.bikeAngularVelocity -= gravity;
 
-  // --- Damping ---
-  const damping = game.throttle ? 0.985 : 0.96;
-  game.bikeAngularVelocity *= damping;
+  // 6. Damping (Rotational air resistance)
+  game.bikeAngularVelocity *= 0.975;
 
-  // --- Apply Movement ---
+  // 7. Apply Rotation & Movement
   game.bikeAngle += game.bikeAngularVelocity;
   game.scroll -= game.speed;
 
-  // 🛑 THE FLOOR: This stops the nose-diving
+  // 🛑 GROUND FLOOR: Prevents the front tire from sinking
   if (game.bikeAngle < 0) {
     game.bikeAngle = 0;
     game.bikeAngularVelocity = 0;
-    game.hasLifted = false; // Allows for another "pop" lift
+    game.hasLifted = false; // Reset so you can pop another wheelie
   }
 
-  // --- Crash check (Only for backflips now) ---
+  // 🛑 CRASH CHECK: If you loop the bike (Backflip)
   if (game.bikeAngle > CRASH_ANGLE) {
     resetGame();
   }
 }
-
 
 // ===== Render =====
 function drawSky() {
