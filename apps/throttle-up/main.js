@@ -242,7 +242,7 @@ function drawBike() {
   const WHEELBASE = bikeW * 0.68;
   const wheelSize = bikeH * 0.50; 
 
-  ctx.save(); // 1. Save state
+  ctx.save(); 
     ctx.translate(rearGroundX, groundY);
     ctx.rotate(-game.bikeAngle);
 
@@ -262,28 +262,23 @@ function drawBike() {
       ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize);
     ctx.restore();
 
-    // D. RIDER (Shrunk and repositioned)
+    // D. RIDER - Scaled and tucked in
     if (riderImage.complete && riderImage.naturalWidth > 0) {
-        // --- SCALE CONTROL ---
-        // Change 0.85 to 0.75 if he is still too big, or 0.95 if too small
-        const RIDER_SCALE = BIKE_SCALE * 0.75; 
-        
+        // We use a specific multiplier so he stays small even if BIKE_SCALE grows
+        const RIDER_SCALE = BIKE_SCALE * 0.72; 
         const rW = riderImage.width * RIDER_SCALE;
         const rH = riderImage.height * RIDER_SCALE;
         
         ctx.drawImage(
           riderImage, 
-          -FRAME_SHIFT_X + (bikeW * 0.05), // Horizontal placement
-          -bikeH - (bikeH * 0.15),         // Vertical placement (seat height)
+          -FRAME_SHIFT_X + (bikeW * 0.10), // Horizontal Nudge
+          -bikeH - (bikeH * 0.05),        // Seat Height Nudge
           rW, 
           rH
         );
     }
-
-  
-  ctx.restore(); // 2. Restore state (Crucial for the Sky!)
+  ctx.restore(); 
 }
-
 
  // <--- Function correctly closed here
 
@@ -345,14 +340,23 @@ function resetGame() {
 }
 
 // ===== Loop =====
+// ===== Loop =====
 function loop(now) {
   update(now);
+
+  // 1. Reset canvas settings to prevent "squeezed" or dashed UI
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1.0;
+
+  // 2. Standard Draw Order
   drawSky();
   drawEnvironment();
   drawBike();
   drawCountdown();
   drawHUD();
+
   requestAnimationFrame(loop);
 }
+
 
 loop(performance.now());
