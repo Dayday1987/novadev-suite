@@ -130,95 +130,72 @@ const MAX_SPEED = 120;
 
 // ===== Update =====
 function update(now) {
+  // 1️⃣ Handle Countdown phase
   if (game.phase === "COUNTDOWN") {
     updateCountdown(now);
-    return;
+    return; // Stop here so physics don't run yet
   }
 
-  if (game.phase !== "RACING") return;
+  // 2️⃣ Handle Idle or Reset phase
+  if (game.phase !== "RACING") {
+    return; // If not racing, do nothing
+  }
 
-  // 1️⃣ Forward acceleration
+  // 3️⃣ RACING PHYSICS (ONLY RUNS IF PHASE IS "RACING")
+  
+  // Acceleration
   if (game.throttle) {
-  game.speed += 0.6;
-} else {
-  game.speed -= 0.8; // braking force
-}
-
-if (game.speed < 0) game.speed = 0;
-
-  game.speed = Math.min(game.speed, MAX_SPEED);
-
-  // ===== Wheelie Physics (FINAL & STABLE) =====
-let torque = 0;
-
-// --- Takeoff impulse (ONE TIME ONLY) ---
-if (
-  game.throttle &&
-  game.speed > 12 &&
-  !game.hasLifted
-) {
-  game.bikeAngularVelocity += 0.022;// 🔥 positive
-  game.hasLifted = true;
-}
-  
-// --- Sustained wheelie torque (AFTER lift) ---
-if (game.throttle && game.speed > 8 && game.hasLifted) {
-  const speedFactor = Math.min(game.speed / 40, 1);
-
-  const angleFade =
-    Math.max(0.15, 1 - game.bikeAngle / BALANCE_ANGLE);
-
-   torque = 0.0016 * speedFactor * angleFade;// 🔥 positive
-}
-
-// Apply torque ONCE
-game.bikeAngularVelocity += torque;
-
-// --- Gravity (only after lift) ---
-let gravity = 0;
-
-if (game.bikeAngle > 0.05) {
-  gravity = game.bikeAngle * 0.03;
-
-  if (game.bikeAngle > BALANCE_ANGLE) {
-    gravity +=
-      (game.bikeAngle - BALANCE_ANGLE) * 0.9;
+    game.speed += 0.6;
+  } else {
+    game.speed -= 0.8; 
   }
-}
 
-game.bikeAngularVelocity -= gravity;
+  game.speed = Math.max(0, Math.min(game.speed, MAX_SPEED));
 
-// --- Damping ---
-const damping = game.throttle ? 0.985 : 0.96;
-game.bikeAngularVelocity *= damping;
+  // --- Wheelie Physics ---
+  let torque = 0;
 
-// --- Clamp angular velocity ---
-game.bikeAngularVelocity = Math.max(
-  -MAX_ANGULAR_VELOCITY,
-  Math.min(MAX_ANGULAR_VELOCITY, game.bikeAngularVelocity)
-);
-
-  // --- Kill tiny oscillation near flat ---
-const EPSILON = 0.0005;
-if (Math.abs(game.bikeAngularVelocity) < EPSILON) {
-  game.bikeAngularVelocity = 0;
-}
-
-// --- Apply rotation ---
-game.bikeAngle += game.bikeAngularVelocity;//MADE NEGATIVE
+  if (game.throttle && game.speed > 12 && !game.hasLifted) {
+    game.bikeAngularVelocity += 0.022;
+    game.hasLifted = true;
+  }
   
-  // 3️⃣ Move world
+  if (game.throttle && game.speed > 8 && game.hasLifted) {
+    const speedFactor = Math.min(game.speed / 40, 1);
+    const angleFade = Math.max(0.15, 1 - game.bikeAngle / BALANCE_ANGLE);
+    torque = 0.0016 * speedFactor * angleFade;
+  }
+
+  game.bikeAngularVelocity += torque;
+
+  // --- Gravity ---
+  let gravity = 0;
+  if (game.bikeAngle > 0.05) {
+    gravity = game.bikeAngle * 0.03;
+    if (game.bikeAngle > BALANCE_ANGLE) {
+      gravity += (game.bikeAngle - BALANCE_ANGLE) * 0.9;
+    }
+  }
+  game.bikeAngularVelocity -= gravity;
+
+  // --- Damping ---
+  const damping = game.throttle ? 0.985 : 0.96;
+  game.bikeAngularVelocity *= damping;
+
+  // --- Clamp and Epsilon ---
+  game.bikeAngularVelocity = Math.max(-MAX_ANGULAR_VELOCITY, Math.min(MAX_ANGULAR_VELOCITY, game.bikeAngularVelocity));
+  if (Math.abs(game.bikeAngularVelocity) < 0.0005) game.bikeAngularVelocity = 0;
+
+  // --- Apply Final Rotation and World Movement ---
+  game.bikeAngle += game.bikeAngularVelocity;
   game.scroll -= game.speed;
 
-  // 4️⃣ Crash
-  if (
-    game.bikeAngle > CRASH_ANGLE ||
-    game.bikeAngle < -0.35
-  ) {
+  // --- Crash check ---
+  if (game.bikeAngle > CRASH_ANGLE || game.bikeAngle < -0.35) {
     resetGame();
-    return;
-  }
+  }p
 }
+
 
 // ===== Render =====
 function drawSky() {
