@@ -278,6 +278,7 @@ function drawBike() {
       ctx.rotate(game.scroll * 0.1);
       ctx.drawImage(wheelImage, -wheelSize/2, -wheelSize/2, wheelSize, wheelSize);
     ctx.restore();
+}
 
         // D. RIDER
     if (riderImage.complete && riderImage.naturalWidth > 0) {
