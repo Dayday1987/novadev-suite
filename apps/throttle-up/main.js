@@ -197,34 +197,65 @@ function drawSky() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
+const environmentSettings = {
+  grandstandZ: 500, // Deep background
+  fenceZ: 100,      // Mid-ground
+  trackZ: 0         // Everything else is on the track
+};
+
+
 function drawEnvironment() {
   // Grass
-  ctx.fillStyle = "#2e7d32";
-  ctx.fillRect(0, ROAD_Y() - 60, canvas.width, 60);
+  function drawEnvironment() {
+  const horizonY = ROAD_Y() - 100;
 
-  // Road
+  // 1️⃣ BACKGROUND LAYER (Deep Z)
+  // Grandstands move at 20% speed to look miles away
+  ctx.fillStyle = "#444"; 
+  const standSpacing = 600;
+  const standOffset = (game.scroll * 0.2) % standSpacing;
+  for (let i = -1; i < (canvas.width / standSpacing) + 1; i++) {
+    let x = i * standSpacing + standOffset;
+    ctx.fillRect(x, horizonY - 80, 400, 80); // Structure
+    ctx.fillStyle = "#222";
+    ctx.fillRect(x + 20, horizonY - 60, 360, 40); // Seating area
+    ctx.fillStyle = "#444";
+  }
+
+  // 2️⃣ MID-GROUND LAYER (Medium Z)
+  // The wall/fence moves at 50% speed
+  ctx.fillStyle = "#888"; 
+  const wallOffset = (game.scroll * 0.5) % 200;
+  for (let i = -1; i < (canvas.width / 200) + 1; i++) {
+    let x = i * 200 + wallOffset;
+    ctx.fillRect(x, ROAD_Y() - 25, 195, 25); // Concrete barriers
+  }
+
+  // 3️⃣ TRACK LAYER (Surface Z)
+  // Road surface
   ctx.fillStyle = "#333";
   ctx.fillRect(0, ROAD_Y(), canvas.width, ROAD_HEIGHT());
 
-  // Moving lane divider (SCROLLING)
-  ctx.strokeStyle = "#bbb";
-  ctx.lineWidth = 4;
+  // 4️⃣ FOREGROUND OBJECTS (Closest Z)
+  // Hay bales move at 100% speed (same as road)
+  const baleSpacing = 300;
+  const baleOffset = game.scroll % baleSpacing;
+  for (let i = -1; i < (canvas.width / baleSpacing) + 1; i++) {
+    let x = i * baleSpacing + baleOffset;
+    // Simple 3D "box" look for hay bales
+    ctx.fillStyle = "#f1c40f"; // Front face
+    ctx.fillRect(x, ROAD_Y() - 20, 50, 30);
+    ctx.fillStyle = "#d4ac0d"; // Top face (simulated 3D)
+    ctx.beginPath();
+    ctx.moveTo(x, ROAD_Y() - 20);
+    ctx.lineTo(x + 10, ROAD_Y() - 30);
+    ctx.lineTo(x + 60, ROAD_Y() - 30);
+    ctx.lineTo(x + 50, ROAD_Y() - 20);
+    ctx.fill();
+  }
 
-  const dashLength = 40;
-  const gap = 30;
-  const total = dashLength + gap;
-
-  const offset = game.scroll % total;
-
-  ctx.setLineDash([dashLength, gap]);
-  ctx.lineDashOffset = -offset;
-
-  ctx.beginPath();
-  ctx.moveTo(0, ROAD_Y() + ROAD_HEIGHT() / 2);
-  ctx.lineTo(canvas.width, ROAD_Y() + ROAD_HEIGHT() / 2);
-  ctx.stroke();
-
-  ctx.setLineDash([]);
+  // 5️⃣ DASHED LINES (Track Surface)
+  drawRoadLines();
 }
 
 function drawBike() {
