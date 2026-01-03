@@ -72,38 +72,30 @@ fingerDown: false,
 const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
 
 // ===== Input =====
-window.addEventListener(
-  "touchstart",
-  (e) => {
+window.addEventListener("touchstart", (e) => {
     e.preventDefault();
     game.fingerDown = true;
-    game.throttle = game.phase === "RACING";
 
     if (game.phase === "IDLE") {
       startCountdown();
+    } else if (game.phase === "RACING") {
+      game.throttle = true;
     }
-  },
-  { passive: false }
+  }, { passive: false }
 );
 
-window.addEventListener(
-  "touchend",
-  (e) => {
+window.addEventListener("touchend", (e) => {
     e.preventDefault();
     game.fingerDown = false;
     game.throttle = false;
-  },
-  { passive: false }
+  }, { passive: false }
 );
 
-window.addEventListener(
-  "touchmove",
-  (e) => {
+window.addEventListener("touchmove", (e) => {
     e.preventDefault();
     const y = e.touches[0].clientY;
     game.lane = y < canvas.height / 2 ? 0 : 1;
-  },
-  { passive: false }
+  }, { passive: false }
 );
 
 // ===== Countdown control =====
@@ -114,17 +106,17 @@ function startCountdown() {
 }
 
 function updateCountdown(now) {
-  
   if (now - game.countdownTimer > 800) {
     game.countdownIndex++;
     game.countdownTimer = now;
 
-      if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
-  game.phase = "RACING";
-  if (game.fingerDown) game.throttle = true;
-}
+    if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
+      game.phase = "RACING";
+      // If player is already holding the screen, start throttle immediately
+      if (game.fingerDown) game.throttle = true;
     }
   }
+}
 
 const MAX_SPEED = 120; 
 
@@ -133,17 +125,15 @@ function update(now) {
   // 1️⃣ Handle Countdown phase
   if (game.phase === "COUNTDOWN") {
     updateCountdown(now);
-    return; // Stop here so physics don't run yet
+    return; // Don't run physics during countdown
   }
 
-  // 2️⃣ Handle Idle or Reset phase
+  // 2️⃣ Handle Idle phase
   if (game.phase !== "RACING") {
-    return; // If not racing, do nothing
+    return; 
   }
 
-  // 3️⃣ RACING PHYSICS (ONLY RUNS IF PHASE IS "RACING")
-  
-  // Acceleration
+  // 3️⃣ RACING PHYSICS
   if (game.throttle) {
     game.speed += 0.6;
   } else {
@@ -154,7 +144,6 @@ function update(now) {
 
   // --- Wheelie Physics ---
   let torque = 0;
-
   if (game.throttle && game.speed > 12 && !game.hasLifted) {
     game.bikeAngularVelocity += 0.022;
     game.hasLifted = true;
@@ -184,9 +173,11 @@ function update(now) {
 
   // --- Clamp and Epsilon ---
   game.bikeAngularVelocity = Math.max(-MAX_ANGULAR_VELOCITY, Math.min(MAX_ANGULAR_VELOCITY, game.bikeAngularVelocity));
-  if (Math.abs(game.bikeAngularVelocity) < 0.0005) game.bikeAngularVelocity = 0;
+  if (Math.abs(game.bikeAngularVelocity) < 0.0005) {
+    game.bikeAngularVelocity = 0;
+  }
 
-  // --- Apply Final Rotation and World Movement ---
+  // --- Apply Movement ---
   game.bikeAngle += game.bikeAngularVelocity;
   game.scroll -= game.speed;
 
@@ -195,7 +186,6 @@ function update(now) {
     resetGame();
   }
 }
-
 
 // ===== Render =====
 function drawSky() {
