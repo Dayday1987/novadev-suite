@@ -6,6 +6,14 @@ canvas.style.touchAction = "none";
 const bikeImage = new Image();
 bikeImage.src = "./assets/bike/ninja-h2r-2.png";
 
+// Bike parts (not rendered yet)
+
+const wheelImage = new Image();
+wheelImage.src = "./assets/bike/bike-tire.png";
+
+const riderImage = new Image();
+riderImage.src = "./assets/bike/bike-rider.png";
+
 const BIKE_SCALE = 0.15;
 let bikeReady = false;
 
@@ -253,44 +261,37 @@ function drawBike() {
   const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
   const groundY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
 
-  // Rear wheel ground contact (RIGHT side now)
+  // Rear wheel pivot (bike origin)
   const rearGroundX = canvas.width * 0.50;
 
-  const w = bikeImage.width * BIKE_SCALE;
-  const h = bikeImage.height * BIKE_SCALE;
+  const wheelSize = 90; // temporary visual size
 
   ctx.save();
 
-// 1️⃣ Move origin to rear wheel contact point
-ctx.translate(rearGroundX, groundY);
+  // 1️⃣ Move origin to rear wheel contact point
+  ctx.translate(rearGroundX, groundY);
 
-// 2️⃣ Rotate around rear wheel
-ctx.rotate(-game.bikeAngle);
+  // 2️⃣ Rotate with bike angle (wheel follows bike pitch)
+  ctx.rotate(-game.bikeAngle);
 
-// 3️⃣ Draw bike normally (facing RIGHT)
-ctx.drawImage(
-  bikeImage,
-  -REAR_WHEEL_OFFSET_X, // rear wheel now truly behind pivot
-  -h,
-  w,
-  h
-);
-  
-// DEBUG: rear wheel contact point
-ctx.fillStyle = "red";
-ctx.beginPath();
-ctx.arc(0, 0, 2, 0, Math.PI * 2);
-ctx.fill();
+  // 3️⃣ Draw rear wheel centered on pivot
+  ctx.drawImage(
+    wheelImage,
+    -wheelSize / 2,
+    -wheelSize / 2,
+    wheelSize,
+    wheelSize
+  );
 
-  // FRONT marker
-ctx.fillStyle = "blue";
-ctx.beginPath();
-ctx.arc(w - REAR_WHEEL_OFFSET_X, 0, 5, 0, Math.PI * 2);
-ctx.fill();
-  
+  // DEBUG: pivot
+  ctx.fillStyle = "red";
+  ctx.beginPath();
+  ctx.arc(0, 0, 3, 0, Math.PI * 2);
+  ctx.fill();
+
   ctx.restore();
 }
-
+//DRAW COUNTDOWN
 function drawCountdown() {
   if (game.phase !== "COUNTDOWN") return;
 
