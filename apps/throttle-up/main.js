@@ -54,12 +54,20 @@ window.addEventListener("touchstart", (e) => {
 window.addEventListener("touchend", (e) => {
     e.preventDefault();
     game.fingerDown = false;
-    game.throttle = false;
-}, { passive: false });
+
+  function resetGame() {
+  game.phase = "IDLE";
+  game.speed = 0;
+  game.bikeAngle = 0;
+  game.bikeAngularVelocity = 0;
+  game.throttle = false;
+}
+  
+}, { passive: false }) 
 
 window.addEventListener("touchmove", (e) => {
     e.preventDefault();
-    const y = e.touches[0].clientY;
+    if (!e.touches.length) return;
     game.lane = y < canvas.height / 2 ? 0 : 1;
 }, { passive: false });
 
@@ -103,13 +111,17 @@ function update(now) {
 
   game.bikeAngularVelocity *= 0.975;
   game.bikeAngle += game.bikeAngularVelocity;
-  game.scroll -= game.speed;
+  
+  game.scroll %= 100000;
 
   if (game.bikeAngle < 0) {
     game.bikeAngle = 0;
     game.bikeAngularVelocity = 0;
   }
-  if (game.bikeAngle > CRASH_ANGLE) resetGame();
+  if (game.bikeAngle >= CRASH_ANGLE) {
+  resetGame();
+  return;
+}
 }
 
 function drawSky() {
@@ -151,7 +163,9 @@ function drawEnvironment() {
 
   ctx.strokeStyle = "rgba(255,255,255,0.8)";
   ctx.lineWidth = 5;
+  if (ctx.setLineDash) {
   ctx.setLineDash([80, 50]);
+}
   ctx.lineDashOffset = -(game.scroll % 130);
   ctx.beginPath();
   ctx.moveTo(0, hY + ROAD_HEIGHT()/2);
