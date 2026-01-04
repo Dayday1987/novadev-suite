@@ -159,7 +159,6 @@ function drawEnvironment() {
   ctx.stroke();
   ctx.setLineDash([]);
 }
-
 function drawBike() {
   if (!bikeReady) return;
   const laneFactor = (game.lane === 0 ? 0.35 : 0.75);
@@ -173,33 +172,47 @@ function drawBike() {
     ctx.translate(rearX, groundY);
     ctx.rotate(-game.bikeAngle);
 
-    // Rear Wheel
+    // 1. Rear Wheel
     ctx.save(); 
       ctx.rotate(game.scroll * 0.1); 
       ctx.drawImage(wheelImage, -wSize/2, -wSize/2, wSize, wSize); 
     ctx.restore();
     
-    // Front Wheel
+    // 2. Front Wheel
     ctx.save(); 
       ctx.translate(bW * 0.68, 0); 
       ctx.rotate(game.scroll * 0.1); 
       ctx.drawImage(wheelImage, -wSize/2, -wSize/2, wSize, wSize); 
     ctx.restore();
 
-    // Bike Body
+    // 3. Bike Body
     ctx.drawImage(bikeImage, -(bW * 0.22), -bH + (bH * 0.15), bW, bH);
 
-    // Rider
+    // 4. Rider Logic
+    const rW = 100 * (BIKE_SCALE * 8); // Estimated width if image fails
+    const rH = 100 * (BIKE_SCALE * 8); 
+    const tuck = (game.speed / MAX_SPEED) * 15;
+    const lean = game.bikeAngle * 25;
+    const riderX = -(bW * 0.1) + tuck - lean;
+    const riderY = -bH - (bH * 0.05);
+
     if (riderImage.complete && riderImage.naturalWidth > 0) {
-        const rW = riderImage.width * (BIKE_SCALE * 0.82);
-        const rH = riderImage.height * (BIKE_SCALE * 0.82);
-        const tuck = (game.speed / MAX_SPEED) * 15;
-        const lean = game.bikeAngle * 25;
-        // Adjusted coordinates to sit "into" the seat
-        ctx.drawImage(riderImage, -(bW * 0.1) + tuck - lean, -bH - (bH * 0.02), rW, rH);
+        // Draw actual rider
+        ctx.drawImage(riderImage, riderX, riderY, bW * 0.8, bH * 0.8);
+    } else {
+        // FALLBACK: If rider image is missing/broken, draw a placeholder
+        ctx.fillStyle = "rgba(255, 0, 255, 0.5)"; // Bright Pink
+        ctx.fillRect(riderX, riderY, bW * 0.5, bH * 0.5);
+        
+        // Debug text for iPhone
+        ctx.fillStyle = "white";
+        ctx.font = "10px Arial";
+        ctx.fillText("IMG MISSING", riderX, riderY);
     }
   ctx.restore();
 }
+
+
 
 function drawCountdown() {
   if (game.phase !== "COUNTDOWN") return;
