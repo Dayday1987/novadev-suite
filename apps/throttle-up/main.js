@@ -27,7 +27,8 @@ const MAX_SPEED = 140;
 const CRASH_ANGLE = 1.9;
 const BALANCE_POINT = 1.25;
 const MAX_ANGULAR_VELOCITY = 0.025;
-
+const LIFT_SPEED = 12;
+const POP_FORCE = 0.045;
 // =====================
 // CANVAS
 // =====================
@@ -139,10 +140,23 @@ function update(now) {
 
   // WHEELIE PHYSICS
   let torque = 0;
-  if (game.speed > 20 && game.throttle) {
-    torque = 0.0038 * (game.speed / MAX_SPEED);
+
+if (game.speed > LIFT_SPEED) {
+
+  // 🚀 Initial POP (one-time impulse)
+  if (game.throttle && !game.hasLifted) {
+    game.bikeAngularVelocity += POP_FORCE;
+    game.hasLifted = true;
   }
-  game.bikeAngularVelocity += torque;
+
+  // 🔥 Sustained lift while holding throttle
+  if (game.throttle) {
+    const speedFactor = Math.min(game.speed / 60, 1);
+    torque = 0.0045 * speedFactor;
+  }
+}
+
+game.bikeAngularVelocity += torque;
 
   // GRAVITY
   if (game.bikeAngle > 0) {
