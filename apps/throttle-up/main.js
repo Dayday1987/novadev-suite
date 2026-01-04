@@ -28,7 +28,7 @@ const CRASH_ANGLE = 1.9;
 const BALANCE_POINT = 1.25;
 const MAX_ANGULAR_VELOCITY = 0.025;
 const LIFT_SPEED = 12;
-const POP_FORCE = 0.045;
+const POP_FORCE = 0.055;
 // =====================
 // CANVAS
 // =====================
