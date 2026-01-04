@@ -22,13 +22,13 @@ bikeImage.onload = () => (bikeReady = true);
 
 // =====================
 // PHYSICS CONSTANTS
-// =====================
+// ====================
 const MAX_SPEED = 140;
-const CRASH_ANGLE = 1.9;
-const BALANCE_POINT = 1.25;
-const MAX_ANGULAR_VELOCITY = 0.025;
-const LIFT_SPEED = 12;
-const POP_FORCE = 0.055;
+const LIFT_SPEED = 10;
+const POP_FORCE = 0.06;
+const MAX_ANGULAR_VELOCITY = 0.12; // MUCH higher
+const BALANCE_POINT = 1.25;        // ~72°
+const CRASH_ANGLE = 1.9;           // ~109°
 // =====================
 // CANVAS
 // =====================
