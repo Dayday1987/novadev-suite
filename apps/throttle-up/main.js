@@ -141,61 +141,80 @@ function update(now) {
   // =====================
   // WHEELIE PHYSICS
   // =====================
+    // =====================
+  // WHEELIE PHYSICS
+  // =====================
   let torque = 0;
 
   if (game.speed > LIFT_SPEED) {
 
-    // 🚀 Initial snap
+    // Initial snap
     if (game.throttle && !game.hasLifted) {
       game.bikeAngularVelocity += POP_FORCE;
       game.hasLifted = true;
     }
 
-    // 🔥 Sustained torque (this causes looping)
+    // Sustained engine torque
     if (game.throttle) {
       const speedFactor = Math.min(game.speed / 60, 1);
-      torque = 0.007 * speedFactor;
+
+      // NORMAL torque before balance
+      if (game.bikeAngle < BALANCE_POINT) {
+        torque = 0.007 * speedFactor;
+      }
+
+      // 🚨 RUNAWAY torque after balance
+      else {
+        torque = 0.012 * speedFactor;
+      }
     }
   }
 
-  // Apply engine torque
   game.bikeAngularVelocity += torque;
 
-  // 🌍 Gravity (loses past balance)
+  // =====================
+  // GRAVITY
+  // =====================
   if (game.bikeAngle > 0) {
-    let gravity = 0.002 + game.bikeAngle * 0.02;
 
+    // Strong gravity before balance
+    let gravity = 0.002 + game.bikeAngle * 0.015;
+
+    // 🔥 Gravity COLLAPSES past balance
     if (game.bikeAngle > BALANCE_POINT) {
-      gravity *= 0.35;
+      gravity *= 0.12;
     }
 
     game.bikeAngularVelocity -= gravity;
   }
 
-  // 💨 Light air resistance
-  game.bikeAngularVelocity *= 0.985;
+  // =====================
+  // DAMPING (VERY LIGHT)
+  // =====================
+  game.bikeAngularVelocity *= 0.99;
 
-  // Clamp spin rate (still allows looping)
+  // =====================
+  // CLAMP (ONLY NEGATIVE)
+  // =====================
   game.bikeAngularVelocity = Math.max(
     -MAX_ANGULAR_VELOCITY,
-    Math.min(game.bikeAngularVelocity, MAX_ANGULAR_VELOCITY)
+    game.bikeAngularVelocity
   );
 
   // Apply rotation
   game.bikeAngle += game.bikeAngularVelocity;
 
-  // Ground contact
+  // Ground
   if (game.bikeAngle < 0) {
     game.bikeAngle = 0;
     game.bikeAngularVelocity = 0;
     game.hasLifted = false;
   }
 
-  // 💥 Crash (loop-out)
+  // 💥 LOOP CRASH
   if (game.bikeAngle >= CRASH_ANGLE) {
     resetGame();
   }
-}
 
 // =====================
 // RENDER
