@@ -8,7 +8,7 @@ bikeImage.src = "./assets/bike/ninja-h2r-2.png";
 const wheelImage = new Image();
 wheelImage.src = "./assets/bike/biketire.png";
 const riderImage = new Image();
-riderImage.src = "./assets/bike/bikerider.png";
+riderImage.src = "./assets/bike/bike-rider.png";
 
 const BIKE_SCALE = 0.10; 
 let bikeReady = false;
