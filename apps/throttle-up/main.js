@@ -232,4 +232,3 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 loop(performance.now());
-
