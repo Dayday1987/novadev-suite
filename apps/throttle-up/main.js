@@ -1,5 +1,3 @@
-// apps/throttle-up/app.js
-
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 canvas.style.touchAction = "none";
@@ -22,13 +20,16 @@ bikeImage.onload = () => (bikeReady = true);
 
 // =====================
 // PHYSICS CONSTANTS
-// ====================
+// =====================
 const MAX_SPEED = 140;
 const LIFT_SPEED = 10;
-const POP_FORCE = 0.06;
-const MAX_ANGULAR_VELOCITY = 0.12; // MUCH higher
-const BALANCE_POINT = 1.25;        // ~72°
-const CRASH_ANGLE = 1.9;           // ~109°
+
+// 🔥 Wheelie tuning
+const POP_FORCE = 0.065;
+const MAX_ANGULAR_VELOCITY = 0.14;
+const BALANCE_POINT = 1.25; // ~72°
+const CRASH_ANGLE = 1.9;    // ~109°
+
 // =====================
 // CANVAS
 // =====================
@@ -131,60 +132,66 @@ function update(now) {
   // SPEED
   if (game.throttle) game.speed += 0.45;
   else game.speed -= 0.6;
-
   game.speed = Math.max(0, Math.min(game.speed, MAX_SPEED));
 
-  // ✅ WORLD SCROLL
+  // WORLD SCROLL
   game.scroll -= game.speed;
   if (game.scroll < -100000) game.scroll = 0;
 
+  // =====================
   // WHEELIE PHYSICS
+  // =====================
   let torque = 0;
 
-if (game.speed > LIFT_SPEED) {
+  if (game.speed > LIFT_SPEED) {
 
-  // 🚀 Initial POP (one-time impulse)
-  if (game.throttle && !game.hasLifted) {
-    game.bikeAngularVelocity += POP_FORCE;
-    game.hasLifted = true;
+    // 🚀 Initial snap
+    if (game.throttle && !game.hasLifted) {
+      game.bikeAngularVelocity += POP_FORCE;
+      game.hasLifted = true;
+    }
+
+    // 🔥 Sustained torque (this causes looping)
+    if (game.throttle) {
+      const speedFactor = Math.min(game.speed / 60, 1);
+      torque = 0.007 * speedFactor;
+    }
   }
 
-  // 🔥 Sustained lift while holding throttle
-  if (game.throttle) {
-    const speedFactor = Math.min(game.speed / 60, 1);
-    torque = 0.0055 * speedFactor;
-  }
-}
+  // Apply engine torque
+  game.bikeAngularVelocity += torque;
 
-game.bikeAngularVelocity += torque;
-
-  // GRAVITY
+  // 🌍 Gravity (loses past balance)
   if (game.bikeAngle > 0) {
-    let gravity = 0.0022 + game.bikeAngle * 0.02;
-    if (game.bikeAngle > BALANCE_POINT) gravity *= 0.45;
+    let gravity = 0.002 + game.bikeAngle * 0.02;
+
+    if (game.bikeAngle > BALANCE_POINT) {
+      gravity *= 0.35;
+    }
+
     game.bikeAngularVelocity -= gravity;
   }
 
-  // DAMPING
-  game.bikeAngularVelocity *= 0.975;
+  // 💨 Light air resistance
+  game.bikeAngularVelocity *= 0.985;
 
-  // CLAMP ROTATION SPEED
+  // Clamp spin rate (still allows looping)
   game.bikeAngularVelocity = Math.max(
     -MAX_ANGULAR_VELOCITY,
     Math.min(game.bikeAngularVelocity, MAX_ANGULAR_VELOCITY)
   );
 
-  // APPLY ROTATION
+  // Apply rotation
   game.bikeAngle += game.bikeAngularVelocity;
 
-  // GROUND
+  // Ground contact
   if (game.bikeAngle < 0) {
     game.bikeAngle = 0;
     game.bikeAngularVelocity = 0;
     game.hasLifted = false;
   }
 
-  // CRASH
+  // 💥 Crash (loop-out)
   if (game.bikeAngle >= CRASH_ANGLE) {
     resetGame();
   }
