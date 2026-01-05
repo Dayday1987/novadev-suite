@@ -198,6 +198,7 @@ function drawEnvironment() {
   ctx.fillRect(0, hY, canvas.width, ROAD_HEIGHT() + 40);
 }
 
+// DRAW BIKE
 function drawBike() {
   if (!bikeReady) return;
 
@@ -209,16 +210,46 @@ function drawBike() {
   const bH = bikeImage.height * BIKE_SCALE;
   const wSize = bH * 0.48;
 
+  // Wheel offsets relative to rear axle
+  const rearWheelX = 0;
+  const frontWheelX = bW * 0.68;
+
   ctx.save();
+
+  // 1️⃣ Move pivot to rear tire contact point
   ctx.translate(rearX, groundY);
+
+  // 2️⃣ Rotate around rear tire
   ctx.rotate(-game.bikeAngle);
 
-  ctx.drawImage(wheelImage, -wSize / 2, -wSize / 2, wSize, wSize);
-  ctx.translate(bW * 0.68, 0);
-  ctx.drawImage(wheelImage, -wSize / 2, -wSize / 2, wSize, wSize);
+  // 3️⃣ Draw rear wheel
+  ctx.drawImage(
+    wheelImage,
+    rearWheelX - wSize / 2,
+    -wSize / 2,
+    wSize,
+    wSize
+  );
 
-  ctx.drawImage(bikeImage, -(bW * 0.22), -bH + bH * 0.15, bW, bH);
+  // 4️⃣ Draw front wheel
+  ctx.drawImage(
+    wheelImage,
+    frontWheelX - wSize / 2,
+    -wSize / 2,
+    wSize,
+    wSize
+  );
 
+  // 5️⃣ Draw bike frame
+  ctx.drawImage(
+    bikeImage,
+    -(bW * 0.22),
+    -bH + bH * 0.15,
+    bW,
+    bH
+  );
+
+  // 6️⃣ Draw rider
   if (riderImage.complete && riderImage.naturalWidth > 0) {
     ctx.drawImage(
       riderImage,
@@ -232,6 +263,7 @@ function drawBike() {
   ctx.restore();
 }
 
+// DRAW COUNTDOWN
 function drawCountdown() {
   if (game.phase !== "COUNTDOWN") return;
 
