@@ -1,3 +1,5 @@
+// apps/throttle-up/app.js
+
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 canvas.style.touchAction = "none";
@@ -24,7 +26,6 @@ bikeImage.onload = () => (bikeReady = true);
 const MAX_SPEED = 140;
 const LIFT_SPEED = 10;
 
-// 🔥 Wheelie tuning
 const POP_FORCE = 0.065;
 const MAX_ANGULAR_VELOCITY = 0.14;
 const BALANCE_POINT = 1.25; // ~72°
@@ -64,38 +65,26 @@ const ROAD_Y = () => canvas.height - ROAD_HEIGHT() - 20;
 // =====================
 // INPUT
 // =====================
-window.addEventListener(
-  "touchstart",
-  (e) => {
-    e.preventDefault();
-    game.fingerDown = true;
+window.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  game.fingerDown = true;
 
-    if (game.phase === "IDLE") startCountdown();
-    else if (game.phase === "RACING") game.throttle = true;
-  },
-  { passive: false }
-);
+  if (game.phase === "IDLE") startCountdown();
+  else if (game.phase === "RACING") game.throttle = true;
+}, { passive: false });
 
-window.addEventListener(
-  "touchend",
-  (e) => {
-    e.preventDefault();
-    game.fingerDown = false;
-    game.throttle = false;
-  },
-  { passive: false }
-);
+window.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  game.fingerDown = false;
+  game.throttle = false;
+}, { passive: false });
 
-window.addEventListener(
-  "touchmove",
-  (e) => {
-    e.preventDefault();
-    if (!e.touches.length) return;
-    const y = e.touches[0].clientY;
-    game.lane = y < canvas.height / 2 ? 0 : 1;
-  },
-  { passive: false }
-);
+window.addEventListener("touchmove", (e) => {
+  e.preventDefault();
+  if (!e.touches.length) return;
+  const y = e.touches[0].clientY;
+  game.lane = y < canvas.height / 2 ? 0 : 1;
+}, { passive: false });
 
 // =====================
 // COUNTDOWN
@@ -138,127 +127,58 @@ function update(now) {
   game.scroll -= game.speed;
   if (game.scroll < -100000) game.scroll = 0;
 
-  
-   // =====================
-  // WHEELIE PHYSICS
   // =====================
-    // =====================
   // WHEELIE PHYSICS
   // =====================
   let torque = 0;
 
   if (game.speed > LIFT_SPEED) {
 
-    // Initial snap
     if (game.throttle && !game.hasLifted) {
       game.bikeAngularVelocity += POP_FORCE;
       game.hasLifted = true;
     }
 
-    // Sustained engine torque
     if (game.throttle) {
       const speedFactor = Math.min(game.speed / 60, 1);
-
-      // NORMAL torque before balance
-      if (game.bikeAngle < BALANCE_POINT) {
-        torque = 0.007 * speedFactor;
-      }
-
-      // 🚨 RUNAWAY torque after balance
-      else {
-        torque = 0.012 * speedFactor;
-      }
+      torque = game.bikeAngle < BALANCE_POINT
+        ? 0.007 * speedFactor
+        : 0.012 * speedFactor; // runaway
     }
   }
 
   game.bikeAngularVelocity += torque;
 
-  // =====================
   // GRAVITY
-  // =====================
   if (game.bikeAngle > 0) {
-
-    // Strong gravity before balance
     let gravity = 0.002 + game.bikeAngle * 0.015;
-
-    // 🔥 Gravity COLLAPSES past balance
-    if (game.bikeAngle > BALANCE_POINT) {
-      gravity *= 0.12;
-    }
-
+    if (game.bikeAngle > BALANCE_POINT) gravity *= 0.12;
     game.bikeAngularVelocity -= gravity;
   }
 
-  // =====================
-  // DAMPING (VERY LIGHT)
-  // =====================
+  // DAMPING
   game.bikeAngularVelocity *= 0.99;
 
-  // =====================
-  // CLAMP (ONLY NEGATIVE)
-  // =====================
+  // CLAMP (NEGATIVE ONLY)
   game.bikeAngularVelocity = Math.max(
     -MAX_ANGULAR_VELOCITY,
     game.bikeAngularVelocity
   );
 
-  // Apply rotation
   game.bikeAngle += game.bikeAngularVelocity;
 
-  // Ground
+  // GROUND
   if (game.bikeAngle < 0) {
     game.bikeAngle = 0;
     game.bikeAngularVelocity = 0;
     game.hasLifted = false;
   }
 
-  // 💥 LOOP CRASH
+  // CRASH
   if (game.bikeAngle >= CRASH_ANGLE) {
     resetGame();
   }
-  // =====================
-  // GRAVITY
-  // =====================
-  if (game.bikeAngle > 0) {
-
-    // Strong gravity before balance
-    let gravity = 0.002 + game.bikeAngle * 0.015;
-
-    // 🔥 Gravity COLLAPSES past balance
-    if (game.bikeAngle > BALANCE_POINT) {
-      gravity *= 0.12;
-    }
-
-    game.bikeAngularVelocity -= gravity;
-  }
-
-  // =====================
-  // DAMPING (VERY LIGHT)
-  // =====================
-  game.bikeAngularVelocity *= 0.99;
-
-  // =====================
-  // CLAMP (ONLY NEGATIVE)
-  // =====================
-  game.bikeAngularVelocity = Math.max(
-    -MAX_ANGULAR_VELOCITY,
-    game.bikeAngularVelocity
-  );
-
-  // Apply rotation
-  game.bikeAngle += game.bikeAngularVelocity;
-
-  // Ground
-  if (game.bikeAngle < 0) {
-    game.bikeAngle = 0;
-    game.bikeAngularVelocity = 0;
-    game.hasLifted = false;
-  }
-
-  // 💥 LOOP CRASH
-  if (game.bikeAngle >= CRASH_ANGLE) {
-    resetGame();
-  }
+}
 
 // =====================
 // RENDER
@@ -274,35 +194,8 @@ function drawEnvironment() {
   ctx.fillStyle = "#2e7d32";
   ctx.fillRect(0, hY - 100, canvas.width, 100);
 
-  const standSpacing = 1000;
-  const standOffset = (game.scroll * 0.15) % standSpacing;
-  for (let i = -1; i < canvas.width / standSpacing + 1; i++) {
-    const x = i * standSpacing + standOffset;
-    ctx.fillStyle = "#444";
-    ctx.fillRect(x, hY - 115, 600, 115);
-    ctx.fillStyle = "#111";
-    ctx.fillRect(x + 20, hY - 95, 560, 60);
-  }
-
-  ctx.fillStyle = "#888";
-  const wallOffset = (game.scroll * 0.4) % 250;
-  for (let i = -1; i < canvas.width / 250 + 1; i++) {
-    const x = i * 250 + wallOffset;
-    ctx.fillRect(x, hY - 35, 240, 35);
-  }
-
   ctx.fillStyle = "#222d3a";
   ctx.fillRect(0, hY, canvas.width, ROAD_HEIGHT() + 40);
-
-  ctx.strokeStyle = "rgba(255,255,255,0.8)";
-  ctx.lineWidth = 5;
-  ctx.setLineDash([80, 50]);
-  ctx.lineDashOffset = -(game.scroll % 130);
-  ctx.beginPath();
-  ctx.moveTo(0, hY + ROAD_HEIGHT() / 2);
-  ctx.lineTo(canvas.width, hY + ROAD_HEIGHT() / 2);
-  ctx.stroke();
-  ctx.setLineDash([]);
 }
 
 function drawBike() {
@@ -320,29 +213,12 @@ function drawBike() {
   ctx.translate(rearX, groundY);
   ctx.rotate(-game.bikeAngle);
 
-  // Rear wheel
-  ctx.save();
-  ctx.rotate(game.scroll * 0.1);
   ctx.drawImage(wheelImage, -wSize / 2, -wSize / 2, wSize, wSize);
-  ctx.restore();
-
-  // Front wheel
-  ctx.save();
   ctx.translate(bW * 0.68, 0);
-  ctx.rotate(game.scroll * 0.1);
   ctx.drawImage(wheelImage, -wSize / 2, -wSize / 2, wSize, wSize);
-  ctx.restore();
 
-  // Bike frame
-  ctx.drawImage(
-    bikeImage,
-    -(bW * 0.22),
-    -bH + bH * 0.15,
-    bW,
-    bH
-  );
+  ctx.drawImage(bikeImage, -(bW * 0.22), -bH + bH * 0.15, bW, bH);
 
-  // Rider
   if (riderImage.complete && riderImage.naturalWidth > 0) {
     ctx.drawImage(
       riderImage,
@@ -364,34 +240,6 @@ function drawCountdown() {
 
   ctx.fillStyle = "rgba(0,0,0,0.6)";
   ctx.fillRect(cx - 100, cy - 50, 200, 100);
-
-  COUNTDOWN_STEPS.forEach((step, i) => {
-    ctx.fillStyle =
-      i === game.countdownIndex
-        ? step === "GREEN"
-          ? "#2ecc71"
-          : "#f1c40f"
-        : "#333";
-
-    ctx.beginPath();
-    ctx.arc(cx + (i - 1) * 60, cy, 22, 0, Math.PI * 2);
-    ctx.fill();
-  });
-}
-
-function drawHUD() {
-  ctx.fillStyle = "white";
-  ctx.font = "bold 24px Arial";
-
-  if (game.phase === "IDLE") {
-    ctx.textAlign = "center";
-    ctx.fillText("TAP TO RACE", canvas.width / 2, 80);
-  }
-
-  if (game.phase === "RACING") {
-    ctx.textAlign = "left";
-    ctx.fillText(`MPH: ${Math.floor(game.speed)}`, 30, 50);
-  }
 }
 
 // =====================
@@ -417,7 +265,6 @@ function loop(now) {
   drawEnvironment();
   drawBike();
   drawCountdown();
-  drawHUD();
   requestAnimationFrame(loop);
 }
 
