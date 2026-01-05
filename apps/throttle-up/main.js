@@ -1,25 +1,4 @@
-(() => {
-  const canvas = document.getElementById("gameCanvas");
-  const ctx = canvas.getContext("2d");
-
-  // UI
-  const scoreEl = document.getElementById("score");
-  const distanceEl = document.getElementById("distance");
-  const coinsEl = document.getElementById("coins");
-  const highscoreEl = document.getElementById("highscore");
-  const restartBtn = document.getElementById("restartBtn");
-  const infoBtn = document.getElementById("infoBtn");
-  const infoPopup = document.getElementById("infoPopup");
-  const closeInfoBtn = document.getElementById("closeInfoBtn");
-  const homeBtn = document.getElementById("homeBtn");
-  const countdownOverlay = document.getElementById("countdownOverlay");
-  const lightYellow1 = document.getElementById("lightYellow1");
-  const lightYellow2 = document.getElementById("lightYellow2");
-  const lightGreen = document.getElementById("lightGreen");
-  const countdownNumber = document.getElementById("countdownNumber");
-  const goText = document.getElementById("goText");
-
-  const container = document.getElementById("game-container");
+const container = document.getElementById("game-container");
   canvas.width = 480;
   canvas.height = 320;
   const WIDTH = 480;
