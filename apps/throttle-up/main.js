@@ -138,7 +138,8 @@ function update(now) {
   game.scroll -= game.speed;
   if (game.scroll < -100000) game.scroll = 0;
 
-  // =====================
+  
+   // =====================
   // WHEELIE PHYSICS
   // =====================
     // =====================
@@ -172,6 +173,49 @@ function update(now) {
 
   game.bikeAngularVelocity += torque;
 
+  // =====================
+  // GRAVITY
+  // =====================
+  if (game.bikeAngle > 0) {
+
+    // Strong gravity before balance
+    let gravity = 0.002 + game.bikeAngle * 0.015;
+
+    // 🔥 Gravity COLLAPSES past balance
+    if (game.bikeAngle > BALANCE_POINT) {
+      gravity *= 0.12;
+    }
+
+    game.bikeAngularVelocity -= gravity;
+  }
+
+  // =====================
+  // DAMPING (VERY LIGHT)
+  // =====================
+  game.bikeAngularVelocity *= 0.99;
+
+  // =====================
+  // CLAMP (ONLY NEGATIVE)
+  // =====================
+  game.bikeAngularVelocity = Math.max(
+    -MAX_ANGULAR_VELOCITY,
+    game.bikeAngularVelocity
+  );
+
+  // Apply rotation
+  game.bikeAngle += game.bikeAngularVelocity;
+
+  // Ground
+  if (game.bikeAngle < 0) {
+    game.bikeAngle = 0;
+    game.bikeAngularVelocity = 0;
+    game.hasLifted = false;
+  }
+
+  // 💥 LOOP CRASH
+  if (game.bikeAngle >= CRASH_ANGLE) {
+    resetGame();
+  }
   // =====================
   // GRAVITY
   // =====================
