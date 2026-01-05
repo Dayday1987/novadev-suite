@@ -10,8 +10,8 @@ wheelImage.src = "./assets/bike/biketire.png";
 const riderImage = new Image();
 riderImage.src = "./assets/bike/bike-rider.png";
 
-// 1. SCALED UP BIKE (Increased for better presence)
-const BIKE_SCALE = 0.13; 
+// Slightly adjusted for a more "real" weight on the road
+const BIKE_SCALE = 0.11; 
 let bikeReady = false;
 bikeImage.onload = () => { bikeReady = true; };
 
@@ -35,9 +35,10 @@ const game = {
 
 const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
 
-// 2. DISTANT PERSPECTIVE (Road height reduced to make it look further away)
-const ROAD_HEIGHT = () => canvas.height * 0.14; 
-const ROAD_Y = () => canvas.height - ROAD_HEIGHT() - 40;
+// PERSPECTIVE: Lowered slightly from the previous "too high" version
+// but kept high enough to show foreground grass.
+const ROAD_HEIGHT = () => canvas.height * 0.18; 
+const ROAD_Y = () => canvas.height - ROAD_HEIGHT() - (canvas.height * 0.2);
 
 function resize() {
   canvas.width = window.innerWidth;
@@ -46,32 +47,7 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-// ===== Input =====
-window.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    game.fingerDown = true;
-    if (game.phase === "IDLE") startCountdown();
-    else if (game.phase === "RACING") game.throttle = true;
-}, { passive: false });
-
-window.addEventListener("touchend", (e) => {
-    e.preventDefault();
-    game.fingerDown = false;
-    game.throttle = false;
-}, { passive: false });
-
-window.addEventListener("touchmove", (e) => {
-    e.preventDefault();
-    const y = e.touches[0].clientY;
-    game.lane = y < canvas.height / 2 ? 0 : 1;
-}, { passive: false });
-
-function startCountdown() {
-  game.phase = "COUNTDOWN";
-  game.countdownIndex = 0;
-  game.countdownTimer = performance.now();
-}
-
+// ===== Physics & Update (Same as your stable version) =====
 function update(now) {
   if (game.phase === "COUNTDOWN") {
     if (now - game.countdownTimer > 800) {
@@ -113,34 +89,39 @@ function update(now) {
 // ===== Rendering =====
 function drawEnvironment() {
   const hY = ROAD_Y();
+  const roadBottom = hY + ROAD_HEIGHT();
   
   // Sky
   ctx.fillStyle = "#6db3f2";
   ctx.fillRect(0, 0, canvas.width, hY);
   
-  // Grass (Higher to fill the gap of the distant road)
+  // Background Grass
   ctx.fillStyle = "#2e7d32";
-  ctx.fillRect(0, hY - 150, canvas.width, 150);
+  ctx.fillRect(0, hY - 120, canvas.width, 120);
 
-  // Grandstands (Anchored to the grass horizon)
-  const standOffset = (game.scroll * 0.15) % 1200;
-  for (let i = -1; i < (canvas.width / 1200) + 1; i++) {
-    let x = i * 1200 + standOffset;
+  // Grandstands
+  const standOffset = (game.scroll * 0.15) % 1500;
+  for (let i = -1; i < (canvas.width / 1500) + 1; i++) {
+    let x = i * 1500 + standOffset;
     ctx.fillStyle = "#444"; 
-    ctx.fillRect(x, hY - 110, 700, 110);
+    ctx.fillRect(x, hY - 90, 800, 90);
     ctx.fillStyle = "#111";
-    ctx.fillRect(x + 25, hY - 90, 650, 45);
+    ctx.fillRect(x + 30, hY - 75, 740, 40);
   }
 
-  // Road Surface
-  ctx.fillStyle = "#222d3a";
-  ctx.fillRect(0, hY, canvas.width, canvas.height - hY);
+  // Road Surface (Darker Asphalt)
+  ctx.fillStyle = "#1c252e";
+  ctx.fillRect(0, hY, canvas.width, ROAD_HEIGHT());
 
-  // Dash Lines (Adjusted for distant perspective)
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
-  ctx.lineWidth = 3; 
-  ctx.setLineDash([100, 60]);
-  ctx.lineDashOffset = -(game.scroll % 160);
+  // Foreground Grass
+  ctx.fillStyle = "#388e3c"; 
+  ctx.fillRect(0, roadBottom, canvas.width, canvas.height - roadBottom);
+
+  // Dash Lines (Increased length for "fast" feel)
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+  ctx.lineWidth = 4; 
+  ctx.setLineDash([120, 80]);
+  ctx.lineDashOffset = -(game.scroll % 200);
   ctx.beginPath();
   ctx.moveTo(0, hY + ROAD_HEIGHT()/2);
   ctx.lineTo(canvas.width, hY + ROAD_HEIGHT()/2);
@@ -150,9 +131,12 @@ function drawEnvironment() {
 
 function drawBike() {
   if (!bikeReady) return;
-  const laneFactor = (game.lane === 0 ? 0.25 : 0.75);
+  const laneFactor = (game.lane === 0 ? 0.3 : 0.7);
   const groundY = ROAD_Y() + (ROAD_HEIGHT() * laneFactor);
-  const rearX = canvas.width * 0.2; 
+  
+  // REACTION TIME FIX: Moved rearX back to 12% of screen width 
+  // (leaving 88% of the screen for obstacles)
+  const rearX = canvas.width * 0.12; 
 
   const bW = bikeImage.width * BIKE_SCALE;
   const bH = bikeImage.height * BIKE_SCALE;
@@ -170,12 +154,12 @@ function drawBike() {
     ctx.drawImage(bikeImage, -(bW * 0.22), -bH + (bH * 0.15), bW, bH);
 
     // Rider
-    if (riderImage.complete) {
-        const rW = bW * 0.88;
-        const rH = bH * 0.88;
+    if (riderImage.complete && riderImage.naturalWidth > 0) {
+        const rW = bW * 0.85;
+        const rH = bH * 0.85;
         const tuck = (game.speed / MAX_SPEED) * 15;
         const lean = game.bikeAngle * 25;
-        ctx.drawImage(riderImage, -(bW * 0.1) + tuck - lean, -bH - (bH * 0.02), rW, rH);
+        ctx.drawImage(riderImage, -(bW * 0.1) + tuck - lean, -bH - (bH * 0.05), rW, rH);
     }
   ctx.restore();
 }
@@ -193,6 +177,7 @@ function loop(now) {
   drawEnvironment();
   drawBike();
   
+  // HUD and Countdown logic stays the same...
   if (game.phase === "COUNTDOWN") {
     const cx = canvas.width / 2;
     ctx.fillStyle = "rgba(0,0,0,0.5)";
@@ -217,4 +202,3 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 loop(performance.now());
-
