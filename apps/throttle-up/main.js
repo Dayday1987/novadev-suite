@@ -309,4 +309,3 @@ const container = document.getElementById("game-container");
 
   resetGame();
   requestAnimationFrame(gameLoop);
-})();
