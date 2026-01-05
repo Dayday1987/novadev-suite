@@ -10,7 +10,7 @@ wheelImage.src = "./assets/bike/biketire.png";
 const riderImage = new Image();
 riderImage.src = "./assets/bike/bike-rider.png";
 
-const BIKE_SCALE = 0.09; // Scaled down slightly for more reaction time
+const BIKE_SCALE = 0.20; // Scaled down slightly for more reaction time
 let bikeReady = false;
 bikeImage.onload = () => { bikeReady = true; };
 
