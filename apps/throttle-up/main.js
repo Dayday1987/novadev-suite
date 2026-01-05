@@ -152,7 +152,7 @@ if (game.speed > LIFT_SPEED) {
   // 🔥 Sustained lift while holding throttle
   if (game.throttle) {
     const speedFactor = Math.min(game.speed / 60, 1);
-    torque = 0.0055 * speedFactor;
+    torque = 0.0045 * speedFactor;
   }
 }
 
