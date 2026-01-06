@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Throttle Up – Motorcycle wheelie physics game. Tap, lift, and balance your bike to earn the highest score." />
   <title>Throttle Up - Motorcycle Game</title>
   <link rel="stylesheet" href="styles/styles.css" />
   <link rel="icon" href="favicon.ico" />
@@ -22,10 +23,13 @@
       </div>
     </header>
 
+    <!-- Main game area -->
     <canvas id="gameCanvas" aria-label="Motorcycle game"></canvas>
 
+    <!-- Restart button appears after crash -->
     <button id="restartBtn" class="btn" hidden>Restart</button>
 
+    <!-- Countdown overlay shown before start -->
     <div id="countdownOverlay" hidden>
       <div id="lights">
         <div class="light yellow" id="lightYellow1"></div>
@@ -36,6 +40,7 @@
       <div id="goText" hidden>GO!</div>
     </div>
 
+    <!-- Info popup -->
     <div id="infoPopup" role="dialog" aria-modal="true" aria-labelledby="infoTitle" hidden>
       <h2 id="infoTitle">Game Instructions</h2>
       <p>Tap for a quick boost or hold to lift the front wheel and increase speed.</p>
@@ -48,6 +53,7 @@
     <footer>NovaDev Studio Games</footer>
   </div>
 
-  <script src="main.js"></script>
+  <!-- ✅ Corrected script path -->
+  <script src="apps/throttle-up/app.js" defer></script>
 </body>
 </html>
