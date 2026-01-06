@@ -1,7 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
 
-* { box-sizing: border-box; }
+/* Universal reset */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Root and body styling */
 body {
   margin: 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -15,6 +17,7 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Game container layout */
 #game-container {
   position: relative;
   width: 100vw;
@@ -27,6 +30,7 @@ body {
   align-items: center;
 }
 
+/* Canvas fills space */
 canvas {
   flex: 1;
   width: 100%;
@@ -54,6 +58,7 @@ canvas {
   outline: none;
 }
 
+/* Scoreboard layout */
 #scoreboard {
   display: flex;
   gap: 10px;
@@ -63,6 +68,7 @@ canvas {
   margin-bottom: 8px;
 }
 
+/* Info popup box */
 #infoPopup {
   position: absolute;
   top: 50%;
@@ -78,7 +84,7 @@ canvas {
   z-index: 10;
 }
 
-/* Countdown Overlay */
+/* Countdown overlay */
 #countdownOverlay {
   position: absolute;
   inset: 0;
@@ -90,6 +96,7 @@ canvas {
   z-index: 20;
 }
 
+/* Countdown lights */
 .light {
   width: 40px;
   height: 40px;
@@ -112,6 +119,7 @@ canvas {
   box-shadow: 0 0 15px #5ebd2e;
 }
 
+/* Countdown number & text */
 #countdownNumber {
   font-size: 4rem;
   font-weight: bold;
@@ -123,7 +131,7 @@ canvas {
   color: #5ebd2e;
 }
 
-/* Responsive tweaks */
+/* Responsive tweaks for larger screens */
 @media (min-width: 600px) {
   #scoreboard { font-size: 1.2rem; }
   .btn { font-size: 1.1rem; padding: 10px 20px; }
