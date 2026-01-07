@@ -23,10 +23,9 @@ const game = {
     throttle: false,
     timer: 0,
     step: 0,
-    lane: 1, // 0 for Top, 1 for Bottom
-    targetY: 0,
+    lane: 1, 
     currentY: 0,
-    touchStartY: 0 // For swipe detection
+    touchStartY: 0
 };
 
 const overlay = document.getElementById("countdownOverlay");
@@ -36,9 +35,10 @@ const lights = [
     document.getElementById("lightGreen")
 ];
 
-// Road Geometry Constants
-const ROAD_TOP = 0.55;    // Horizon position (55% down the screen)
-const ROAD_HEIGHT = 0.35; // Road thickness (35% of screen height)
+// PERSPECTIVE CONSTANTS
+const HORIZON_Y = 0.45;     // Road starts 45% down the screen (Higher = Longer Road)
+const ROAD_W_TOP = 0.30;    // Road is only 30% wide at the horizon
+const ROAD_W_BOT = 1.20;    // Road is 120% wide at bottom (overflows for effect)
 
 function startCountdown() {
     game.phase = "COUNTDOWN";
@@ -64,10 +64,9 @@ function update() {
     }
 
     if (game.phase === "RACING") {
-        // Throttle & Speed
         if (game.throttle) {
             game.vAngle += 0.005;
-            game.speed = Math.min(game.speed + 0.15, 15);
+            game.speed = Math.min(game.speed + 0.15, 18);
         } else {
             game.vAngle -= 0.008;
             game.speed = Math.max(game.speed - 0.1, 0);
@@ -77,13 +76,14 @@ function update() {
         game.angle = Math.max(0, game.angle + game.vAngle);
         game.vAngle *= 0.96;
 
-        // Lane interpolation (Smoothly move bike to the target lane)
-        const roadStartY = height * ROAD_TOP;
-        const laneHeight = (height * ROAD_HEIGHT) / 2;
-        game.targetY = roadStartY + (game.lane * laneHeight) + (laneHeight * 0.5);
+        // Perspective Lane Calculation
+        // Lane 0 is further (higher Y, smaller scale), Lane 1 is closer (lower Y, larger scale)
+        const lane0Y = height * 0.70; 
+        const lane1Y = height * 0.85;
+        const targetY = game.lane === 0 ? lane0Y : lane1Y;
         
-        // Easing: move currentY toward targetY
-        game.currentY += (game.targetY - game.currentY) * 0.1;
+        if (game.currentY === 0) game.currentY = lane1Y;
+        game.currentY += (targetY - game.currentY) * 0.1;
 
         if (game.angle > 1.7) {
             game.phase = "IDLE";
@@ -100,47 +100,44 @@ function draw() {
     ctx.fillStyle = "#87ceeb";
     ctx.fillRect(0, 0, width, height);
 
-    const rTop = height * ROAD_TOP;
-    const rHeight = height * ROAD_HEIGHT;
+    const hY = height * HORIZON_Y;
+    const bY = height; // Bottom of screen
 
-    // 2. Grass (Distant)
-    ctx.fillStyle = "#2d7d32";
-    ctx.fillRect(0, rTop - 40, width, 40);
-
-    // 3. Road (Trapezoid for perspective)
+    // 2. Road Trapezoid (Perspective)
     ctx.fillStyle = "#333";
     ctx.beginPath();
-    ctx.moveTo(0, rTop);
-    ctx.lineTo(width, rTop);
-    ctx.lineTo(width, rTop + rHeight);
-    ctx.lineTo(0, rTop + rHeight);
+    ctx.moveTo(width / 2 - (width * ROAD_W_TOP) / 2, hY);
+    ctx.lineTo(width / 2 + (width * ROAD_W_TOP) / 2, hY);
+    ctx.lineTo(width / 2 + (width * ROAD_W_BOT) / 2, bY);
+    ctx.lineTo(width / 2 - (width * ROAD_W_BOT) / 2, bY);
     ctx.fill();
 
-    // 4. Scrolling Lane Dashes
-    ctx.strokeStyle = "rgba(255,255,255,0.7)";
-    ctx.lineWidth = 4;
-    ctx.lineDashOffset = game.scroll; 
-    ctx.setLineDash([40, 60]);
-    ctx.beginPath();
-    ctx.moveTo(0, rTop + (rHeight / 2));
-    ctx.lineTo(width, rTop + (rHeight / 2));
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // 5. Draw Bike
-    const scale = 0.18; // Slightly smaller to fit the narrower road
-    const pivotX = width * 0.25;
+    // 3. Scrolling Lane Dashes (Angled)
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,0.6)";
+    ctx.lineWidth = 6;
+    ctx.lineDashOffset = game.scroll;
+    ctx.setLineDash([60, 100]);
     
-    // Start at initial Y if game just started
-    if (game.currentY === 0) game.currentY = rTop + (rHeight * 0.75);
+    // Draw the center divider line
+    ctx.beginPath();
+    ctx.moveTo(width / 2, hY);
+    ctx.lineTo(width / 2, bY);
+    ctx.stroke();
+    ctx.restore();
+
+    // 4. Draw Bike
+    // We scale the bike down slightly if it's in the "far" lane (Lane 0)
+    const perspectiveScale = game.lane === 0 ? 0.14 : 0.18;
+    const pivotX = width * 0.3;
 
     ctx.save();
     ctx.translate(pivotX, game.currentY);
     ctx.rotate(-game.angle);
 
     if (bikeImg.complete && tireImg.complete) {
-        const bW = bikeImg.width * scale;
-        const bH = bikeImg.height * scale;
+        const bW = bikeImg.width * perspectiveScale;
+        const bH = bikeImg.height * perspectiveScale;
         const tSize = bH * 0.45;
 
         // Rear Tire (Pivot)
@@ -168,27 +165,19 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
-// =====================
-// INPUT (With Swipe)
-// =====================
+// INPUT
 canvas.addEventListener("touchstart", (e) => {
     e.preventDefault();
     game.touchStartY = e.touches[0].clientY;
-    
     if (game.phase === "IDLE") startCountdown();
     if (game.phase === "RACING") game.throttle = true;
 });
 
 canvas.addEventListener("touchend", (e) => {
     game.throttle = false;
-    
-    // Swipe detection logic
-    const touchEndY = e.changedTouches[0].clientY;
-    const diffY = game.touchStartY - touchEndY;
-
-    if (Math.abs(diffY) > 30) { // Swipe threshold
-        if (diffY > 0) game.lane = 0; // Swiped Up
-        else game.lane = 1;          // Swiped Down
+    const diffY = game.touchStartY - e.changedTouches[0].clientY;
+    if (Math.abs(diffY) > 30) { 
+        game.lane = diffY > 0 ? 0 : 1; 
     }
 });
 
