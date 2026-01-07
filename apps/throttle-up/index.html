@@ -29,16 +29,14 @@
     <!-- Restart button appears after crash -->
     <button id="restartBtn" class="btn" hidden>Restart</button>
 
-    <!-- Countdown overlay shown before start -->
-    <div id="countdownOverlay" hidden>
-      <div id="lights">
-        <div class="light yellow" id="lightYellow1"></div>
-        <div class="light yellow" id="lightYellow2"></div>
-        <div class="light green" id="lightGreen"></div>
-      </div>
-      <div id="countdownNumber">3</div>
-      <div id="goText" hidden>GO!</div>
-    </div>
+<!-- Countdown overlay (only lights) -->
+<div id="countdownOverlay" hidden>
+  <div id="lights">
+    <div class="light yellow" id="lightYellow1"></div>
+    <div class="light yellow" id="lightYellow2"></div>
+    <div class="light green" id="lightGreen"></div>
+  </div>
+</div>
 
     <!-- Info popup -->
     <div id="infoPopup" role="dialog" aria-modal="true" aria-labelledby="infoTitle" hidden>
