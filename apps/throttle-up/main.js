@@ -147,15 +147,35 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
-// Input (Fixed for landscape swipe)
+// Function to trigger browser fullscreen
+function goFullScreen() {
+    const doc = window.document;
+    const docEl = doc.documentElement;
+
+    const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+
+    if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+        if (requestFullScreen) {
+            requestFullScreen.call(docEl).catch(err => {
+                console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        }
+    }
+}
+
+// Update your existing touchstart listener
 window.addEventListener("touchstart", (e) => {
+    // This will attempt to hide the URL bar on the first tap
+    goFullScreen();
+
     if (game.phase === "IDLE") {
         game.phase = "COUNTDOWN";
         game.countdownIndex = 0;
         game.countdownTimer = performance.now();
     }
     game.throttle = true;
-});
+}, { passive: false });
+
 window.addEventListener("touchend", () => game.throttle = false);
 window.addEventListener("touchmove", (e) => {
     const y = e.touches[0].clientY;
