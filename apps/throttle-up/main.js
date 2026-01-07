@@ -1,18 +1,15 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Assets
 const bikeImg = new Image(); bikeImg.src = "assets/bike/ninja-h2r-2.png";
 const tireImg = new Image(); tireImg.src = "assets/bike/biketire.png";
-const riderImg = new Image(); riderImg.src = "assets/bike/bike-rider.png";
 
 let bikeReady = false;
 bikeImg.onload = () => bikeReady = true;
 
-// Adjusted Constants for Right-Facing Bike
-const BIKE_SCALE = 0.5; 
-// Offset now represents the distance from the LEFT edge of the image to the rear wheel center
-const REAR_WHEEL_OFFSET_X = 85; 
+// NEW SCALE: Much smaller for a "distant" look
+const BIKE_SCALE = 0.25; 
+const REAR_WHEEL_OFFSET_X = 42; // Adjusted for smaller scale
 const LANE_COUNT = 2;
 
 let width, height;
@@ -23,8 +20,9 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-const ROAD_HEIGHT = () => height * 0.28;
-const ROAD_Y = () => height - ROAD_HEIGHT();
+// Road positioned lower for "long road" feel in landscape
+const ROAD_HEIGHT = () => height * 0.22;
+const ROAD_Y = () => height * 0.70; // Road sits at 70% of screen height
 
 const game = {
     phase: "IDLE",
@@ -36,22 +34,17 @@ const game = {
     countdownTimer: 0,
     bikeAngle: 0,
     bikeAngularVelocity: 0,
-    fingerDown: false,
     currentY: 0
 };
 
 const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
 
-// ===== Physics & Update =====
 function update(now) {
     if (game.phase === "COUNTDOWN") {
         if (now - game.countdownTimer > 800) {
             game.countdownIndex++;
             game.countdownTimer = now;
-            if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
-                game.phase = "RACING";
-                if (game.fingerDown) game.throttle = true;
-            }
+            if (game.countdownIndex >= COUNTDOWN_STEPS.length) game.phase = "RACING";
         }
         return;
     }
@@ -60,115 +53,91 @@ function update(now) {
 
     if (game.throttle) {
         game.speed += 0.25;
+        // Negative Torque for Right-Facing Wheelie
+        game.bikeAngularVelocity += (-0.007 - game.speed * 0.0003);
     } else {
-        game.speed *= 0.97;
+        game.speed *= 0.98;
     }
-    game.speed = Math.min(game.speed, 50);
+    game.speed = Math.min(game.speed, 60);
 
-    // Physics Torque (Single source of truth)
-    if (game.throttle) {
-        // Torque is negative here because rotating "up" for a right-facing bike is a negative angle in Canvas
-        const torque = -0.008 - game.speed * 0.0004;
-        game.bikeAngularVelocity += torque;
-    }
-
-    // Gravity restoring force (pushes back toward 0)
-    const gravityForce = -game.bikeAngle * (0.05 + Math.abs(game.bikeAngle) * 0.4);
-    game.bikeAngularVelocity += gravityForce;
-    game.bikeAngularVelocity *= 0.92; 
-    
+    const gravity = -game.bikeAngle * (0.04 + Math.abs(game.bikeAngle) * 0.3);
+    game.bikeAngularVelocity += gravity;
+    game.bikeAngularVelocity *= 0.92;
     game.bikeAngle += game.bikeAngularVelocity;
 
-    // Limit the wheelie so it doesn't just spin 360 (until it crashes)
-    game.bikeAngle = Math.max(-2.0, Math.min(0, game.bikeAngle));
+    // Hard ground stop
+    if (game.bikeAngle > 0) { game.bikeAngle = 0; game.bikeAngularVelocity = 0; }
 
     game.scroll += game.speed;
 
     const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
-    const targetY = ROAD_Y() + laneHeight * game.lane + laneHeight / 2;
+    const targetY = ROAD_Y() + (game.lane * laneHeight) + (laneHeight / 2);
     if (game.currentY === 0) game.currentY = targetY;
     game.currentY += (targetY - game.currentY) * 0.1;
 
-    // Crash limits (Adjusted for right-facing negative angles)
-    if (game.bikeAngle < -0.65 || (game.bikeAngle > 0.1 && game.speed > 5)) {
-        resetGame();
-    }
+    if (game.bikeAngle < -0.75) resetGame(); // Crash
 }
 
-// ===== Rendering =====
 function draw() {
     ctx.clearRect(0, 0, width, height);
     
-    // Sky
-    ctx.fillStyle = "#6db3f2";
-    ctx.fillRect(0, 0, width, height);
-
-    // Environment
-    ctx.fillStyle = "#2e7d32"; 
-    ctx.fillRect(0, ROAD_Y() - 60, width, 60);
-    ctx.fillStyle = "#333"; 
+    // Sky & Grass
+    ctx.fillStyle = "#6db3f2"; ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = "#2e7d32"; ctx.fillRect(0, ROAD_Y() - 40, width, 40);
+    
+    // Road
+    ctx.fillStyle = "#333";
     ctx.fillRect(0, ROAD_Y(), width, ROAD_HEIGHT());
 
-    // Scrolling Divider
-    ctx.strokeStyle = "#bbb";
-    ctx.lineWidth = 4;
-    const dashTotal = 70;
-    ctx.setLineDash([40, 30]);
-    // Positive scroll for left-to-right movement
-    ctx.lineDashOffset = -game.scroll % dashTotal;
+    // Divider
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+    ctx.setLineDash([60, 40]);
+    ctx.lineDashOffset = -game.scroll;
     ctx.beginPath();
     ctx.moveTo(0, ROAD_Y() + ROAD_HEIGHT() / 2);
     ctx.lineTo(width, ROAD_Y() + ROAD_HEIGHT() / 2);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Bike
+    // Bike Rendering
     if (bikeReady) {
-        const rearGroundX = width * 0.25; // Keep bike on the left side of screen
-        const w = bikeImg.width * BIKE_SCALE;
-        const h = bikeImg.height * BIKE_SCALE;
+        const bW = bikeImg.width * BIKE_SCALE;
+        const bH = bikeImg.height * BIKE_SCALE;
+        const pivotX = width * 0.2; // Positioned further left for more road visibility
 
         ctx.save();
-        ctx.translate(rearGroundX, game.currentY);
+        ctx.translate(pivotX, game.currentY);
         ctx.rotate(game.bikeAngle);
         
-        // NO scale flip - keep it facing right
-        
-        // Draw the frame relative to the rear wheel center
-        ctx.drawImage(bikeImg, -REAR_WHEEL_OFFSET_X, -h, w, h);
+        // Draw bike facing right
+        ctx.drawImage(bikeImg, -REAR_WHEEL_OFFSET_X, -bH, bW, bH);
         
         // Tires
         if (tireImg.complete) {
-            const tSize = h * 0.35;
-            // Rear tire (at 0,0 relative to translation)
+            const tS = bH * 0.4;
+            // Rear
             ctx.save();
-            ctx.translate(0, -tSize/4);
             ctx.rotate(game.scroll * 0.1);
-            ctx.drawImage(tireImg, -tSize/2, -tSize/2, tSize, tSize);
+            ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS);
             ctx.restore();
-            
-            // Front tire (at the front of the bike)
+            // Front
             ctx.save();
-            ctx.translate(w * 0.7, -tSize/4);
+            ctx.translate(bW * 0.7, 0);
             ctx.rotate(game.scroll * 0.1);
-            ctx.drawImage(tireImg, -tSize/2, -tSize/2, tSize, tSize);
+            ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS);
             ctx.restore();
         }
         ctx.restore();
     }
 
-    // Countdown Lights
+    // UI & Countdown
     if (game.phase === "COUNTDOWN") {
-        const light = COUNTDOWN_STEPS[game.countdownIndex];
         const cx = width / 2;
-        const cy = 100;
-        ["#333", "#333", "#333"].forEach((color, i) => {
-            if (light === "YELLOW" && i === game.countdownIndex) color = "yellow";
-            if (light === "GREEN" && i === 2) color = "lime";
-            ctx.fillStyle = color;
-            ctx.beginPath();
-            ctx.arc(cx + (i - 1) * 50, cy, 20, 0, Math.PI * 2);
-            ctx.fill();
+        const cy = 60;
+        ["#333", "#333", "#333"].forEach((c, i) => {
+            if (game.countdownIndex === i && i < 2) c = "yellow";
+            if (i === 2 && game.countdownIndex >= 2) c = "lime";
+            ctx.fillStyle = c; ctx.beginPath(); ctx.arc(cx + (i-1)*60, cy, 15, 0, Math.PI*2); ctx.fill();
         });
     }
 
@@ -176,34 +145,22 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
-// Input Handlers
 window.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    game.fingerDown = true;
     if (game.phase === "IDLE") {
         game.phase = "COUNTDOWN";
         game.countdownIndex = 0;
         game.countdownTimer = performance.now();
     }
-    if (game.phase === "RACING") game.throttle = true;
-}, { passive: false });
-
-window.addEventListener("touchend", () => {
-    game.fingerDown = false;
-    game.throttle = false;
-}, { passive: false });
-
+    game.throttle = true;
+});
+window.addEventListener("touchend", () => game.throttle = false);
 window.addEventListener("touchmove", (e) => {
     const y = e.touches[0].clientY;
     game.lane = y < height / 2 ? 0 : 1;
-}, { passive: false });
+});
 
 function resetGame() {
-    game.phase = "IDLE";
-    game.speed = 0;
-    game.bikeAngle = 0;
-    game.bikeAngularVelocity = 0;
-    game.throttle = false;
+    game.phase = "IDLE"; game.speed = 0; game.bikeAngle = 0; game.bikeAngularVelocity = 0;
 }
 
 draw();
