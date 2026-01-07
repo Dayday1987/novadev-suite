@@ -21,6 +21,13 @@ const CONFIG = {
     frontTireX: 0.55,         // Moves front tire LEFT/RIGHT (0.7 = 70% of bike width)
     noseDownAngle: 0.04,      // Tilts the frame forward to tuck the wheel
     frameYShift: 5,           // Moves frame UP/DOWN to sit on tires
+
+    const CONFIG = {
+    // ... other settings ...
+    rearTireXShift: 7,  // Positive moves it RIGHT, Negative moves it LEFT
+    // ... other settings ...
+};
+
     
     // PHYSICS & SPEED
     maxSpeed: 180,             // Top speed cap
@@ -137,23 +144,27 @@ function draw() {
         ctx.translate(pivotX, game.currentY);
         ctx.rotate(game.bikeAngle);
         
-        // --- DRAW TIRES ---
+                // --- DRAW TIRES ---
         if (tireImg.complete) {
             const tS = bH * CONFIG.tireSizeMult;
             
-            // Rear tire sits at (0,0) - the pivot point
+            // Rear tire logic
             ctx.save();
+            // --- ADD THIS LINE TO SLIDE THE TIRE INDEPENDENTLY ---
+            ctx.translate(CONFIG.rearTireXShift, 0); 
+            
             ctx.rotate(-game.scroll * 0.1);
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS);
             ctx.restore();
             
-            // Front tire is translated forward based on frame width
+            // Front tire remains at its translate position
             ctx.save();
             ctx.translate(bW * CONFIG.frontTireX, 0);
             ctx.rotate(-game.scroll * 0.1);
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS);
             ctx.restore();
         }
+
 
         // --- DRAW FRAME ---
         ctx.save();
