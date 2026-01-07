@@ -9,40 +9,39 @@ bikeImg.onload = () => { bikeReady = true; };
 
 // ==========================================
 // TUNING & CONFIGURATION SECTION
-// Adjust these values to fine-tune the feel!
 // ==========================================
 const CONFIG = {
     // --- VISUAL SCALING ---
-    bikeScale: 0.15,          // Overall size of the bike
-    tireSizeMult: 0.58,       // Tire size relative to bike height (Radius)
+    bikeScale: 0.15,          
+    tireSizeMult: 0.58,       
     
-    // --- FRAME & WHEEL ALIGNMENT (The "Skeleton") ---
-    // Frame Positioning
-    rearWheelOffsetX: 55,     // Moves frame LEFT/RIGHT relative to the pivot point
-    frameYShift: 1,           // Moves frame UP/DOWN to sit perfectly on tires
-    noseDownAngle: 0.09,      // Tilts frame forward (positive is nose-down)
+    // --- FRAME ALIGNMENT ---
+    // Increase these by 10-20 at a time to see big moves!
+    rearWheelOffsetX: 55,     // Slide frame LEFT/RIGHT relative to pivot
+    frameYShift: -10,           // Slide frame UP/DOWN
+    noseDownAngle: 0.09,      // Forward tilt
 
-    // Wheel Positioning
-    rearTireXShift: -18,        // Moves ONLY back tire RIGHT (positive) or LEFT (negative)
-    frontTireX: 0.55,         // Moves front tire LEFT/RIGHT (percentage of bike width)
+    // --- WHEEL ALIGNMENT ---
+    rearTireXShift: -25,      // Slide back tire LEFT/RIGHT
+    frontTireX: 0.55,         // Slide front tire (as % of bike width)
 
     // --- PHYSICS & SPEED ---
-    maxSpeed: 160,             // Top speed cap (landscape feels better fast!)
-    acceleration: 0.25,       // How quickly you reach top speed
-    friction: 0.98,           // Natural coasting slowdown (1.0 = never slows down)
+    maxSpeed: 160,            
+    acceleration: 0.25,       
+    friction: 0.98,           
     
     // --- WHEELIE MECHANICS ---
-    torque: -0.007,           // Strength of the "lift" when throttling (negative is UP)
-    torqueSpeedMult: 0.0004,  // Higher speed = more air lift/torque power
-    gravity: 0.03,            // Base pull that brings the front wheel down
-    damping: 0.92,            // "Weight" of the bike; lower is snappier, higher is floaty
-    crashAngle: -0.85,        // The "Point of No Return" (angle where you flip/loop)
+    torque: -0.007,           
+    torqueSpeedMult: 0.0004,  
+    gravity: 0.03,            
+    damping: 0.92,            
+    crashAngle: -0.85,        
     
-    // --- WORLD & VIEW ---
-    laneCount: 2,             // Number of lanes for swiping
-    roadYPercent: 0.70        // Vertical position of road (0.0 top to 1.0 bottom)
+    // --- WORLD ---
+    laneCount: 2,             
+    roadYPercent: 0.70        
 };
-
+// ==========================================
 
 const game = {
     phase: "IDLE",
