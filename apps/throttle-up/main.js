@@ -15,9 +15,9 @@ const loadImage = (src) => {
   return img;
 };
 
-const bikeImage = loadImage("assets/bike/ninja-h2r-2.png");
-const wheelImage = loadImage("assets/bike/biketire.png");
-const riderImage = loadImage("assets/bike/bike-rider.png");
+const bikeImage = loadImage("/assets/bike/ninja-h2r-2.png");
+const wheelImage = loadImage("/assets/bike/biketire.png");
+const riderImage = loadImage("/assets/bike/bike-rider.png");
 
 // =====================
 // TUNABLE CONSTANTS
