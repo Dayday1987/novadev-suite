@@ -7,9 +7,8 @@ const tireImg = new Image(); tireImg.src = "assets/bike/biketire.png";
 let bikeReady = false;
 bikeImg.onload = () => bikeReady = true;
 
-// 1. Fixed Scaling (Much smaller to look right in landscape)
 const BIKE_SCALE = 0.15; 
-const REAR_WHEEL_OFFSET_X = 25; // Adjusted for smaller scale
+const REAR_WHEEL_OFFSET_X = 25; 
 const LANE_COUNT = 2;
 
 let width, height;
@@ -20,8 +19,9 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-const ROAD_HEIGHT = () => height * 0.25;
+// FIX: Road now fills 100% of the remaining bottom space
 const ROAD_Y = () => height * 0.70;
+const ROAD_HEIGHT = () => height - ROAD_Y(); 
 
 const game = {
     phase: "IDLE",
@@ -39,9 +39,9 @@ const game = {
 const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
 
 function update(now) {
-    // 2. Initial position fix: Ensure bike stays on road while IDLE
     const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
     const targetY = ROAD_Y() + (game.lane * laneHeight) + (laneHeight / 2);
+    
     if (game.phase === "IDLE") {
         game.currentY = targetY;
         return;
@@ -73,9 +73,7 @@ function update(now) {
 
     if (game.bikeAngle > 0) { game.bikeAngle = 0; game.bikeAngularVelocity = 0; }
 
-    // 3. Correct Scroll Direction (Flipped to match forward movement)
     game.scroll += game.speed;
-
     game.currentY += (targetY - game.currentY) * 0.1;
 
     if (game.bikeAngle < -0.75) resetGame();
@@ -84,18 +82,20 @@ function update(now) {
 function draw() {
     ctx.clearRect(0, 0, width, height);
     
-    // Sky & Grass
+    // Sky
     ctx.fillStyle = "#6db3f2"; ctx.fillRect(0, 0, width, height);
+    
+    // Grass (Visual buffer)
     ctx.fillStyle = "#2e7d32"; ctx.fillRect(0, ROAD_Y() - 40, width, 40);
     
-    // Road
+    // Road (Now fills to the bottom)
     ctx.fillStyle = "#333";
     ctx.fillRect(0, ROAD_Y(), width, ROAD_HEIGHT());
 
-    // 4. Fixed Scrolling Divider Direction
+    // Divider
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
     ctx.setLineDash([60, 40]);
-    ctx.lineDashOffset = game.scroll; // Removed the negative to fix direction
+    ctx.lineDashOffset = game.scroll;
     ctx.beginPath();
     ctx.moveTo(0, ROAD_Y() + ROAD_HEIGHT() / 2);
     ctx.lineTo(width, ROAD_Y() + ROAD_HEIGHT() / 2);
@@ -111,15 +111,14 @@ function draw() {
         ctx.translate(pivotX, game.currentY);
         ctx.rotate(game.bikeAngle);
         
-        // Frame
         ctx.drawImage(bikeImg, -REAR_WHEEL_OFFSET_X, -bH, bW, bH);
         
-        // 5. Tire Scaling Fix
         if (tireImg.complete) {
-            const tS = bH * 0.38; // Proportional to bike height
+            // FIX: Scaled tires up to 0.45 (from 0.38)
+            const tS = bH * 0.45; 
             // Rear
             ctx.save();
-            ctx.rotate(-game.scroll * 0.1); // Correct rotation direction
+            ctx.rotate(-game.scroll * 0.1);
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS);
             ctx.restore();
             // Front
@@ -132,7 +131,7 @@ function draw() {
         ctx.restore();
     }
 
-    // Countdown UI
+    // UI
     if (game.phase === "COUNTDOWN") {
         const cx = width / 2;
         const cy = 60;
@@ -147,40 +146,31 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
-// Function to trigger browser fullscreen
-function goFullScreen() {
-    const doc = window.document;
-    const docEl = doc.documentElement;
-
-    const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-
-    if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
-        if (requestFullScreen) {
-            requestFullScreen.call(docEl).catch(err => {
-                console.log(`Error attempting to enable full-screen mode: ${err.message}`);
-            });
-        }
-    }
-}
-
-// Update your existing touchstart listener
+// Fullscreen + Throttle
 window.addEventListener("touchstart", (e) => {
-    // This will attempt to hide the URL bar on the first tap
-    goFullScreen();
-
+    e.preventDefault(); // This is the main fix for text selection
     if (game.phase === "IDLE") {
         game.phase = "COUNTDOWN";
         game.countdownIndex = 0;
         game.countdownTimer = performance.now();
+        
+        // Request Fullscreen on start
+        if (canvas.requestFullscreen) canvas.requestFullscreen();
+        else if (canvas.webkitRequestFullscreen) canvas.webkitRequestFullscreen();
     }
     game.throttle = true;
 }, { passive: false });
 
-window.addEventListener("touchend", () => game.throttle = false);
+window.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    game.throttle = false;
+}, { passive: false });
+
 window.addEventListener("touchmove", (e) => {
+    e.preventDefault();
     const y = e.touches[0].clientY;
     game.lane = y < height / 2 ? 0 : 1;
-});
+}, { passive: false });
 
 function resetGame() {
     game.phase = "IDLE"; game.speed = 0; game.bikeAngle = 0; game.bikeAngularVelocity = 0;
