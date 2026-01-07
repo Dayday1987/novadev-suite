@@ -1,3 +1,14 @@
+/* Universal reset */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  margin: 0;
+  background: #111;
+  font-family: 'Roboto Mono', monospace; /* This matches the font we linked in HTML */
+  color: #eee;
+  /* ... rest of your styles ... */
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
