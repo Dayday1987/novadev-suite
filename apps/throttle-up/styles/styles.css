@@ -61,6 +61,12 @@ body {
   background: #000;
 }
 
+#game-container {
+  height: 100vh;
+  height: 100dvh; /* Uses the actual viewable area on mobile */
+}
+
+
 canvas {
   width: 100% !important;
   height: 100% !important;
