@@ -50,14 +50,33 @@ body {
 }
 
 #game-container {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100vw;
-  max-width: 480px;
-  height: 100%;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
   background: #000;
-  display: flex;
-  flex-direction: column;
 }
+
+canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+/* Hide the UI buttons if you want a clean view, or position them absolutely */
+#ui-top {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 100;
+  pointer-events: none;
+}
+#ui-top * { pointer-events: auto; }
+
 
 canvas {
   flex: 1;
