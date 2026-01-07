@@ -71,19 +71,6 @@ function startCountdown() {
   game.countdownTimer = performance.now();
   overlay.hidden = false; // show when countdown starts
 }
-
-function updateCountdown(now) {
-  if (now - game.countdownTimer > 800) {
-    game.countdownIndex++;
-    game.countdownTimer = now;
-
-    if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
-      game.phase = "RACING";
-      overlay.hidden = true; // hide overlay when race starts
-      if (game.fingerDown) game.throttle = true;
-    }
-  }
-}
 // =====================
 // INPUT
 // =====================
@@ -106,6 +93,20 @@ canvas.addEventListener("touchmove", (e) => {
   game.lane = y < canvas.height / 2 ? 0 : 1;
 });
 
+
+
+function updateCountdown(now) {
+  if (now - game.countdownTimer > 800) {
+    game.countdownIndex++;
+    game.countdownTimer = now;
+
+    if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
+      game.phase = "RACING";
+      overlay.hidden = true; // hide overlay when race starts
+      if (game.fingerDown) game.throttle = true;
+    }
+  }
+}
 // =====================
 // UPDATE LOOP (physics)
 // =====================
