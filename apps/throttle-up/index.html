@@ -14,6 +14,11 @@
   <link rel="icon" href="favicon.ico" />
 </head>
 <body>
+  <div id="rotate-overlay">
+      <div class="rotate-icon">🔄</div>
+      <p>Please rotate your device to Landscape to play!</p>
+  </div>
+
   <div id="game-container">
     <header id="ui-top">
       <div id="scoreboard">
@@ -29,14 +34,6 @@
     </header>
 
     <canvas id="gameCanvas"></canvas>
-
-    <div id="countdownOverlay" hidden>
-      <div id="lights">
-        <div class="light yellow" id="lightYellow1"></div>
-        <div class="light yellow" id="lightYellow2"></div>
-        <div class="light green" id="lightGreen"></div>
-      </div>
-    </div>
 
     <div id="infoPopup" hidden>
       <h2>Instructions</h2>
