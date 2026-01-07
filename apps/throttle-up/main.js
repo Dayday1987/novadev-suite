@@ -20,10 +20,10 @@ const CONFIG = {
     // Frame Positioning
     rearWheelOffsetX: 55,     // Moves frame LEFT/RIGHT relative to the pivot point
     frameYShift: 5,           // Moves frame UP/DOWN to sit perfectly on tires
-    noseDownAngle: 0.04,      // Tilts frame forward (positive is nose-down)
+    noseDownAngle: 0.06,      // Tilts frame forward (positive is nose-down)
 
     // Wheel Positioning
-    rearTireXShift: -5,        // Moves ONLY back tire RIGHT (positive) or LEFT (negative)
+    rearTireXShift: -10,        // Moves ONLY back tire RIGHT (positive) or LEFT (negative)
     frontTireX: 0.55,         // Moves front tire LEFT/RIGHT (percentage of bike width)
 
     // --- PHYSICS & SPEED ---
