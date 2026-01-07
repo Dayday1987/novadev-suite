@@ -19,22 +19,22 @@ const CONFIG = {
     // --- FRAME & WHEEL ALIGNMENT (The "Skeleton") ---
     // Frame Positioning
     rearWheelOffsetX: 55,     // Moves frame LEFT/RIGHT relative to the pivot point
-    frameYShift: 5,           // Moves frame UP/DOWN to sit perfectly on tires
+    frameYShift: 3,           // Moves frame UP/DOWN to sit perfectly on tires
     noseDownAngle: 0.09,      // Tilts frame forward (positive is nose-down)
 
     // Wheel Positioning
-    rearTireXShift: -15,        // Moves ONLY back tire RIGHT (positive) or LEFT (negative)
+    rearTireXShift: -18,        // Moves ONLY back tire RIGHT (positive) or LEFT (negative)
     frontTireX: 0.55,         // Moves front tire LEFT/RIGHT (percentage of bike width)
 
     // --- PHYSICS & SPEED ---
-    maxSpeed: 60,             // Top speed cap (landscape feels better fast!)
+    maxSpeed: 160,             // Top speed cap (landscape feels better fast!)
     acceleration: 0.25,       // How quickly you reach top speed
     friction: 0.98,           // Natural coasting slowdown (1.0 = never slows down)
     
     // --- WHEELIE MECHANICS ---
     torque: -0.007,           // Strength of the "lift" when throttling (negative is UP)
     torqueSpeedMult: 0.0004,  // Higher speed = more air lift/torque power
-    gravity: 0.05,            // Base pull that brings the front wheel down
+    gravity: 0.03,            // Base pull that brings the front wheel down
     damping: 0.92,            // "Weight" of the bike; lower is snappier, higher is floaty
     crashAngle: -0.85,        // The "Point of No Return" (angle where you flip/loop)
     
