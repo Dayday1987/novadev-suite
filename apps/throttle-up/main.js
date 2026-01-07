@@ -6,7 +6,7 @@ const ctx = canvas.getContext("2d");
 canvas.style.touchAction = "none"; // prevent pinch zoom
 
 // =====================
-// LOAD IMAGES (lazy load for performance)
+// LOAD IMAGES
 // =====================
 const loadImage = (src) => {
   const img = new Image();
@@ -20,7 +20,7 @@ const wheelImage = loadImage("assets/bike/biketire.png");
 const riderImage = loadImage("assets/bike/bike-rider.png");
 
 // =====================
-// TUNABLE CONSTANTS
+// CONSTANTS
 // =====================
 const BIKE_SCALE = 0.15;
 const MAX_SPEED = 140;
@@ -40,6 +40,13 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
+function ROAD_Y() {
+  return canvas.height * 0.8;
+}
+function ROAD_HEIGHT() {
+  return canvas.height * 0.15;
+}
+
 // =====================
 // GAME STATE
 // =====================
@@ -58,57 +65,40 @@ const game = {
 };
 
 // =====================
-// COUNTDOWN OVERLAY
+// COUNTDOWN LIGHTS
 // =====================
 const overlay = document.getElementById("countdownOverlay");
+const lights = [
+  document.getElementById("lightYellow1"),
+  document.getElementById("lightYellow2"),
+  document.getElementById("lightGreen")
+];
+const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
 overlay.hidden = true;
 
 function startCountdown() {
   game.phase = "COUNTDOWN";
   game.countdownIndex = 0;
   game.countdownTimer = performance.now();
-  overlay.hidden = false; // show overlay during countdown
+  overlay.hidden = false;
+  lights.forEach(l => l.classList.remove("active"));
 }
 
-// defines the sequence of lights that appear during countdown
-const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
-
 function updateCountdown(now) {
-  const lights = [
-    document.getElementById("lightYellow1"),
-    document.getElementById("lightYellow2"),
-    document.getElementById("lightGreen")
-  ];
-  const countdownNumber = document.getElementById("countdownNumber");
-  const goText = document.getElementById("goText");
-
-  const step = game.countdownIndex;
-
-  // reset all lights first
-  lights.forEach((light) => light.classList.remove("active"));
-
-  // show 3 → 2 → 1 → GO
-  if (step < COUNTDOWN_STEPS.length) {
-    countdownNumber.textContent = 3 - step;
-
-    if (COUNTDOWN_STEPS[step] === "YELLOW") lights[step].classList.add("active");
-    if (COUNTDOWN_STEPS[step] === "GREEN") {
-      lights[2].classList.add("active");
-      countdownNumber.hidden = true;
-      goText.hidden = false;
-    }
-  }
-
-  // advance countdown every 800ms
   if (now - game.countdownTimer > 800) {
-    game.countdownIndex++;
-    game.countdownTimer = now;
-
-    if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
-      overlay.hidden = true;      // remove overlay
-      goText.hidden = true;
-      countdownNumber.hidden = false;
+    if (game.countdownIndex < COUNTDOWN_STEPS.length) {
+      const color = COUNTDOWN_STEPS[game.countdownIndex];
+      if (color === "YELLOW") lights[game.countdownIndex].classList.add("active");
+      if (color === "GREEN") lights[2].classList.add("active");
+      game.countdownIndex++;
+      game.countdownTimer = now;
+    } else {
+      // ✅ Race starts
+      overlay.hidden = true;
+      lights.forEach(l => l.classList.remove("active"));
       game.phase = "RACING";
+
+      // If finger was held during countdown, start throttle immediately
       if (game.fingerDown) game.throttle = true;
     }
   }
@@ -118,11 +108,16 @@ function updateCountdown(now) {
 // INPUT
 // =====================
 canvas.addEventListener("touchstart", (e) => {
-  e.stopPropagation();
+  e.preventDefault();
   game.fingerDown = true;
 
   if (game.phase === "IDLE") startCountdown();
-  else if (game.phase === "RACING") game.throttle = true;
+  else if (game.phase === "COUNTDOWN") {
+    // Finger held before green light — throttle starts when countdown ends
+    game.fingerDown = true;
+  } else if (game.phase === "RACING") {
+    game.throttle = true;
+  }
 });
 
 canvas.addEventListener("touchend", () => {
@@ -143,15 +138,12 @@ function update(now, delta) {
   if (game.phase === "COUNTDOWN") return updateCountdown(now);
   if (game.phase !== "RACING") return;
 
-  // ---- SPEED ----
   game.speed += game.throttle ? 0.45 : -0.6;
   game.speed = Math.max(0, Math.min(game.speed, MAX_SPEED));
 
-  // ---- WORLD SCROLL ----
   game.scroll -= game.speed;
   if (game.scroll < -100000) game.scroll = 0;
 
-  // ---- WHEELIE PHYSICS ----
   let torque = 0;
   if (game.speed > LIFT_SPEED) {
     if (game.throttle && !game.hasLifted) {
@@ -165,28 +157,22 @@ function update(now, delta) {
   }
   game.bikeAngularVelocity += torque;
 
-  // ---- GRAVITY ----
   if (game.bikeAngle > 0) {
     let gravity = 0.002 + game.bikeAngle * 0.015;
     if (game.bikeAngle > BALANCE_POINT) gravity *= 0.12;
     game.bikeAngularVelocity -= gravity;
   }
 
-  // ---- DAMPING ----
   game.bikeAngularVelocity *= 0.99;
-
-  // ---- ANGLE LIMITS ----
   game.bikeAngularVelocity = Math.max(-MAX_ANGULAR_VELOCITY, game.bikeAngularVelocity);
   game.bikeAngle += game.bikeAngularVelocity;
 
-  // ---- GROUND CONTACT ----
   if (game.bikeAngle < 0) {
     game.bikeAngle = 0;
     game.bikeAngularVelocity = 0;
     game.hasLifted = false;
   }
 
-  // ---- CRASH ----
   if (game.bikeAngle >= CRASH_ANGLE) resetGame();
 }
 
@@ -199,25 +185,35 @@ function drawSky() {
 }
 
 function drawEnvironment() {
-  const groundY = canvas.height * 0.8;
-  const roadHeight = canvas.height * 0.15;
-
+  const hY = ROAD_Y();
   ctx.fillStyle = "#4caf50";
-  ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
-
+  ctx.fillRect(0, hY - 100, canvas.width, 100);
   ctx.fillStyle = "#3a3a3a";
-  ctx.fillRect(0, groundY - roadHeight, canvas.width, roadHeight);
+  ctx.fillRect(0, hY, canvas.width, ROAD_HEIGHT() + 40);
+
+  // dashed divider between lanes
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = 3;
+  ctx.setLineDash([20, 20]);
+  ctx.beginPath();
+  ctx.moveTo(0, hY + ROAD_HEIGHT() / 2);
+  ctx.lineTo(canvas.width, hY + ROAD_HEIGHT() / 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
 }
 
 function drawBike() {
-  if (!bikeImage.complete) return;
+  if (!bikeImage.complete || !wheelImage.complete) return;
 
-  const groundY = canvas.height * 0.85;
+  const roadHeight = canvas.height * 0.22;
+  const roadY = canvas.height - roadHeight - 20;
+  const laneFactor = game.lane === 0 ? 0.35 : 0.75;
+  const groundY = roadY + roadHeight * laneFactor;
   const rearX = canvas.width * 0.18;
+
   const bW = bikeImage.width * BIKE_SCALE;
   const bH = bikeImage.height * BIKE_SCALE;
   const wSize = bH * 0.48;
-
   const rearWheelX = 0;
   const frontWheelX = bW * 0.68;
 
@@ -228,7 +224,6 @@ function drawBike() {
   ctx.drawImage(wheelImage, rearWheelX - wSize / 2, -wSize / 2, wSize, wSize);
   ctx.drawImage(wheelImage, frontWheelX - wSize / 2, -wSize / 2, wSize, wSize);
   ctx.drawImage(bikeImage, -(bW * 0.22), -bH + bH * 0.15, bW, bH);
-
   if (riderImage.complete) {
     ctx.drawImage(riderImage, -(bW * 0.1), -bH - bH * 0.05, bW * 0.8, bH * 0.8);
   }
@@ -261,7 +256,6 @@ function loop(now) {
   drawSky();
   drawEnvironment();
   drawBike();
-
   requestAnimationFrame(loop);
 }
 loop(performance.now());
