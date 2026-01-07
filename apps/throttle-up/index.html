@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Throttle Up – Motorcycle wheelie physics game. Tap, lift, and balance your bike to earn the highest score." />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Throttle Up - Motorcycle Game</title>
   <link rel="stylesheet" href="styles/styles.css" />
-  <link rel="icon" href="favicon.ico" />
 </head>
 <body>
   <div id="game-container">
@@ -14,44 +12,33 @@
       <div id="scoreboard">
         <div>Score: <span id="score">0</span></div>
         <div>Coins: <span id="coins">0</span></div>
-        <div>Distance: <span id="distance">0</span>m</div>
-        <div>High Score: <span id="highscore">0</span></div>
+        <div>Dist: <span id="distance">0</span>m</div>
+        <div>High: <span id="highscore">0</span></div>
       </div>
       <div id="top-buttons">
-        <button class="btn" id="infoBtn" aria-label="Game instructions">ℹ️</button>
-        <button class="btn" id="homeBtn" aria-label="Go to home page">🏠</button>
+        <button class="btn" id="infoBtn">ℹ️</button>
+        <button class="btn" id="homeBtn">🏠</button>
       </div>
     </header>
 
-    <!-- Main game area -->
-    <canvas id="gameCanvas" aria-label="Motorcycle game"></canvas>
+    <canvas id="gameCanvas"></canvas>
 
-    <!-- Restart button appears after crash -->
-    <button id="restartBtn" class="btn" hidden>Restart</button>
+    <div id="countdownOverlay" hidden>
+      <div id="lights">
+        <div class="light yellow" id="lightYellow1"></div>
+        <div class="light yellow" id="lightYellow2"></div>
+        <div class="light green" id="lightGreen"></div>
+      </div>
+    </div>
 
-<!-- Countdown overlay (only lights) -->
-<div id="countdownOverlay" hidden>
-  <div id="lights">
-    <div class="light yellow" id="lightYellow1"></div>
-    <div class="light yellow" id="lightYellow2"></div>
-    <div class="light green" id="lightGreen"></div>
-  </div>
-</div>
-
-    <!-- Info popup -->
-    <div id="infoPopup" role="dialog" aria-modal="true" aria-labelledby="infoTitle" hidden>
-      <h2 id="infoTitle">Game Instructions</h2>
-      <p>Tap for a quick boost or hold to lift the front wheel and increase speed.</p>
-      <p>Keep your front tire off the ground to continue. If it touches or you hit an obstacle, it’s game over.</p>
-      <p>Use A/D or swipe left/right to change lanes and collect coins.</p>
-      <p>Your score is based on distance traveled.</p>
+    <div id="infoPopup" hidden>
+      <h2>Instructions</h2>
+      <p>Tap/Hold to lift the front wheel. Don't flip over!</p>
       <button class="btn" id="closeInfoBtn">Close</button>
     </div>
 
     <footer>NovaDev Studio Games</footer>
   </div>
-
-  <!-- ✅ Corrected script path -->
   <script src="main.js"></script>
 </body>
 </html>
