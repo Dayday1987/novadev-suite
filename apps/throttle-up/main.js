@@ -7,23 +7,37 @@ const tireImg = new Image(); tireImg.src = "assets/bike/biketire.png";
 let bikeReady = false;
 bikeImg.onload = () => { bikeReady = true; };
 
-// GEOMETRY TUNING
-const BIKE_SCALE = 0.15; 
-const REAR_WHEEL_OFFSET_X = 75; // Pushes bike frame RIGHT (Rear tire shows behind)
-const FRONT_TIRE_X_OFFSET = 0.62; // Moves front tire LEFT (Tucks into fairing)
-const TIRE_RADIUS_SCALE = 0.58;  // Even bigger tires
-const LANE_COUNT = 2;
-
-let width, height;
-function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-}
-window.addEventListener("resize", resize);
-resize();
-
-const ROAD_Y = () => height * 0.70;
-const ROAD_HEIGHT = () => height - ROAD_Y();
+// ==========================================
+// TUNING & CONFIGURATION SECTION
+// Adjust these values to fine-tune the feel!
+// ==========================================
+const CONFIG = {
+    // VISUAL SCALING
+    bikeScale: 0.15,          // Overall size of the bike
+    tireSizeMult: 0.55,       // Tire size relative to bike height (Radius)
+    
+    // FRAME ALIGNMENT (The "Skeleton")
+    rearWheelOffsetX: 55,     // Moves frame LEFT/RIGHT relative to rear axle
+    frontTireX: 0.68,         // Moves front tire LEFT/RIGHT (0.7 = 70% of bike width)
+    noseDownAngle: 0.04,      // Tilts the frame forward to tuck the wheel
+    frameYShift: 5,           // Moves frame UP/DOWN to sit on tires
+    
+    // PHYSICS & SPEED
+    maxSpeed: 60,             // Top speed cap
+    acceleration: 0.25,       // How fast you gain speed
+    friction: 0.98,           // How fast you slow down (1.0 = no slow down)
+    
+    // WHEELIE MECHANICS
+    torque: -0.007,           // Power of the "lift" (negative is UP)
+    torqueSpeedMult: 0.0004,  // More lift as you go faster
+    gravity: 0.05,            // Strength pulling the front wheel back down
+    damping: 0.92,            // Smoothness of wheelie movement
+    crashAngle: -0.85,        // How far back you can lean before crashing
+    
+    // WORLD
+    laneCount: 2,
+    roadYPercent: 0.70        // 0.70 = Road starts at 70% down the screen
+};
 
 const game = {
     phase: "IDLE",
@@ -38,8 +52,19 @@ const game = {
     currentY: 0
 };
 
+let width, height;
+function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resize);
+resize();
+
+const ROAD_Y = () => height * CONFIG.roadYPercent;
+const ROAD_HEIGHT = () => height - ROAD_Y();
+
 function update(now) {
-    const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
+    const laneHeight = ROAD_HEIGHT() / CONFIG.laneCount;
     const targetY = ROAD_Y() + (game.lane * laneHeight) + (laneHeight / 2);
     
     if (game.phase === "IDLE") {
@@ -57,38 +82,42 @@ function update(now) {
     }
 
     if (game.phase === "RACING") {
+        // --- 1. HANDLE SPEED ---
         if (game.throttle) {
-            game.speed += 0.25;
-            game.bikeAngularVelocity += (-0.007 - game.speed * 0.0004);
+            game.speed += CONFIG.acceleration;
+            // Torque: Lifts the bike
+            game.bikeAngularVelocity += (CONFIG.torque - game.speed * CONFIG.torqueSpeedMult);
         } else {
-            game.speed *= 0.98;
+            game.speed *= CONFIG.friction;
         }
-        game.speed = Math.min(game.speed, 60);
+        game.speed = Math.min(game.speed, CONFIG.maxSpeed);
 
-        const gravity = -game.bikeAngle * (0.05 + Math.abs(game.bikeAngle) * 0.4);
-        game.bikeAngularVelocity += gravity;
-        game.bikeAngularVelocity *= 0.92;
+        // --- 2. HANDLE PHYSICS ---
+        const gravityForce = -game.bikeAngle * (CONFIG.gravity + Math.abs(game.bikeAngle) * 0.4);
+        game.bikeAngularVelocity += gravityForce;
+        game.bikeAngularVelocity *= CONFIG.damping;
         game.bikeAngle += game.bikeAngularVelocity;
 
+        // Prevent bike from clipping into ground (Angle 0 is flat)
         if (game.bikeAngle > 0.03) { game.bikeAngle = 0; game.bikeAngularVelocity = 0; }
         
         game.scroll += game.speed;
         game.currentY += (targetY - game.currentY) * 0.1;
 
-        if (game.bikeAngle < -0.8) resetGame();
+        // Crash check
+        if (game.bikeAngle < CONFIG.crashAngle) resetGame();
     }
 }
 
 function draw() {
-    // Ensure we clear the whole screen to prevent "ghosting" or black frames
     ctx.fillStyle = "#6db3f2";
     ctx.fillRect(0, 0, width, height);
     
-    // Grass and Road
+    // Background layers
     ctx.fillStyle = "#2e7d32"; ctx.fillRect(0, ROAD_Y() - 40, width, 40);
     ctx.fillStyle = "#333"; ctx.fillRect(0, ROAD_Y(), width, ROAD_HEIGHT());
 
-    // Road Lines
+    // Road Markings
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
     ctx.setLineDash([60, 40]);
     ctx.lineDashOffset = game.scroll;
@@ -99,43 +128,46 @@ function draw() {
     ctx.setLineDash([]);
 
     if (bikeReady) {
-        const bW = bikeImg.width * BIKE_SCALE;
-        const bH = bikeImg.height * BIKE_SCALE;
+        const bW = bikeImg.width * CONFIG.bikeScale;
+        const bH = bikeImg.height * CONFIG.bikeScale;
         const pivotX = width * 0.25;
 
         ctx.save();
+        // The Pivot point is the REAR AXLE on the road
         ctx.translate(pivotX, game.currentY);
         ctx.rotate(game.bikeAngle);
         
-        // DRAW TIRES (Z-index: behind or aligned with frame)
+        // --- DRAW TIRES ---
         if (tireImg.complete) {
-            const tS = bH * TIRE_RADIUS_SCALE;
+            const tS = bH * CONFIG.tireSizeMult;
             
-            // 1. Rear Tire (Behind the bike body)
+            // Rear tire sits at (0,0) - the pivot point
             ctx.save();
             ctx.rotate(-game.scroll * 0.1);
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS);
             ctx.restore();
             
-            // 2. Front Tire (Tucked in front)
+            // Front tire is translated forward based on frame width
             ctx.save();
-            ctx.translate(bW * FRONT_TIRE_X_OFFSET, 0);
+            ctx.translate(bW * CONFIG.frontTireX, 0);
             ctx.rotate(-game.scroll * 0.1);
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS);
             ctx.restore();
         }
 
-        // DRAW FRAME (Nose slightly tilted down)
+        // --- DRAW FRAME ---
         ctx.save();
-        ctx.rotate(0.04); 
-        // We add a tiny Y offset (+5) to sit the frame perfectly on the tires
-        ctx.drawImage(bikeImg, -REAR_WHEEL_OFFSET_X, -bH + 5, bW, bH);
+        // Tilt frame forward/backward independently of wheels
+        ctx.rotate(CONFIG.noseDownAngle); 
+        // offset X moves the frame relative to the rear wheel
+        // frameYShift moves the frame up/down relative to the axle centers
+        ctx.drawImage(bikeImg, -CONFIG.rearWheelOffsetX, -bH + CONFIG.frameYShift, bW, bH);
         ctx.restore();
 
         ctx.restore();
     }
 
-    // COUNTDOWN UI
+    // Countdown UI
     if (game.phase === "COUNTDOWN") {
         const cx = width / 2;
         const cy = 60;
@@ -149,7 +181,7 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
-// INPUTS
+// Input handling (remains the same)
 window.addEventListener("touchstart", (e) => {
     e.preventDefault();
     if (game.phase === "IDLE") {
