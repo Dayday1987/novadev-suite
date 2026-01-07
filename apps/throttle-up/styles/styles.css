@@ -84,16 +84,26 @@ canvas {
   z-index: 10;
 }
 
-/* Countdown overlay */
 #countdownOverlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 20;
+  transition: opacity 0.3s ease;
+}
+
+#countdownOverlay[hidden] {
+  display: none !important;
+}
+
+#lights {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
 }
 
 /* Countdown lights */
@@ -123,12 +133,6 @@ canvas {
 #countdownNumber {
   font-size: 4rem;
   font-weight: bold;
-}
-
-#goText {
-  font-size: 3rem;
-  font-weight: bold;
-  color: #5ebd2e;
 }
 
 /* Responsive tweaks for larger screens */
