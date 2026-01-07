@@ -14,11 +14,11 @@ bikeImg.onload = () => { bikeReady = true; };
 const CONFIG = {
     // VISUAL SCALING
     bikeScale: 0.15,          // Overall size of the bike
-    tireSizeMult: 0.60,       // Tire size relative to bike height (Radius)
+    tireSizeMult: 0.58,       // Tire size relative to bike height (Radius)
     
     // FRAME ALIGNMENT (The "Skeleton")
     rearWheelOffsetX: 55,     // Moves frame LEFT/RIGHT relative to rear axle
-    frontTireX: 0.60,         // Moves front tire LEFT/RIGHT (0.7 = 70% of bike width)
+    frontTireX: 0.58,         // Moves front tire LEFT/RIGHT (0.7 = 70% of bike width)
     noseDownAngle: 0.04,      // Tilts the frame forward to tuck the wheel
     frameYShift: 5,           // Moves frame UP/DOWN to sit on tires
     
