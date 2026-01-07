@@ -19,7 +19,7 @@ const CONFIG = {
     // --- FRAME & WHEEL ALIGNMENT (The "Skeleton") ---
     // Frame Positioning
     rearWheelOffsetX: 55,     // Moves frame LEFT/RIGHT relative to the pivot point
-    frameYShift: 3,           // Moves frame UP/DOWN to sit perfectly on tires
+    frameYShift: 1,           // Moves frame UP/DOWN to sit perfectly on tires
     noseDownAngle: 0.09,      // Tilts frame forward (positive is nose-down)
 
     // Wheel Positioning
