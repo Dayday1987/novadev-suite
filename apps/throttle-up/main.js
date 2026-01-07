@@ -15,9 +15,9 @@ const loadImage = (src) => {
   return img;
 };
 
-const bikeImage = loadImage("./assets/bike/ninja-h2r-2.png");
-const wheelImage = loadImage("./assets/bike/biketire.png");
-const riderImage = loadImage("./assets/bike/bike-rider.png");
+const bikeImage = loadImage("assets/bike/ninja-h2r-2.png");
+const wheelImage = loadImage("assets/bike/biketire.png");
+const riderImage = loadImage("assets/bike/bike-rider.png");
 
 // =====================
 // TUNABLE CONSTANTS
@@ -59,29 +59,50 @@ const game = {
   hasLifted: false
 };
 
+// Hide countdown overlay until active
+const overlay = document.getElementById("countdownOverlay");
+overlay.hidden = true;
+
+function startCountdown() {
+  game.phase = "COUNTDOWN";
+  game.countdownIndex = 0;
+  game.countdownTimer = performance.now();
+  overlay.hidden = false; // show when countdown starts
+}
+
+function updateCountdown(now) {
+  if (now - game.countdownTimer > 800) {
+    game.countdownIndex++;
+    game.countdownTimer = now;
+
+    if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
+      game.phase = "RACING";
+      overlay.hidden = true; // hide overlay when race starts
+      if (game.fingerDown) game.throttle = true;
+    }
+  }
+}
 // =====================
 // INPUT
 // =====================
-window.addEventListener("touchstart", (e) => {
-  e.preventDefault();
+canvas.addEventListener("touchstart", (e) => {
+  e.stopPropagation();
   game.fingerDown = true;
+
   if (game.phase === "IDLE") startCountdown();
   else if (game.phase === "RACING") game.throttle = true;
-}, { passive: false });
+});
 
-window.addEventListener("touchend", (e) => {
-  e.preventDefault();
+canvas.addEventListener("touchend", () => {
   game.fingerDown = false;
   game.throttle = false;
-}, { passive: false });
+});
 
-// Swipe up/down = change lanes
-window.addEventListener("touchmove", (e) => {
-  e.preventDefault();
+canvas.addEventListener("touchmove", (e) => {
   if (!e.touches.length) return;
   const y = e.touches[0].clientY;
   game.lane = y < canvas.height / 2 ? 0 : 1;
-}, { passive: false });
+});
 
 // =====================
 // COUNTDOWN
@@ -161,17 +182,18 @@ function update(now, delta) {
 // RENDER FUNCTIONS
 // =====================
 function drawSky() {
-  ctx.fillStyle = "#6db3f2";
+  ctx.fillStyle = "#87ceeb"; // brighter sky blue
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
+
 function drawEnvironment() {
-  const roadHeight = canvas.height * 0.22;
-  const roadY = canvas.height - roadHeight - 20;
-  ctx.fillStyle = "#2e7d32";
-  ctx.fillRect(0, roadY - 100, canvas.width, 100);
-  ctx.fillStyle = "#222d3a";
-  ctx.fillRect(0, roadY, canvas.width, roadHeight + 40);
+  const hY = ROAD_Y();
+  ctx.fillStyle = "#4caf50"; // lighter grass green
+  ctx.fillRect(0, hY - 100, canvas.width, 100);
+  ctx.fillStyle = "#3a3a3a"; // lighter road
+  ctx.fillRect(0, hY, canvas.width, ROAD_HEIGHT() + 40);
 }
+
 function drawBike() {
   if (!bikeImage.complete) return;
   const roadHeight = canvas.height * 0.22;
