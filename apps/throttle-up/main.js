@@ -18,7 +18,7 @@ const CONFIG = {
     // --- FRAME ALIGNMENT ---
     // Increase these by 10-20 at a time to see big moves!
     rearWheelOffsetX: 55,     // Slide frame LEFT/RIGHT relative to pivot
-    frameYShift: -10,           // Slide frame UP/DOWN
+    frameYShift: 30,           // Slide frame UP/DOWN
     noseDownAngle: 0.09,      // Forward tilt
 
     // --- WHEEL ALIGNMENT ---
