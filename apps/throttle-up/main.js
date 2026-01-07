@@ -15,22 +15,20 @@ const loadImage = (src) => {
   return img;
 };
 
-const bikeImage = loadImage("/assets/bike/ninja-h2r-2.png");
-const wheelImage = loadImage("/assets/bike/biketire.png");
-const riderImage = loadImage("/assets/bike/bike-rider.png");
+const bikeImage = loadImage("assets/bike/ninja-h2r-2.png");
+const wheelImage = loadImage("assets/bike/biketire.png");
+const riderImage = loadImage("assets/bike/bike-rider.png");
 
 // =====================
 // TUNABLE CONSTANTS
 // =====================
-// These allow easy adjustments:
-// - gravity, wheelie torque, balance point, etc.
 const BIKE_SCALE = 0.15;
-const MAX_SPEED = 140; // top speed in pixels/frame
-const LIFT_SPEED = 10; // speed threshold for wheelie
-const POP_FORCE = 0.065; // initial pop torque when lifting
-const MAX_ANGULAR_VELOCITY = 0.14; // wheelie rotation cap
-const BALANCE_POINT = 1.25; // ~72°, where wheelie is stable
-const CRASH_ANGLE = 1.9; // ~109°, crash threshold
+const MAX_SPEED = 140;
+const LIFT_SPEED = 10;
+const POP_FORCE = 0.065;
+const MAX_ANGULAR_VELOCITY = 0.14;
+const BALANCE_POINT = 1.25;
+const CRASH_ANGLE = 1.9;
 
 // =====================
 // CANVAS HANDLING
@@ -59,9 +57,9 @@ const game = {
   hasLifted: false
 };
 
-//======================
-// Hide countdown overlay until active
-//======================
+// =====================
+// COUNTDOWN OVERLAY
+// =====================
 const overlay = document.getElementById("countdownOverlay");
 overlay.hidden = true;
 
@@ -69,8 +67,53 @@ function startCountdown() {
   game.phase = "COUNTDOWN";
   game.countdownIndex = 0;
   game.countdownTimer = performance.now();
-  overlay.hidden = false; // show when countdown starts
+  overlay.hidden = false; // show overlay during countdown
 }
+
+// defines the sequence of lights that appear during countdown
+const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
+
+function updateCountdown(now) {
+  const lights = [
+    document.getElementById("lightYellow1"),
+    document.getElementById("lightYellow2"),
+    document.getElementById("lightGreen")
+  ];
+  const countdownNumber = document.getElementById("countdownNumber");
+  const goText = document.getElementById("goText");
+
+  const step = game.countdownIndex;
+
+  // reset all lights first
+  lights.forEach((light) => light.classList.remove("active"));
+
+  // show 3 → 2 → 1 → GO
+  if (step < COUNTDOWN_STEPS.length) {
+    countdownNumber.textContent = 3 - step;
+
+    if (COUNTDOWN_STEPS[step] === "YELLOW") lights[step].classList.add("active");
+    if (COUNTDOWN_STEPS[step] === "GREEN") {
+      lights[2].classList.add("active");
+      countdownNumber.hidden = true;
+      goText.hidden = false;
+    }
+  }
+
+  // advance countdown every 800ms
+  if (now - game.countdownTimer > 800) {
+    game.countdownIndex++;
+    game.countdownTimer = now;
+
+    if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
+      overlay.hidden = true;      // remove overlay
+      goText.hidden = true;
+      countdownNumber.hidden = false;
+      game.phase = "RACING";
+      if (game.fingerDown) game.throttle = true;
+    }
+  }
+}
+
 // =====================
 // INPUT
 // =====================
@@ -93,20 +136,6 @@ canvas.addEventListener("touchmove", (e) => {
   game.lane = y < canvas.height / 2 ? 0 : 1;
 });
 
-
-
-function updateCountdown(now) {
-  if (now - game.countdownTimer > 800) {
-    game.countdownIndex++;
-    game.countdownTimer = now;
-
-    if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
-      game.phase = "RACING";
-      overlay.hidden = true; // hide overlay when race starts
-      if (game.fingerDown) game.throttle = true;
-    }
-  }
-}
 // =====================
 // UPDATE LOOP (physics)
 // =====================
@@ -165,26 +194,26 @@ function update(now, delta) {
 // RENDER FUNCTIONS
 // =====================
 function drawSky() {
-  ctx.fillStyle = "#87ceeb"; // brighter sky blue
+  ctx.fillStyle = "#87ceeb";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function drawEnvironment() {
-  const hY = ROAD_Y();
-  ctx.fillStyle = "#4caf50"; // lighter grass green
-  ctx.fillRect(0, hY - 100, canvas.width, 100);
-  ctx.fillStyle = "#3a3a3a"; // lighter road
-  ctx.fillRect(0, hY, canvas.width, ROAD_HEIGHT() + 40);
+  const groundY = canvas.height * 0.8;
+  const roadHeight = canvas.height * 0.15;
+
+  ctx.fillStyle = "#4caf50";
+  ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+
+  ctx.fillStyle = "#3a3a3a";
+  ctx.fillRect(0, groundY - roadHeight, canvas.width, roadHeight);
 }
 
 function drawBike() {
   if (!bikeImage.complete) return;
-  const roadHeight = canvas.height * 0.22;
-  const roadY = canvas.height - roadHeight - 20;
-  const laneFactor = game.lane === 0 ? 0.35 : 0.75;
-  const groundY = roadY + roadHeight * laneFactor;
-  const rearX = canvas.width * 0.18;
 
+  const groundY = canvas.height * 0.85;
+  const rearX = canvas.width * 0.18;
   const bW = bikeImage.width * BIKE_SCALE;
   const bH = bikeImage.height * BIKE_SCALE;
   const wSize = bH * 0.48;
@@ -224,7 +253,7 @@ function resetGame() {
 // =====================
 let lastTime = performance.now();
 function loop(now) {
-  const delta = (now - lastTime) / 16.67; // normalized to 60fps
+  const delta = (now - lastTime) / 16.67;
   lastTime = now;
 
   update(now, delta);
