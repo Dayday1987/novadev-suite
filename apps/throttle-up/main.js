@@ -23,7 +23,7 @@ const CONFIG = {
     noseDownAngle: 0.04,      // Tilts frame forward (positive is nose-down)
 
     // Wheel Positioning
-    rearTireXShift: 7,        // Moves ONLY back tire RIGHT (positive) or LEFT (negative)
+    rearTireXShift: 12,        // Moves ONLY back tire RIGHT (positive) or LEFT (negative)
     frontTireX: 0.55,         // Moves front tire LEFT/RIGHT (percentage of bike width)
 
     // --- PHYSICS & SPEED ---
