@@ -19,7 +19,7 @@ const CONFIG = {
     // FRAME ALIGNMENT (The "Skeleton")
     rearWheelOffsetX: 55,     // Moves frame LEFT/RIGHT relative to rear axle
     frontTireX: 0.58,         // Moves front tire LEFT/RIGHT (0.7 = 70% of bike width)
-    noseDownAngle: 0.04,      // Tilts the frame forward to tuck the wheel
+    noseDownAngle: 0.06,      // Tilts the frame forward to tuck the wheel
     frameYShift: 5,           // Moves frame UP/DOWN to sit on tires
     
     // PHYSICS & SPEED
