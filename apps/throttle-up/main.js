@@ -7,9 +7,9 @@ const tireImg = new Image(); tireImg.src = "assets/bike/biketire.png";
 let bikeReady = false;
 bikeImg.onload = () => bikeReady = true;
 
-// NEW SCALE: Much smaller for a "distant" look
-const BIKE_SCALE = 0.25; 
-const REAR_WHEEL_OFFSET_X = 42; // Adjusted for smaller scale
+// 1. Fixed Scaling (Much smaller to look right in landscape)
+const BIKE_SCALE = 0.15; 
+const REAR_WHEEL_OFFSET_X = 25; // Adjusted for smaller scale
 const LANE_COUNT = 2;
 
 let width, height;
@@ -20,9 +20,8 @@ function resize() {
 window.addEventListener("resize", resize);
 resize();
 
-// Road positioned lower for "long road" feel in landscape
-const ROAD_HEIGHT = () => height * 0.22;
-const ROAD_Y = () => height * 0.70; // Road sits at 70% of screen height
+const ROAD_HEIGHT = () => height * 0.25;
+const ROAD_Y = () => height * 0.70;
 
 const game = {
     phase: "IDLE",
@@ -40,6 +39,14 @@ const game = {
 const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
 
 function update(now) {
+    // 2. Initial position fix: Ensure bike stays on road while IDLE
+    const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
+    const targetY = ROAD_Y() + (game.lane * laneHeight) + (laneHeight / 2);
+    if (game.phase === "IDLE") {
+        game.currentY = targetY;
+        return;
+    }
+
     if (game.phase === "COUNTDOWN") {
         if (now - game.countdownTimer > 800) {
             game.countdownIndex++;
@@ -53,7 +60,6 @@ function update(now) {
 
     if (game.throttle) {
         game.speed += 0.25;
-        // Negative Torque for Right-Facing Wheelie
         game.bikeAngularVelocity += (-0.007 - game.speed * 0.0003);
     } else {
         game.speed *= 0.98;
@@ -65,17 +71,14 @@ function update(now) {
     game.bikeAngularVelocity *= 0.92;
     game.bikeAngle += game.bikeAngularVelocity;
 
-    // Hard ground stop
     if (game.bikeAngle > 0) { game.bikeAngle = 0; game.bikeAngularVelocity = 0; }
 
+    // 3. Correct Scroll Direction (Flipped to match forward movement)
     game.scroll += game.speed;
 
-    const laneHeight = ROAD_HEIGHT() / LANE_COUNT;
-    const targetY = ROAD_Y() + (game.lane * laneHeight) + (laneHeight / 2);
-    if (game.currentY === 0) game.currentY = targetY;
     game.currentY += (targetY - game.currentY) * 0.1;
 
-    if (game.bikeAngle < -0.75) resetGame(); // Crash
+    if (game.bikeAngle < -0.75) resetGame();
 }
 
 function draw() {
@@ -89,48 +92,47 @@ function draw() {
     ctx.fillStyle = "#333";
     ctx.fillRect(0, ROAD_Y(), width, ROAD_HEIGHT());
 
-    // Divider
+    // 4. Fixed Scrolling Divider Direction
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
     ctx.setLineDash([60, 40]);
-    ctx.lineDashOffset = -game.scroll;
+    ctx.lineDashOffset = game.scroll; // Removed the negative to fix direction
     ctx.beginPath();
     ctx.moveTo(0, ROAD_Y() + ROAD_HEIGHT() / 2);
     ctx.lineTo(width, ROAD_Y() + ROAD_HEIGHT() / 2);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Bike Rendering
     if (bikeReady) {
         const bW = bikeImg.width * BIKE_SCALE;
         const bH = bikeImg.height * BIKE_SCALE;
-        const pivotX = width * 0.2; // Positioned further left for more road visibility
+        const pivotX = width * 0.2; 
 
         ctx.save();
         ctx.translate(pivotX, game.currentY);
         ctx.rotate(game.bikeAngle);
         
-        // Draw bike facing right
+        // Frame
         ctx.drawImage(bikeImg, -REAR_WHEEL_OFFSET_X, -bH, bW, bH);
         
-        // Tires
+        // 5. Tire Scaling Fix
         if (tireImg.complete) {
-            const tS = bH * 0.4;
+            const tS = bH * 0.38; // Proportional to bike height
             // Rear
             ctx.save();
-            ctx.rotate(game.scroll * 0.1);
+            ctx.rotate(-game.scroll * 0.1); // Correct rotation direction
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS);
             ctx.restore();
             // Front
             ctx.save();
-            ctx.translate(bW * 0.7, 0);
-            ctx.rotate(game.scroll * 0.1);
+            ctx.translate(bW * 0.72, 0);
+            ctx.rotate(-game.scroll * 0.1);
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS);
             ctx.restore();
         }
         ctx.restore();
     }
 
-    // UI & Countdown
+    // Countdown UI
     if (game.phase === "COUNTDOWN") {
         const cx = width / 2;
         const cy = 60;
@@ -145,6 +147,7 @@ function draw() {
     requestAnimationFrame(draw);
 }
 
+// Input (Fixed for landscape swipe)
 window.addEventListener("touchstart", (e) => {
     if (game.phase === "IDLE") {
         game.phase = "COUNTDOWN";
