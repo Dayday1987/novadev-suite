@@ -59,7 +59,9 @@ const game = {
   hasLifted: false
 };
 
+//======================
 // Hide countdown overlay until active
+//======================
 const overlay = document.getElementById("countdownOverlay");
 overlay.hidden = true;
 
@@ -103,26 +105,6 @@ canvas.addEventListener("touchmove", (e) => {
   const y = e.touches[0].clientY;
   game.lane = y < canvas.height / 2 ? 0 : 1;
 });
-
-// =====================
-// COUNTDOWN
-// =====================
-const COUNTDOWN_STEPS = ["YELLOW", "YELLOW", "GREEN"];
-function startCountdown() {
-  game.phase = "COUNTDOWN";
-  game.countdownIndex = 0;
-  game.countdownTimer = performance.now();
-}
-function updateCountdown(now) {
-  if (now - game.countdownTimer > 800) {
-    game.countdownIndex++;
-    game.countdownTimer = now;
-    if (game.countdownIndex >= COUNTDOWN_STEPS.length) {
-      game.phase = "RACING";
-      if (game.fingerDown) game.throttle = true;
-    }
-  }
-}
 
 // =====================
 // UPDATE LOOP (physics)
