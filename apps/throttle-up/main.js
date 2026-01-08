@@ -35,8 +35,8 @@ const CONFIG = {
     friction: 0.98,           // How much speed you keep when letting go (0.98 = 2% loss)
     
     // --- WHEELIE MECHANICS ---
-    torque: -0.009,           // Power of the lift (Negative numbers pull the front wheel UP)
-    torqueSpeedMult: 0.0004,  // Increases lift power as you go faster (wind/momentum)
+    torque: -0.0009,           // Power of the lift (Negative numbers pull the front wheel UP)
+    torqueSpeedMult: 0.0001,  // Increases lift power as you go faster (wind/momentum)
     gravity: 0.05,            // Force pulling the front wheel back to the asphalt
     damping: 0.92,            // Smoothness (Higher = floatier, Lower = snappier/heavier)
     crashAngle: -0.85,        // The limit (If you tilt past this, you flip over)
@@ -176,12 +176,6 @@ function draw() {
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire centered on its position
             ctx.restore();
             
-            // Draw Front Tire
-            ctx.save();
-            ctx.translate(bW * CONFIG.frontTireX, 0); // Position at the front forks
-            ctx.rotate(-game.scroll * 0.1); // Spin wheel
-            ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire
-            ctx.restore();
         }
 
         // Draw the Bike Frame
@@ -193,6 +187,13 @@ function draw() {
 
         ctx.restore(); // Restore the canvas state
     }
+
+    // Draw Front Tire
+            ctx.save();
+            ctx.translate(bW * CONFIG.frontTireX, 0); // Position at the front forks
+            ctx.rotate(-game.scroll * 0.1); // Spin wheel
+            ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire
+            ctx.restore();
 
     // Draw the Countdown Circles
     if (game.phase === "COUNTDOWN") {
