@@ -186,14 +186,14 @@ function draw() {
         ctx.restore();
 
         ctx.restore(); // Restore the canvas state
-    }
-
-    // Draw Front Tire
+        
+        // Draw Front Tire
             ctx.save();
             ctx.translate(bW * CONFIG.frontTireX, 0); // Position at the front forks
             ctx.rotate(-game.scroll * 0.1); // Spin wheel
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire
             ctx.restore();
+    }
 
     // Draw the Countdown Circles
     if (game.phase === "COUNTDOWN") {
