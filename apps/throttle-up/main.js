@@ -184,8 +184,6 @@ function draw() {
         // Draw image relative to the rear axle pivot
         ctx.drawImage(bikeImg, -CONFIG.rearWheelOffsetX, -bH + CONFIG.frameYShift, bW, bH);
         ctx.restore();
-
-        ctx.restore(); // Restore the canvas state
         
         // Draw Front Tire
             ctx.save();
@@ -193,6 +191,8 @@ function draw() {
             ctx.rotate(-game.scroll * 0.1); // Spin wheel
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire
             ctx.restore();
+
+        ctx.rrestore(); // Restore the canvas state
     }
 
     // Draw the Countdown Circles
