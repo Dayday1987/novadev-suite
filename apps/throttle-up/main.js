@@ -1,243 +1,286 @@
-// Get the canvas element from the HTML
+// =====================================================
+// CANVAS & CONTEXT
+// =====================================================
 const canvas = document.getElementById("gameCanvas");
-// Get the 2D drawing context (the "paintbrush")
 const ctx = canvas.getContext("2d");
 
-// Create image objects for the bike and tires
+// =====================================================
+// ASSETS
+// =====================================================
 const bikeImg = new Image(); bikeImg.src = "assets/bike/ninja-h2r-2.png";
 const tireImg = new Image(); tireImg.src = "assets/bike/biketire.png";
 
-// Variable to track if the images are loaded and ready to draw
 let bikeReady = false;
-// Set bikeReady to true once the bike image finishes downloading
-bikeImg.onload = () => { bikeReady = true; }; 
+bikeImg.onload = () => { bikeReady = true; };
 
-// ==========================================
-// TUNING & CONFIGURATION SECTION
-// ==========================================
+// =====================================================
+// CONFIG
+// =====================================================
 const CONFIG = {
-    // --- VISUAL SCALING ---
-    bikeScale: 0.15,          // Size of the bike (0.15 = 15% of original image)
-    tireSizeMult: 0.55,       // Size of tires (Higher = bigger wheels)
-    
-    // --- FRAME ALIGNMENT ---
-    rearWheelOffsetX: 55,     // Shifts the bike body left/right over the rear tire
-    frameYShift: 5,           // Shifts the bike body up/down on the axles
-    noseDownAngle: 0.06,      // The default tilt of the bike (leaning forward)
+    bikeScale: 0.15,
+    tireSizeMult: 0.55,
 
-    // --- WHEEL ALIGNMENT ---
-    rearTireXShift: -25,      // Moves only the back tire left/right
-    frontTireX: 0.55,         // Moves the front tire (0.55 = 55% of the bike's width)
+    rearWheelOffsetX: 55,
+    frameYShift: 5,
+    noseDownAngle: 0.06,
 
-    // --- PHYSICS & SPEED ---
-    maxSpeed: 160,            // The fastest the bike can possibly go
-    acceleration: 0.25,       // How much speed is added every frame you hold down
-    friction: 0.98,           // How much speed you keep when letting go (0.98 = 2% loss)
-    
-    // --- WHEELIE MECHANICS ---
-    torque: -0.0009,          // Power of the lift (Negative numbers pull the front wheel UP)
-    torqueSpeedMult: 0.0001,  // Increases lift power as you go faster (wind/momentum)
-    gravity: 0.05,            // Force pulling the front wheel back to the asphalt
-    damping: 0.92,            // Smoothness (Higher = floatier, Lower = snappier/heavier)
-    crashAngle: -0.85,        // The limit (If you tilt past this, you flip over)
-    
-    // --- WORLD & VIEW ---
-    laneCount: 2,             // Number of lanes you can switch between
-    roadYPercent: 0.55,       // VERTICAL POSITION: 0.50 is middle, 0.40 is higher, 0.60 is lower
-    roadStripHeight: 150      // The thickness of the gray asphalt strip
+    rearTireXShift: -25,
+    frontTireX: 0.55,
+
+    maxSpeed: 160,
+    acceleration: 0.25,
+    friction: 0.98,
+
+    torque: -0.0009,
+    torqueSpeedMult: 0.0001,
+    gravity: 0.05,
+    damping: 0.92,
+    crashAngle: -0.85,
+
+    laneCount: 2,
+    roadYPercent: 0.55,
+    roadStripHeight: 150
 };
 
-// ==========================================
+// =====================================================
 // GAME STATE
-// ==========================================
+// =====================================================
 const game = {
-    phase: "IDLE",            // Current part of the game: IDLE, COUNTDOWN, or RACING
-    speed: 0,                 // Current forward velocity
-    scroll: 0,                // Total distance covered (used to move road lines)
-    lane: 1,                  // Current lane (0 = top, 1 = bottom)
-    throttle: false,          // Is the user touching the screen?
-    countdownIndex: 0,        // Which light is on (0, 1, or 2)
-    countdownTimer: 0,        // Timer to track 800ms intervals for lights
-    bikeAngle: 0,             // Current rotation of the bike (0 is flat)
-    bikeAngularVelocity: 0,    // The speed of the bike's rotation
-    currentY: 0               // The actual vertical pixel position of the bike
+    phase: "IDLE",
+    speed: 0,
+    scroll: 0,
+    lane: 1,
+    throttle: false,
+    countdownIndex: 0,
+    countdownTimer: 0,
+    bikeAngle: 0,
+    bikeAngularVelocity: 0,
+    currentY: 0
 };
 
-// Variables for screen dimensions
-let width, height, roadYPos; 
+// =====================================================
+// RESIZE
+// =====================================================
+let width, height, roadYPos;
 
-// Function to handle screen resizing and orientation changes
 function resize() {
-    width = canvas.width = window.innerWidth; // Set canvas width to screen width
-    height = canvas.height = window.innerHeight; // Set canvas height to screen height
-    roadYPos = height * CONFIG.roadYPercent; // Calculate the road position in pixels
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    roadYPos = height * CONFIG.roadYPercent;
 }
-window.addEventListener("resize", resize); // Run resize when window changes
-resize(); // Run resize immediately on load
+window.addEventListener("resize", resize);
+resize();
 
-// ==========================================
-// GAME LOGIC (The "Brain")
-// ==========================================
+// =====================================================
+// INPUT CONTROLLER (NEW)
+// =====================================================
+class InputController {
+    constructor(canvas, game) {
+        this.canvas = canvas;
+        this.game = game;
+        this.locked = false;
+
+        this._bindTouch();
+        this._bindKeyboard();
+        this._bindGamepad();
+    }
+
+    lock() { this.locked = true; }
+    unlock() { this.locked = false; }
+
+    _startThrottle() {
+        if (this.game.phase === "IDLE") {
+            this.game.phase = "COUNTDOWN";
+            this.game.countdownIndex = 0;
+            this.game.countdownTimer = performance.now();
+        }
+        this.game.throttle = true;
+    }
+
+    _stopThrottle() {
+        this.game.throttle = false;
+    }
+
+    _bindTouch() {
+        this.canvas.addEventListener("touchstart", e => {
+            if (this.locked) return;
+            e.preventDefault();
+            this._startThrottle();
+        }, { passive: false });
+
+        this.canvas.addEventListener("touchend", e => {
+            if (this.locked) return;
+            e.preventDefault();
+            this._stopThrottle();
+        }, { passive: false });
+
+        this.canvas.addEventListener("touchmove", e => {
+            if (this.locked) return;
+            e.preventDefault();
+            this.game.lane = e.touches[0].clientY < height / 2 ? 0 : 1;
+        }, { passive: false });
+    }
+
+    _bindKeyboard() {
+        window.addEventListener("keydown", e => {
+            if (this.locked) return;
+            if (e.code === "Space") this._startThrottle();
+            if (e.code === "ArrowUp") this.game.lane = 0;
+            if (e.code === "ArrowDown") this.game.lane = 1;
+        });
+
+        window.addEventListener("keyup", e => {
+            if (e.code === "Space") this._stopThrottle();
+        });
+    }
+
+    _bindGamepad() {
+        const poll = () => {
+            if (!this.locked) {
+                const gp = navigator.getGamepads?.()[0];
+                if (gp) {
+                    gp.buttons[0]?.pressed ? this._startThrottle() : this._stopThrottle();
+
+                    if (gp.axes[1] < -0.5) this.game.lane = 0;
+                    if (gp.axes[1] > 0.5) this.game.lane = 1;
+                }
+            }
+            requestAnimationFrame(poll);
+        };
+        poll();
+    }
+}
+
+const input = new InputController(canvas, game);
+
+// =====================================================
+// GAME LOGIC
+// =====================================================
 function update(now) {
-    // Determine the vertical height of a single lane
     const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount;
-    // Calculate exactly where the bike should be (Center of the lane)
-    const targetY = roadYPos + (game.lane * laneHeight) + (laneHeight / 2);
-    
-    // If not playing, keep the bike at the target position
+    const targetY = roadYPos + (game.lane * laneHeight) + laneHeight / 2;
+
     if (game.phase === "IDLE") {
         game.currentY = targetY;
         return;
     }
 
-    // Handle the 3-light countdown logic
     if (game.phase === "COUNTDOWN") {
-        if (now - game.countdownTimer > 800) { // If 800ms has passed
-            game.countdownIndex++; // Light up the next bulb
-            game.countdownTimer = now; // Reset the timer
-            if (game.countdownIndex >= 3) game.phase = "RACING"; // Start game after 3 lights
+        if (now - game.countdownTimer > 800) {
+            game.countdownIndex++;
+            game.countdownTimer = now;
+            if (game.countdownIndex >= 3) game.phase = "RACING";
         }
         return;
     }
 
-    // Racing Physics
     if (game.phase === "RACING") {
-        // Gain speed if touching, lose speed to friction if not
         if (game.throttle) {
             game.speed += CONFIG.acceleration;
-            // Add rotation speed (torque) to lift the front wheel
             game.bikeAngularVelocity += (CONFIG.torque - game.speed * CONFIG.torqueSpeedMult);
         } else {
             game.speed *= CONFIG.friction;
         }
-        // Cap the speed at the max allowed
+
         game.speed = Math.min(game.speed, CONFIG.maxSpeed);
 
-        // Calculate gravity pulling the bike back down (increases as the bike tilts higher)
         const gravityForce = -game.bikeAngle * (CONFIG.gravity + Math.abs(game.bikeAngle) * 0.4);
-        game.bikeAngularVelocity += gravityForce; // Apply gravity to rotation speed
-        game.bikeAngularVelocity *= CONFIG.damping; // Apply damping to prevent infinite bouncing
-        game.bikeAngle += game.bikeAngularVelocity; // Apply rotation speed to the actual angle
+        game.bikeAngularVelocity += gravityForce;
+        game.bikeAngularVelocity *= CONFIG.damping;
+        game.bikeAngle += game.bikeAngularVelocity;
 
-        // Prevent the bike from rotating "into" the ground
-        if (game.bikeAngle > 0.03) { game.bikeAngle = 0; game.bikeAngularVelocity = 0; }
-        
-        game.scroll += game.speed; // Move the world forward based on speed
-        game.currentY += (targetY - game.currentY) * 0.1; // Smoothly slide the bike between lanes
+        if (game.bikeAngle > 0.03) {
+            game.bikeAngle = 0;
+            game.bikeAngularVelocity = 0;
+        }
 
-        // If the bike flips back too far, reset the game
+        game.scroll += game.speed;
+        game.currentY += (targetY - game.currentY) * 0.1;
+
         if (game.bikeAngle < CONFIG.crashAngle) resetGame();
     }
 }
 
-// ==========================================
-// RENDERING (The "Eyes")
-// ==========================================
+// =====================================================
+// RENDER
+// =====================================================
 function draw() {
-    // Fill the entire background with the grass color first
     ctx.fillStyle = "#2e7d32";
     ctx.fillRect(0, 0, width, height);
-    
-    // Draw the Blue Sky on the top half
-    ctx.fillStyle = "#6db3f2";
-    ctx.fillRect(0, 0, width, roadYPos - 40); // Ends just above the "horizon" grass
 
-    // Draw the Asphalt Strip (The Road)
-    ctx.fillStyle = "#333"; 
+    ctx.fillStyle = "#6db3f2";
+    ctx.fillRect(0, 0, width, roadYPos - 40);
+
+    ctx.fillStyle = "#333";
     ctx.fillRect(0, roadYPos, width, CONFIG.roadStripHeight);
 
-    // Draw the Animated Road Markings (White dashes)
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; // Color and thickness
-    ctx.setLineDash([60, 40]); // 60px line, 40px gap
-    ctx.lineDashOffset = game.scroll; // Move dashes backward based on scroll distance
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2;
+    ctx.setLineDash([60, 40]);
+    ctx.lineDashOffset = game.scroll;
     ctx.beginPath();
-    ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2); // Move pen to middle of road
-    ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2); // Draw to end of screen
-    ctx.stroke(); // Actually paint the line
-    ctx.setLineDash([]); // Reset dash for other drawings
+    ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2);
+    ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
-    // Draw the Bike and Tires
-    if (bikeReady) {
-        const bW = bikeImg.width * CONFIG.bikeScale; // Calculated width
-        const bH = bikeImg.height * CONFIG.bikeScale; // Calculated height
-        const pivotX = width * 0.25; // Keep the bike on the left side (25% in)
+    if (bikeReady && tireImg.complete) {
+        const bW = bikeImg.width * CONFIG.bikeScale;
+        const bH = bikeImg.height * CONFIG.bikeScale;
+        const pivotX = width * 0.25;
+        const tS = bH * CONFIG.tireSizeMult;
 
-        ctx.save(); // Save the canvas state
-        ctx.translate(pivotX, game.currentY); // Move the "0,0" point to the rear wheel position
-        ctx.rotate(game.bikeAngle); // Rotate the whole bike around that point
-        
-        if (tireImg.complete) {
-            const tS = bH * CONFIG.tireSizeMult; // Size of tires based on bike height
-            
-            // 1. Draw Rear Tire (Behind the bike frame)
-            ctx.save();
-            ctx.translate(CONFIG.rearTireXShift, 0); // Slide the tire based on your tuning
-            ctx.rotate(-game.scroll * 0.1); // Spin the wheel backward to look like forward motion
-            ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire centered on its position
-            ctx.restore();
+        ctx.save();
+        ctx.translate(pivotX, game.currentY);
+        ctx.rotate(game.bikeAngle);
 
-            // 2. Draw the Bike Frame (On top of the rear tire)
-            ctx.save();
-            ctx.rotate(CONFIG.noseDownAngle); // Apply the static forward lean
-            ctx.drawImage(bikeImg, -CONFIG.rearWheelOffsetX, -bH + CONFIG.frameYShift, bW, bH);
-            ctx.restore();
+        ctx.save();
+        ctx.translate(CONFIG.rearTireXShift, 0);
+        ctx.rotate(-game.scroll * 0.1);
+        ctx.drawImage(tireImg, -tS / 2, -tS / 2, tS, tS);
+        ctx.restore();
 
-            // 3. Draw Front Tire (On top of the bike frame)
-            ctx.save();
-            ctx.translate(bW * CONFIG.frontTireX, 0); // Position at the front forks
-            ctx.rotate(-game.scroll * 0.1); // Spin wheel
-            ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire
-            ctx.restore();
-        }
+        ctx.save();
+        ctx.rotate(CONFIG.noseDownAngle);
+        ctx.drawImage(bikeImg, -CONFIG.rearWheelOffsetX, -bH + CONFIG.frameYShift, bW, bH);
+        ctx.restore();
 
-        ctx.restore(); // Restore the canvas state (Fixed the typo here!)
+        ctx.save();
+        ctx.translate(bW * CONFIG.frontTireX, 0);
+        ctx.rotate(-game.scroll * 0.1);
+        ctx.drawImage(tireImg, -tS / 2, -tS / 2, tS, tS);
+        ctx.restore();
+
+        ctx.restore();
     }
 
-    // Draw the Countdown Circles
     if (game.phase === "COUNTDOWN") {
-        const cx = width / 2; // Center of screen
-        const cy = 60; // Distance from top
-        for(let i=0; i<3; i++) {
-            // Fill with color if light is active, otherwise dark gray
-            ctx.fillStyle = (game.countdownIndex > i) ? (i === 2 ? "lime" : "yellow") : "rgba(0,0,0,0.3)";
-            ctx.beginPath(); ctx.arc(cx + (i-1)*60, cy, 15, 0, Math.PI*2); ctx.fill();
+        const cx = width / 2;
+        const cy = 60;
+        for (let i = 0; i < 3; i++) {
+            ctx.fillStyle =
+                game.countdownIndex > i
+                    ? (i === 2 ? "lime" : "yellow")
+                    : "rgba(0,0,0,0.3)";
+            ctx.beginPath();
+            ctx.arc(cx + (i - 1) * 60, cy, 15, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
 
-    update(performance.now()); // Update physics based on current time
-    requestAnimationFrame(draw); // Tell the browser to run this function again immediately
+    update(performance.now());
+    requestAnimationFrame(draw);
 }
 
-// ==========================================
-// INPUTS
-// ==========================================
-window.addEventListener("touchstart", (e) => {
-    e.preventDefault(); // Stop mobile "bounce" and selection
-    if (game.phase === "IDLE") { // Start countdown if sitting still
-        game.phase = "COUNTDOWN";
-        game.countdownIndex = 0;
-        game.countdownTimer = performance.now();
-    }
-    game.throttle = true; // Engage power
-}, { passive: false });
-
-window.addEventListener("touchend", (e) => {
-    e.preventDefault();
-    game.throttle = false; // Cut power
-}, { passive: false });
-
-window.addEventListener("touchmove", (e) => {
-    e.preventDefault();
-    const y = e.touches[0].clientY; // Get Y position of finger
-    game.lane = y < height / 2 ? 0 : 1; // Top half of screen = Lane 0, Bottom half = Lane 1
-}, { passive: false });
-
-// Function to reset the bike if it crashes
+// =====================================================
+// RESET
+// =====================================================
 function resetGame() {
-    game.phase = "IDLE"; 
-    game.speed = 0; 
-    game.bikeAngle = 0; 
+    game.phase = "IDLE";
+    game.speed = 0;
+    game.bikeAngle = 0;
     game.bikeAngularVelocity = 0;
 }
 
-draw(); // Kick off the game loop
+// =====================================================
+draw();
