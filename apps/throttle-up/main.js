@@ -35,7 +35,7 @@ const CONFIG = {
     friction: 0.98,           // How much speed you keep when letting go (0.98 = 2% loss)
     
     // --- WHEELIE MECHANICS ---
-    torque: -0.0009,           // Power of the lift (Negative numbers pull the front wheel UP)
+    torque: -0.0009,          // Power of the lift (Negative numbers pull the front wheel UP)
     torqueSpeedMult: 0.0001,  // Increases lift power as you go faster (wind/momentum)
     gravity: 0.05,            // Force pulling the front wheel back to the asphalt
     damping: 0.92,            // Smoothness (Higher = floatier, Lower = snappier/heavier)
@@ -169,30 +169,28 @@ function draw() {
         if (tireImg.complete) {
             const tS = bH * CONFIG.tireSizeMult; // Size of tires based on bike height
             
-            // Draw Rear Tire
+            // 1. Draw Rear Tire (Behind the bike frame)
             ctx.save();
             ctx.translate(CONFIG.rearTireXShift, 0); // Slide the tire based on your tuning
             ctx.rotate(-game.scroll * 0.1); // Spin the wheel backward to look like forward motion
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire centered on its position
             ctx.restore();
-            
-        }
 
-        // Draw the Bike Frame
-        ctx.save();
-        ctx.rotate(CONFIG.noseDownAngle); // Apply the static forward lean
-        // Draw image relative to the rear axle pivot
-        ctx.drawImage(bikeImg, -CONFIG.rearWheelOffsetX, -bH + CONFIG.frameYShift, bW, bH);
-        ctx.restore();
-        
-        // Draw Front Tire
+            // 2. Draw the Bike Frame (On top of the rear tire)
+            ctx.save();
+            ctx.rotate(CONFIG.noseDownAngle); // Apply the static forward lean
+            ctx.drawImage(bikeImg, -CONFIG.rearWheelOffsetX, -bH + CONFIG.frameYShift, bW, bH);
+            ctx.restore();
+
+            // 3. Draw Front Tire (On top of the bike frame)
             ctx.save();
             ctx.translate(bW * CONFIG.frontTireX, 0); // Position at the front forks
             ctx.rotate(-game.scroll * 0.1); // Spin wheel
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire
             ctx.restore();
+        }
 
-        ctx.restore(); // Restore the canvas state
+        ctx.restore(); // Restore the canvas state (Fixed the typo here!)
     }
 
     // Draw the Countdown Circles
