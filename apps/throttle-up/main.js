@@ -18,12 +18,12 @@ bikeImg.onload = () => { bikeReady = true; };
 const CONFIG = {
     // --- VISUAL SCALING ---
     bikeScale: 0.15,          // Size of the bike (0.15 = 15% of original image)
-    tireSizeMult: 0.58,       // Size of tires (Higher = bigger wheels)
+    tireSizeMult: 0.55,       // Size of tires (Higher = bigger wheels)
     
     // --- FRAME ALIGNMENT ---
     rearWheelOffsetX: 55,     // Shifts the bike body left/right over the rear tire
-    frameYShift: 1,           // Shifts the bike body up/down on the axles
-    noseDownAngle: 0.09,      // The default tilt of the bike (leaning forward)
+    frameYShift: 5,           // Shifts the bike body up/down on the axles
+    noseDownAngle: 0.06,      // The default tilt of the bike (leaning forward)
 
     // --- WHEEL ALIGNMENT ---
     rearTireXShift: -25,      // Moves only the back tire left/right
