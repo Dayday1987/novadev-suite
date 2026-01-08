@@ -192,7 +192,7 @@ function draw() {
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire
             ctx.restore();
 
-        ctx.rrestore(); // Restore the canvas state
+        ctx.restore(); // Restore the canvas state
     }
 
     // Draw the Countdown Circles
