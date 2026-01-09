@@ -18,7 +18,7 @@ bikeImg.onload = () => { bikeReady = true; };
 const CONFIG = {
     // --- VISUAL SCALING ---
     bikeScale: 0.15,          // Size of the bike (0.15 = 15% of original image)
-    tireSizeMult: 0.65,       // Size of tires (Higher = bigger wheels)
+    tireSizeMult: 0.60,       // Size of tires (Higher = bigger wheels)
     
     // --- FRAME ALIGNMENT ---
     rearWheelOffsetX: 55,     // Shifts the bike body left/right over the rear tire
