@@ -22,12 +22,12 @@ const CONFIG = {
     
     // --- FRAME ALIGNMENT ---
     rearWheelOffsetX: 55,     // Shifts the bike body left/right over the rear tire
-    frameYShift: -15,          // Shifts the bike body up/down on the axles (negative = up)
+    frameYShift: -10,          // Shifts the bike body up/down on the axles (negative = up)
     noseDownAngle: 0.02,      // The default tilt of the bike (leaning forward)
 
     // --- WHEEL ALIGNMENT ---
     rearTireXShift: -42,      // Moves only the back tire left/right
-    frontTireX: 0.55,         // Moves the front tire (0.55 = 55% of the bike's width)
+    frontTireX: 0.60,         // Moves the front tire (0.55 = 55% of the bike's width)
 
     // --- PHYSICS & SPEED ---
     maxSpeed: 150,            // The fastest the bike can possibly go
