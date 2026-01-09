@@ -18,16 +18,16 @@ bikeImg.onload = () => { bikeReady = true; };
 const CONFIG = {
     // --- VISUAL SCALING ---
     bikeScale: 0.15,          // Size of the bike (0.15 = 15% of original image)
-    tireSizeMult: 0.55,       // Size of tires (Higher = bigger wheels)
+    tireSizeMult: 0.60,       // Size of tires (Higher = bigger wheels)
     
     // --- FRAME ALIGNMENT ---
     rearWheelOffsetX: 55,     // Shifts the bike body left/right over the rear tire
-    frameYShift: -10,          // Shifts the bike body up/down on the axles (negative = up)
-    noseDownAngle: 0.00,      // The default tilt of the bike (leaning forward)
+    frameYShift: -35,          // Shifts the bike body up/down on the axles (negative = up)
+    noseDownAngle: 0.02,      // The default tilt of the bike (leaning forward)
 
     // --- WHEEL ALIGNMENT ---
     rearTireXShift: -42,      // Moves only the back tire left/right
-    frontTireX: 0.58,         // Moves the front tire (0.55 = 55% of the bike's width)
+    frontTireX: 0.60,         // Moves the front tire (0.55 = 55% of the bike's width)
 
     // --- PHYSICS & SPEED ---
     maxSpeed: 150,            // The fastest the bike can possibly go
@@ -169,14 +169,13 @@ function endWheelie() {
 // GAME LOGIC (The "Brain")
 // ==========================================
 function update(now) {
-    // Determine the vertical height of a single lane
-    const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount;
-    // Calculate exactly where the bike should be (Center of the lane)
-    const targetY = roadYPos + (game.lane * laneHeight) + (laneHeight / 2);
-    
-    // If not playing, keep the bike at the target position
+    // If not playing, initialize position
     if (game.phase === "IDLE") {
-        game.currentY = targetY;
+        const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount;
+        const laneTopY = roadYPos + (game.lane * laneHeight);
+        const laneSurfaceY = laneTopY + laneHeight;
+        const tS = bikeImg.height * CONFIG.bikeScale * CONFIG.tireSizeMult;
+        game.currentY = laneSurfaceY - (tS / 2);
         return;
     }
 
@@ -219,7 +218,7 @@ function update(now) {
         
         game.scroll += game.speed; // Move the world forward based on speed
         game.wheelRotation += game.speed * 0.02; // Advance wheel spin based on forward speed
-        game.currentY += (targetY - game.currentY) * 0.1; // Smoothly slide the bike between lanes
+        // Lane switching is now handled in draw() function
 
         // Check if in a wheelie (front tire lifted)
         if (game.bikeAngle < -0.02) {
@@ -262,7 +261,7 @@ function draw() {
     // Draw the Animated Road Markings (White dashes)
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; // Color and thickness
     ctx.setLineDash([60, 40]); // 60px line, 40px gap
-    ctx.lineDashOffset = game.scroll % 100; // Move dashes backward, wrapped to pattern length
+    ctx.lineDashOffset = -(game.scroll % 100); // Negative for forward motion, wrapped to pattern length
     ctx.beginPath();
     ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2); // Move pen to middle of road
     ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2); // Draw to end of screen
@@ -276,13 +275,17 @@ function draw() {
         const tS = bH * CONFIG.tireSizeMult; // Size of tires based on bike height
         const pivotX = width * 0.10; // Keep the bike on the left side (10% in)
         
-        // Calculate the road surface Y position for the current lane
+        // Calculate lane-specific road surface position
         const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount;
-        const laneCenterY = roadYPos + (game.lane * laneHeight) + (laneHeight / 2);
-        const roadSurfaceY = roadYPos + CONFIG.roadStripHeight; // Bottom of the road
+        const laneTopY = roadYPos + (game.lane * laneHeight);
+        const laneSurfaceY = laneTopY + laneHeight; // Bottom of current lane
         
-        // Pivot point is at the rear tire contact patch (bottom of tire touching road)
-        const rearTireContactY = roadSurfaceY - (tS / 2);
+        // Smooth transition between lanes
+        const targetY = laneSurfaceY - (tS / 2);
+        game.currentY += (targetY - game.currentY) * 0.1;
+        
+        // Pivot point is at the rear tire contact patch
+        const rearTireContactY = game.currentY;
 
         ctx.save(); // Save the canvas state
         ctx.translate(pivotX + CONFIG.rearTireXShift, rearTireContactY); // Pivot at rear tire contact point
