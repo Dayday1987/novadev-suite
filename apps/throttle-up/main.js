@@ -22,7 +22,7 @@ const CONFIG = {
     
     // --- FRAME ALIGNMENT ---
     rearWheelOffsetX: 55,     // Shifts the bike body left/right over the rear tire
-    frameYShift: -20,          // Shifts the bike body up/down on the axles (negative = up)
+    frameYShift: -15,          // Shifts the bike body up/down on the axles (negative = up)
     noseDownAngle: 0.02,      // The default tilt of the bike (leaning forward)
 
     // --- WHEEL ALIGNMENT ---
