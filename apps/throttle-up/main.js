@@ -23,7 +23,7 @@ const CONFIG = {
     // --- FRAME ALIGNMENT ---
     rearWheelOffsetX: 55,     // Shifts the bike body left/right over the rear tire
     frameYShift: 2,           // Shifts the bike body up/down on the axles
-    noseDownAngle: 0.10,      // The default tilt of the bike (leaning forward)
+    noseDownAngle: 0.04,      // The default tilt of the bike (leaning forward)
 
     // --- WHEEL ALIGNMENT ---
     rearTireXShift: -25,      // Moves only the back tire left/right
@@ -179,6 +179,7 @@ function update(now) {
             game.bikeAngularVelocity += (CONFIG.torque - game.speed * CONFIG.torqueSpeedMult);
         } else {
             game.speed *= CONFIG.friction;
+            if (game.speed < 0.05) game.speed = 0;
         }
         // Cap the speed at the max allowed
         game.speed = Math.min(game.speed, CONFIG.maxSpeed);
@@ -190,7 +191,7 @@ function update(now) {
         game.bikeAngle += game.bikeAngularVelocity; // Apply rotation speed to the actual angle
 
         // Prevent the bike from rotating "into" the ground
-        if (game.bikeAngle > 0.03) { game.bikeAngle = 0; game.bikeAngularVelocity = 0; }
+        if (game.bikeAngle > 0.03) { game.bikeAngle = 0.03; game.bikeAngularVelocity = 0.5; }
         
         game.scroll += game.speed; // Move the world forward based on speed
         game.currentY += (targetY - game.currentY) * 0.1; // Smoothly slide the bike between lanes
@@ -242,7 +243,7 @@ function draw() {
             // 1. Draw Rear Tire (Behind the bike frame)
             ctx.save();
             ctx.translate(CONFIG.rearTireXShift, 0); // Slide the tire based on your tuning
-            ctx.rotate(-game.scroll * 0.1); // Spin the wheel backward to look like forward motion
+            ctx.rotate(-game.scroll * 0.15); // Spin the wheel backward to look like forward motion
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire centered on its position
             ctx.restore();
 
