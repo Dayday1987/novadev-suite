@@ -334,8 +334,8 @@ textarea, input[type="text"], input[type="email"], input[name="name"]{
   display: none !important;
 }
 
-/* Mobile: Screens 768px and smaller */
-@media (max-width: 768px) {
+/* Mobile: Screens 767px and smaller */
+@media (max-width: 767px) {
   .hamburger {
     display: block;
     background: none;
