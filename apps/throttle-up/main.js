@@ -275,31 +275,39 @@ function draw() {
     if (bikeReady) {
         const bW = bikeImg.width * CONFIG.bikeScale; // Calculated width
         const bH = bikeImg.height * CONFIG.bikeScale; // Calculated height
+        const tS = bH * CONFIG.tireSizeMult; // Size of tires based on bike height
         const pivotX = width * 0.10; // Keep the bike on the left side (10% in)
+        
+        // Calculate the road surface Y position for the current lane
+        const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount;
+        const laneCenterY = roadYPos + (game.lane * laneHeight) + (laneHeight / 2);
+        const roadSurfaceY = roadYPos + CONFIG.roadStripHeight; // Bottom of the road
+        
+        // Pivot point is at the rear tire contact patch (bottom of tire touching road)
+        const rearTireContactY = roadSurfaceY - (tS / 2);
 
         ctx.save(); // Save the canvas state
-        ctx.translate(pivotX, game.currentY); // Move the "0,0" point to the rear wheel position
+        ctx.translate(pivotX + CONFIG.rearTireXShift, rearTireContactY); // Pivot at rear tire contact point
         ctx.rotate(game.bikeAngle); // Rotate the whole bike around that point
         
         if (tireImg.complete) {
-            const tS = bH * CONFIG.tireSizeMult; // Size of tires based on bike height
-            
-            // 1. Draw Rear Tire (Behind the bike frame)
+            // 1. Draw Rear Tire (Behind the bike frame) - locked to ground, no X offset needed
             ctx.save();
-            ctx.translate(CONFIG.rearTireXShift, 0); // Slide the tire based on your tuning
             ctx.rotate(game.wheelRotation);
-            ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire centered on its position
+            ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire centered on pivot
             ctx.restore();
 
             // 2. Draw the Bike Frame (On top of the rear tire)
             ctx.save();
             ctx.rotate(CONFIG.noseDownAngle); // Apply the static forward lean
-            ctx.drawImage(bikeImg, -CONFIG.rearWheelOffsetX, -bH + CONFIG.frameYShift, bW, bH);
+            // Adjust bike position relative to rear tire contact point
+            ctx.drawImage(bikeImg, -CONFIG.rearWheelOffsetX - CONFIG.rearTireXShift, -bH + CONFIG.frameYShift + (tS/2), bW, bH);
             ctx.restore();
 
             // 3. Draw Front Tire (On top of the bike frame)
             ctx.save();
-            ctx.translate(bW * CONFIG.frontTireX, 0); // Position at the front forks
+            // Position front tire relative to rear tire contact point
+            ctx.translate(bW * CONFIG.frontTireX - CONFIG.rearTireXShift, 0);
             ctx.rotate(game.wheelRotation);
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire
             ctx.restore();
