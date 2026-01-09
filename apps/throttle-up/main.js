@@ -18,15 +18,15 @@ bikeImg.onload = () => { bikeReady = true; };
 const CONFIG = {
     // --- VISUAL SCALING ---
     bikeScale: 0.15,          // Size of the bike (0.15 = 15% of original image)
-    tireSizeMult: 0.60,       // Size of tires (Higher = bigger wheels)
+    tireSizeMult: 0.57,       // Size of tires (Higher = bigger wheels)
     
     // --- FRAME ALIGNMENT ---
     rearWheelOffsetX: 55,     // Shifts the bike body left/right over the rear tire
-    frameYShift: 15,           // Shifts the bike body up/down on the axles
-    noseDownAngle: 0.04,      // The default tilt of the bike (leaning forward)
+    frameYShift: 5,           // Shifts the bike body up/down on the axles
+    noseDownAngle: 0.02,      // The default tilt of the bike (leaning forward)
 
     // --- WHEEL ALIGNMENT ---
-    rearTireXShift: -45,      // Moves only the back tire left/right
+    rearTireXShift: -42,      // Moves only the back tire left/right
     frontTireX: 0.60,         // Moves the front tire (0.55 = 55% of the bike's width)
 
     // --- PHYSICS & SPEED ---
@@ -35,7 +35,7 @@ const CONFIG = {
     friction: 0.98,           // How much speed you keep when letting go (0.98 = 2% loss)
     
     // --- WHEELIE MECHANICS ---
-    torque: 0.0020,          // Power of the lift (Negative numbers pull the front wheel UP)
+    torque: 0.0010,          // Power of the lift (Negative numbers pull the front wheel UP)
     torqueSpeedMult: 0.0001,  // Increases lift power as you go faster (wind/momentum)
     gravity: 0.01,            // Force pulling the front wheel back to the asphalt
     damping: 0.92,            // Smoothness (Higher = floatier, Lower = snappier/heavier)
