@@ -191,7 +191,7 @@ function update(now) {
         game.bikeAngle += game.bikeAngularVelocity; // Apply rotation speed to the actual angle
 
         // Prevent the bike from rotating "into" the ground
-        if (game.bikeAngle > 0.03) { game.bikeAngle = 0.03; game.bikeAngularVelocity = 0.5; }
+        if (game.bikeAngle > 0.03) { game.bikeAngle = 0.03; game.bikeAngularVelocity *= 0.5; }
         
         game.scroll += game.speed; // Move the world forward based on speed
         game.currentY += (targetY - game.currentY) * 0.1; // Smoothly slide the bike between lanes
@@ -220,7 +220,7 @@ function draw() {
     // Draw the Animated Road Markings (White dashes)
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; // Color and thickness
     ctx.setLineDash([60, 40]); // 60px line, 40px gap
-    ctx.lineDashOffset = game.scroll; // Move dashes backward based on scroll distance
+    ctx.lineDashOffset = -game.scroll; // Move dashes backward based on scroll distance
     ctx.beginPath();
     ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2); // Move pen to middle of road
     ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2); // Draw to end of screen
@@ -256,7 +256,7 @@ function draw() {
             // 3. Draw Front Tire (On top of the bike frame)
             ctx.save();
             ctx.translate(bW * CONFIG.frontTireX, 0); // Position at the front forks
-            ctx.rotate(-game.scroll * 0.1); // Spin wheel
+            ctx.rotate(-game.speed * 0.1); // Spin wheel
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire
             ctx.restore();
         }
