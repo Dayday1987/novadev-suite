@@ -71,25 +71,6 @@ p { color: var(--text-secondary); }
 .nav a{color:var(--muted);padding:8px;border-radius:8px}
 .nav a.cta{background:linear-gradient(90deg,var(--accent-1),var(--accent-2));color:#071422;padding:8px 12px}
 
-  .nav {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-}
-
-  /* When JS toggles this class, the menu appears as a dropdown */
-  .nav.show {
-    display: flex;
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: var(--navbar);
-    flex-direction: column;
-    padding: 16px;
-    width: 200px;
-    box-shadow: var(--shadow);
-    border: 1px solid rgba(110, 231, 247, 0.1);
-  }
 
 /* -------------------- HERO -------------------- */
 .hero { 
