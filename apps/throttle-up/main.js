@@ -223,7 +223,7 @@ function draw() {
     // Draw the Animated Road Markings (White dashes)
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; // Color and thickness
     ctx.setLineDash([60, 40]); // 60px line, 40px gap
-    ctx.lineDashOffset = game.scroll; // Move dashes backward based on scroll distance
+    ctx.lineDashOffset = -game.scroll; // Move dashes backward based on scroll distance
     ctx.beginPath();
     ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2); // Move pen to middle of road
     ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2); // Draw to end of screen
