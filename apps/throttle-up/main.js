@@ -27,7 +27,7 @@ const CONFIG = {
 
     // --- WHEEL ALIGNMENT ---
     rearTireXShift: -42,      // Moves only the back tire left/right
-    frontTireX: 0.60,         // Moves the front tire (0.55 = 55% of the bike's width)
+    frontTireX: 0.65,         // Moves the front tire (0.55 = 55% of the bike's width)
 
     // --- PHYSICS & SPEED ---
     maxSpeed: 150,            // The fastest the bike can possibly go
