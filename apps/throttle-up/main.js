@@ -35,11 +35,11 @@ const CONFIG = {
     friction: 0.98,           // How much speed you keep when letting go (0.98 = 2% loss)
     
     // --- WHEELIE MECHANICS ---
-    torque: 0.0004,          // Power of the lift (Negative numbers pull the front wheel UP)
+    torque: 0.0006,          // Power of the lift (Negative numbers pull the front wheel UP)
     torqueSpeedMult: 0.0001,  // Increases lift power as you go faster (wind/momentum)
-    gravity: 0.01,            // Force pulling the front wheel back to the asphalt
+    gravity: 0.008,            // Force pulling the front wheel back to the asphalt
     damping: 0.92,            // Smoothness (Higher = floatier, Lower = snappier/heavier)
-    crashAngle: -0.85,        // The limit (If you tilt past this, you flip over)
+    crashAngle: -0.75,        // The limit (If you tilt past this, you flip over)
     
     // --- WORLD & VIEW ---
     laneCount: 2,             // Number of lanes you can switch between
@@ -64,6 +64,14 @@ const game = {
 
     wheelRotation: 0,         // Visual wheel spin (radians)
 };
+
+    const game = {
+    ...
+    score: 0,
+    bestScore: 0,
+    inWheelie: false
+};
+
 
 // Variables for screen dimensions
 let width, height, roadYPos; 
@@ -176,13 +184,16 @@ function update(now) {
     if (game.phase === "RACING") {
         // Gain speed if touching, lose speed to friction if not
         if (game.throttle) {
-            game.speed += CONFIG.acceleration;
-            // Add rotation speed (torque) to lift the front wheel
-            game.bikeAngularVelocity += (CONFIG.torque - game.speed * CONFIG.torqueSpeedMult);
-        } else {
-            game.speed *= CONFIG.friction;
-            if (game.speed < 0.05) game.speed = 0;
-        }
+    game.speed += CONFIG.acceleration;
+    // Lift the front wheel when throttling
+    game.bikeAngularVelocity += CONFIG.torque;
+} else {
+    // Gradually drop the front wheel when not throttling
+    game.bikeAngularVelocity -= CONFIG.gravity;
+    game.speed *= CONFIG.friction;
+    if (game.speed < 0.05) game.speed = 0;
+}
+
         // Cap the speed at the max allowed
         game.speed = Math.min(game.speed, CONFIG.maxSpeed);
 
@@ -200,9 +211,31 @@ function update(now) {
         game.currentY += (targetY - game.currentY) * 0.1; // Smoothly slide the bike between lanes
 
         // If the bike flips back too far, reset the game
-        if (game.bikeAngle < CONFIG.crashAngle) resetGame();
+        if (game.bikeAngle < CONFIG.crashAngle) {
+    // Flipped backwards
+    endWheelie(); }
     }
 }
+
+// Check if in a wheelie (front tire lifted)
+if (game.bikeAngle < -0.02) {
+    if (!game.inWheelie) {
+        game.inWheelie = true;
+        game.score = 0; // start counting fresh
+    }
+    game.score += 1; // increase score while wheelie held
+} else {
+    if (game.inWheelie) {
+        // front tire hit ground → end of wheelie
+        endWheelie();
+    }
+}
+
+function endWheelie() {
+    game.bestScore = Math.max(game.bestScore, game.score);
+    resetGame();
+}
+
 
 // ==========================================
 // RENDERING (The "Eyes")
@@ -275,8 +308,16 @@ function draw() {
             // Fill with color if light is active, otherwise dark gray
             ctx.fillStyle = (game.countdownIndex > i) ? (i === 2 ? "lime" : "yellow") : "rgba(0,0,0,0.3)";
             ctx.beginPath(); ctx.arc(cx + (i-1)*60, cy, 15, 0, Math.PI*2); ctx.fill();
+
+            ctx.fillStyle = "#fff";
+ctx.font = "24px Arial";
+ctx.fillText(`Score: ${Math.floor(game.score)}`, 20, 40);
+ctx.fillText(`Best: ${Math.floor(game.bestScore)}`, 20, 70);
+
         }
     }
+
+    
 
     update(performance.now()); // Update physics based on current time
     requestAnimationFrame(draw); // Tell the browser to run this function again immediately
