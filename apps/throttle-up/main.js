@@ -32,7 +32,7 @@ const CONFIG = {
     // --- PHYSICS & SPEED ---
     maxSpeed: 150,            // The fastest the bike can possibly go
     acceleration: 0.25,       // How much speed is added every frame you hold down
-    friction: 0.40,           // How much speed you keep when letting go (0.98 = 2% loss)
+    friction: 0.98,           // How much speed you keep when letting go (0.98 = 2% loss)
     
     // --- WHEELIE MECHANICS ---
     torque: 0.0004,          // Power of the lift (Negative numbers pull the front wheel UP)
@@ -246,7 +246,7 @@ function draw() {
             // 1. Draw Rear Tire (Behind the bike frame)
             ctx.save();
             ctx.translate(CONFIG.rearTireXShift, 0); // Slide the tire based on your tuning
-            ctx.rotate(-game.wheelRotation);
+            ctx.rotate(game.wheelRotation);
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire centered on its position
             ctx.restore();
 
@@ -259,7 +259,7 @@ function draw() {
             // 3. Draw Front Tire (On top of the bike frame)
             ctx.save();
             ctx.translate(bW * CONFIG.frontTireX, 0); // Position at the front forks
-            ctx.rotate(-game.wheelRotation);
+            ctx.rotate(game.wheelRotation);
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire
             ctx.restore();
         }
