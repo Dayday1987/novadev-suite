@@ -267,7 +267,7 @@ function draw() {
     if (bikeReady) {
         const bW = bikeImg.width * CONFIG.bikeScale; // Calculated width
         const bH = bikeImg.height * CONFIG.bikeScale; // Calculated height
-        const pivotX = width * 0.40; // Keep the bike on the left side (25% in)
+        const pivotX = width * 0.10; // Keep the bike on the left side (25% in)
 
         ctx.save(); // Save the canvas state
         ctx.translate(pivotX, game.currentY); // Move the "0,0" point to the rear wheel position
