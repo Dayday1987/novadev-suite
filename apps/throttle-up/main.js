@@ -60,7 +60,9 @@ const game = {
     countdownTimer: 0,        // Timer to track 800ms intervals for lights
     bikeAngle: 0,             // Current rotation of the bike (0 is flat)
     bikeAngularVelocity: 0,   // The speed of the bike's rotation
-    currentY: 0               // The actual vertical pixel position of the bike
+    currentY: 0,               // The actual vertical pixel position of the bike
+
+    wheelRotation: 0,         // Visual wheel spin (radians)
 };
 
 // Variables for screen dimensions
@@ -194,6 +196,7 @@ function update(now) {
         if (game.bikeAngle > 0.03) { game.bikeAngle = 0.03; game.bikeAngularVelocity *= 0.5; }
         
         game.scroll += game.speed; // Move the world forward based on speed
+        game.wheelRotation += game.speed * 0.02; // Advance wheel spin based on forward speed
         game.currentY += (targetY - game.currentY) * 0.1; // Smoothly slide the bike between lanes
 
         // If the bike flips back too far, reset the game
@@ -243,7 +246,7 @@ function draw() {
             // 1. Draw Rear Tire (Behind the bike frame)
             ctx.save();
             ctx.translate(CONFIG.rearTireXShift, 0); // Slide the tire based on your tuning
-            ctx.rotate(-game.speed * 0.15); // Spin the wheel backward to look like forward motion
+            ctx.rotate(-game.wheelRotation);
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire centered on its position
             ctx.restore();
 
@@ -256,7 +259,7 @@ function draw() {
             // 3. Draw Front Tire (On top of the bike frame)
             ctx.save();
             ctx.translate(bW * CONFIG.frontTireX, 0); // Position at the front forks
-            ctx.rotate(-game.speed * 0.1); // Spin wheel
+            ctx.rotate(-game.wheelRotation);
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire
             ctx.restore();
         }
