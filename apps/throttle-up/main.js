@@ -26,7 +26,7 @@ const CONFIG = {
     noseDownAngle: 0.04,      // The default tilt of the bike (leaning forward)
 
     // --- WHEEL ALIGNMENT ---
-    rearTireXShift: -25,      // Moves only the back tire left/right
+    rearTireXShift: -45,      // Moves only the back tire left/right
     frontTireX: 0.60,         // Moves the front tire (0.55 = 55% of the bike's width)
 
     // --- PHYSICS & SPEED ---
