@@ -243,7 +243,7 @@ function draw() {
             // 1. Draw Rear Tire (Behind the bike frame)
             ctx.save();
             ctx.translate(CONFIG.rearTireXShift, 0); // Slide the tire based on your tuning
-            ctx.rotate(-game.scroll * 0.15); // Spin the wheel backward to look like forward motion
+            ctx.rotate(-game.speed * 0.15); // Spin the wheel backward to look like forward motion
             ctx.drawImage(tireImg, -tS/2, -tS/2, tS, tS); // Draw tire centered on its position
             ctx.restore();
 
