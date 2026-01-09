@@ -22,7 +22,7 @@ const CONFIG = {
     
     // --- FRAME ALIGNMENT ---
     rearWheelOffsetX: 55,     // Shifts the bike body left/right over the rear tire
-    frameYShift: 4,           // Shifts the bike body up/down on the axles
+    frameYShift: 2,           // Shifts the bike body up/down on the axles
     noseDownAngle: 0.10,      // The default tilt of the bike (leaning forward)
 
     // --- WHEEL ALIGNMENT ---
@@ -30,14 +30,14 @@ const CONFIG = {
     frontTireX: 0.60,         // Moves the front tire (0.55 = 55% of the bike's width)
 
     // --- PHYSICS & SPEED ---
-    maxSpeed: 160,            // The fastest the bike can possibly go
+    maxSpeed: 220,            // The fastest the bike can possibly go
     acceleration: 0.25,       // How much speed is added every frame you hold down
     friction: 0.98,           // How much speed you keep when letting go (0.98 = 2% loss)
     
     // --- WHEELIE MECHANICS ---
     torque: -0.0020,          // Power of the lift (Negative numbers pull the front wheel UP)
     torqueSpeedMult: 0.0001,  // Increases lift power as you go faster (wind/momentum)
-    gravity: 0.02,            // Force pulling the front wheel back to the asphalt
+    gravity: 0.10,            // Force pulling the front wheel back to the asphalt
     damping: 0.92,            // Smoothness (Higher = floatier, Lower = snappier/heavier)
     crashAngle: -0.85,        // The limit (If you tilt past this, you flip over)
     
