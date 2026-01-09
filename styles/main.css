@@ -72,8 +72,10 @@ p { color: var(--text-secondary); }
 .nav a.cta{background:linear-gradient(90deg,var(--accent-1),var(--accent-2));color:#071422;padding:8px 12px}
 
   .nav {
-    display: none; /* Hide standard horizontal links */
-  }
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
 
   /* When JS toggles this class, the menu appears as a dropdown */
   .nav.show {
@@ -395,13 +397,6 @@ textarea, input[type="text"], input[type="email"], input[name="name"]{
     visibility: visible;
     transform: translateY(0);
     pointer-events: auto;
-  }
-
-  
-/* Desktop Safety: Ensure nav is always visible on large screens */
-@media (min-width: 769px) {
-  .nav {
-    display: flex !important;
   }
 }
 
