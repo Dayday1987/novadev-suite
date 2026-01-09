@@ -60,18 +60,12 @@ const game = {
     countdownTimer: 0,        // Timer to track 800ms intervals for lights
     bikeAngle: 0,             // Current rotation of the bike (0 is flat)
     bikeAngularVelocity: 0,   // The speed of the bike's rotation
-    currentY: 0,               // The actual vertical pixel position of the bike
-
+    currentY: 0,              // The actual vertical pixel position of the bike
     wheelRotation: 0,         // Visual wheel spin (radians)
+    score: 0,                 // Current wheelie score
+    bestScore: 0,             // Best wheelie score
+    inWheelie: false          // Currently in a wheelie
 };
-
-    const game = {
-    ...
-    score: 0,
-    bestScore: 0,
-    inWheelie: false
-};
-
 
 // Variables for screen dimensions
 let width, height, roadYPos; 
@@ -86,7 +80,7 @@ window.addEventListener("resize", resize); // Run resize when window changes
 resize(); // Run resize immediately on load
 
 // ==========================================
-// INPUT LOCKING + MULTI-INPUT SUPPORT (ADDED)
+// INPUT LOCKING + MULTI-INPUT SUPPORT
 // ==========================================
 
 // Central input lock to prevent gameplay input when UI is active
@@ -155,6 +149,22 @@ function pollGamepad() {
 }
 pollGamepad();
 
+// Function to reset the bike if it crashes
+function resetGame() {
+    game.phase = "IDLE"; 
+    game.speed = 0; 
+    game.bikeAngle = 0; 
+    game.bikeAngularVelocity = 0;
+    game.inWheelie = false;
+    game.score = 0;
+}
+
+// End wheelie and save best score
+function endWheelie() {
+    game.bestScore = Math.max(game.bestScore, game.score);
+    resetGame();
+}
+
 // ==========================================
 // GAME LOGIC (The "Brain")
 // ==========================================
@@ -184,15 +194,15 @@ function update(now) {
     if (game.phase === "RACING") {
         // Gain speed if touching, lose speed to friction if not
         if (game.throttle) {
-    game.speed += CONFIG.acceleration;
-    // Lift the front wheel when throttling
-    game.bikeAngularVelocity += CONFIG.torque;
-} else {
-    // Gradually drop the front wheel when not throttling
-    game.bikeAngularVelocity -= CONFIG.gravity;
-    game.speed *= CONFIG.friction;
-    if (game.speed < 0.05) game.speed = 0;
-}
+            game.speed += CONFIG.acceleration;
+            // Lift the front wheel when throttling
+            game.bikeAngularVelocity += CONFIG.torque;
+        } else {
+            // Gradually drop the front wheel when not throttling
+            game.bikeAngularVelocity -= CONFIG.gravity;
+            game.speed *= CONFIG.friction;
+            if (game.speed < 0.05) game.speed = 0;
+        }
 
         // Cap the speed at the max allowed
         game.speed = Math.min(game.speed, CONFIG.maxSpeed);
@@ -204,38 +214,36 @@ function update(now) {
         game.bikeAngle += game.bikeAngularVelocity; // Apply rotation speed to the actual angle
 
         // Prevent the bike from rotating "into" the ground
-        if (game.bikeAngle > 0.03) { game.bikeAngle = 0.03; game.bikeAngularVelocity *= 0.5; }
+        if (game.bikeAngle > 0.03) { 
+            game.bikeAngle = 0.03; 
+            game.bikeAngularVelocity *= 0.5; 
+        }
         
         game.scroll += game.speed; // Move the world forward based on speed
         game.wheelRotation += game.speed * 0.02; // Advance wheel spin based on forward speed
         game.currentY += (targetY - game.currentY) * 0.1; // Smoothly slide the bike between lanes
 
+        // Check if in a wheelie (front tire lifted)
+        if (game.bikeAngle < -0.02) {
+            if (!game.inWheelie) {
+                game.inWheelie = true;
+                game.score = 0; // start counting fresh
+            }
+            game.score += 1; // increase score while wheelie held
+        } else {
+            if (game.inWheelie) {
+                // front tire hit ground → end of wheelie
+                endWheelie();
+            }
+        }
+
         // If the bike flips back too far, reset the game
         if (game.bikeAngle < CONFIG.crashAngle) {
-    // Flipped backwards
-    endWheelie(); }
+            // Flipped backwards
+            endWheelie();
+        }
     }
 }
-
-// Check if in a wheelie (front tire lifted)
-if (game.bikeAngle < -0.02) {
-    if (!game.inWheelie) {
-        game.inWheelie = true;
-        game.score = 0; // start counting fresh
-    }
-    game.score += 1; // increase score while wheelie held
-} else {
-    if (game.inWheelie) {
-        // front tire hit ground → end of wheelie
-        endWheelie();
-    }
-}
-
-function endWheelie() {
-    game.bestScore = Math.max(game.bestScore, game.score);
-    resetGame();
-}
-
 
 // ==========================================
 // RENDERING (The "Eyes")
@@ -267,7 +275,7 @@ function draw() {
     if (bikeReady) {
         const bW = bikeImg.width * CONFIG.bikeScale; // Calculated width
         const bH = bikeImg.height * CONFIG.bikeScale; // Calculated height
-        const pivotX = width * 0.10; // Keep the bike on the left side (25% in)
+        const pivotX = width * 0.10; // Keep the bike on the left side (10% in)
 
         ctx.save(); // Save the canvas state
         ctx.translate(pivotX, game.currentY); // Move the "0,0" point to the rear wheel position
@@ -307,28 +315,22 @@ function draw() {
         for(let i=0; i<3; i++) {
             // Fill with color if light is active, otherwise dark gray
             ctx.fillStyle = (game.countdownIndex > i) ? (i === 2 ? "lime" : "yellow") : "rgba(0,0,0,0.3)";
-            ctx.beginPath(); ctx.arc(cx + (i-1)*60, cy, 15, 0, Math.PI*2); ctx.fill();
-
-            ctx.fillStyle = "#fff";
-ctx.font = "24px Arial";
-ctx.fillText(`Score: ${Math.floor(game.score)}`, 20, 40);
-ctx.fillText(`Best: ${Math.floor(game.bestScore)}`, 20, 70);
-
+            ctx.beginPath(); 
+            ctx.arc(cx + (i-1)*60, cy, 15, 0, Math.PI*2); 
+            ctx.fill();
         }
     }
 
-    
+    // Draw Score Display (always visible during racing)
+    if (game.phase === "RACING") {
+        ctx.fillStyle = "#fff";
+        ctx.font = "24px Arial";
+        ctx.fillText(`Score: ${Math.floor(game.score)}`, 20, 40);
+        ctx.fillText(`Best: ${Math.floor(game.bestScore)}`, 20, 70);
+    }
 
     update(performance.now()); // Update physics based on current time
     requestAnimationFrame(draw); // Tell the browser to run this function again immediately
-}
-
-// Function to reset the bike if it crashes
-function resetGame() {
-    game.phase = "IDLE"; 
-    game.speed = 0; 
-    game.bikeAngle = 0; 
-    game.bikeAngularVelocity = 0;
 }
 
 draw(); // Kick off the game loop
