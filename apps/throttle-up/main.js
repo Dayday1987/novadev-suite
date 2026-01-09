@@ -22,12 +22,12 @@ const CONFIG = {
     
     // --- FRAME ALIGNMENT ---
     rearWheelOffsetX: 55,     // Shifts the bike body left/right over the rear tire
-    frameYShift: -10,          // Shifts the bike body up/down on the axles (negative = up)
+    frameYShift: -35,          // Shifts the bike body up/down on the axles (negative = up)
     noseDownAngle: 0.02,      // The default tilt of the bike (leaning forward)
 
     // --- WHEEL ALIGNMENT ---
     rearTireXShift: -42,      // Moves only the back tire left/right
-    frontTireX: 0.57,         // Moves the front tire (0.55 = 55% of the bike's width)
+    frontTireX: 0.60,         // Moves the front tire (0.55 = 55% of the bike's width)
 
     // --- PHYSICS & SPEED ---
     maxSpeed: 150,            // The fastest the bike can possibly go
@@ -196,10 +196,8 @@ function update(now) {
         if (game.throttle) {
             game.speed += CONFIG.acceleration;
             // Lift the front wheel when throttling
-            game.bikeAngularVelocity += CONFIG.torque;
+            game.bikeAngularVelocity -= CONFIG.torque;
         } else {
-            // Gradually drop the front wheel when not throttling
-            game.bikeAngularVelocity -= CONFIG.gravity;
             game.speed *= CONFIG.friction;
             if (game.speed < 0.05) game.speed = 0;
         }
@@ -264,7 +262,7 @@ function draw() {
     // Draw the Animated Road Markings (White dashes)
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; // Color and thickness
     ctx.setLineDash([60, 40]); // 60px line, 40px gap
-    ctx.lineDashOffset = -game.scroll % 100; // Move dashes backward, wrapped to pattern length
+    ctx.lineDashOffset = game.scroll % 100; // Move dashes backward, wrapped to pattern length
     ctx.beginPath();
     ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2); // Move pen to middle of road
     ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2); // Draw to end of screen
