@@ -261,7 +261,7 @@ function draw() {
     // Draw the Animated Road Markings (White dashes)
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; // Color and thickness
     ctx.setLineDash([60, 40]); // 60px line, 40px gap
-    ctx.lineDashOffset = -(game.scroll % 100); // Negative for forward motion, wrapped to pattern length
+    ctx.lineDashOffset = -game.scroll % 100; // Negative for forward motion
     ctx.beginPath();
     ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2); // Move pen to middle of road
     ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2); // Draw to end of screen
@@ -302,7 +302,8 @@ function draw() {
             ctx.save();
             ctx.rotate(CONFIG.noseDownAngle); // Apply the static forward lean
             // Adjust bike position relative to rear tire contact point
-            ctx.drawImage(bikeImg, -CONFIG.rearWheelOffsetX - CONFIG.rearTireXShift, -bH + CONFIG.frameYShift + (tS/2), bW, bH);
+            // The frame is drawn with its bottom-left at the specified position
+            ctx.drawImage(bikeImg, -CONFIG.rearWheelOffsetX - CONFIG.rearTireXShift, -bH/2 + CONFIG.frameYShift, bW, bH);
             ctx.restore();
 
             // 3. Draw Front Tire (On top of the bike frame)
