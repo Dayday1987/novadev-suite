@@ -76,7 +76,7 @@ const CONFIG = {
     
     // World
     laneCount: 2,
-    roadYPercent: 0.55,
+    roadYPercent: 0.45,  // Moved up from 0.55 to show full track
     roadStripHeight: 150,
     
     // Visual positioning
@@ -87,11 +87,7 @@ const CONFIG = {
     COUNTDOWN_Y: 60,
     COUNTDOWN_SPACING: 60,
     COUNTDOWN_RADIUS: 15,
-    COUNTDOWN_INTERVAL_MS: 800,
-    
-    // Gameplay
-    COIN_SPAWN_CHANCE: 0.02,
-    OBSTACLE_SPAWN_CHANCE: 0.01
+    COUNTDOWN_INTERVAL_MS: 800
 };
 
 // ==========================================
@@ -112,8 +108,7 @@ const game = {
     score: 0,
     bestScore: parseInt(localStorage.getItem('throttleUpBest')) || 0,
     inWheelie: false,
-    distance: 0,
-    coinsCollected: 0
+    distance: 0
 };
 
 let width, height, roadYPos;
@@ -247,80 +242,6 @@ const camera = {
 };
 
 // ==========================================
-// COINS SYSTEM
-// ==========================================
-const coins = {
-    active: [],
-    
-    spawn() {
-        if (Math.random() > CONFIG.COIN_SPAWN_CHANCE) return;
-        
-        const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount;
-        const lane = Math.floor(Math.random() * CONFIG.laneCount);
-        const y = roadYPos + (lane * laneHeight) + (laneHeight / 2);
-        
-        this.active.push({
-            x: width + 50,
-            y: y,
-            radius: 15,
-            lane: lane,
-            rotation: 0
-        });
-    },
-    
-    update(deltaTime) {
-        const bikeX = width * CONFIG.BIKE_X_PERCENT;
-        
-        this.active = this.active.filter(coin => {
-            coin.x -= game.speed * deltaTime;
-            coin.rotation += 0.1 * deltaTime;
-            
-            // Check collision
-            const dist = Math.sqrt(
-                Math.pow(coin.x - bikeX, 2) + 
-                Math.pow(coin.y - game.currentY, 2)
-            );
-            
-            if (dist < 30 && coin.lane === game.lane) {
-                game.coinsCollected++;
-                updateUI();
-                return false;
-            }
-            
-            return coin.x > -50;
-        });
-    },
-    
-    draw() {
-        this.active.forEach(coin => {
-            ctx.save();
-            ctx.translate(coin.x, coin.y);
-            ctx.rotate(coin.rotation);
-            
-            // Outer circle
-            ctx.fillStyle = '#ffd700';
-            ctx.beginPath();
-            ctx.arc(0, 0, coin.radius, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Inner detail
-            ctx.strokeStyle = '#ff8c00';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Center symbol
-            ctx.fillStyle = '#ff8c00';
-            ctx.font = 'bold 12px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('C', 0, 0);
-            
-            ctx.restore();
-        });
-    }
-};
-
-// ==========================================
 // SCREEN RESIZE
 // ==========================================
 function resize() {
@@ -438,12 +359,10 @@ homeBtn?.addEventListener('click', () => {
 
 function updateUI() {
     const scoreEl = document.getElementById('score');
-    const coinsEl = document.getElementById('coins');
     const distanceEl = document.getElementById('distance');
     const highscoreEl = document.getElementById('highscore');
     
     if (scoreEl) scoreEl.textContent = Math.floor(game.score);
-    if (coinsEl) coinsEl.textContent = game.coinsCollected;
     if (distanceEl) distanceEl.textContent = Math.floor(game.distance);
     if (highscoreEl) highscoreEl.textContent = Math.floor(game.bestScore);
 }
@@ -475,8 +394,8 @@ function resetGame() {
     game.inWheelie = false;
     game.score = 0;
     game.distance = 0;
-    game.coinsCollected = 0;
-    coins.active = [];
+    game.scroll = 0;
+    game.wheelRotation = 0;
     particles.list = [];
     audio.stop('engine');
     audio.stop('crowd');
@@ -557,16 +476,12 @@ function update(now) {
             game.bikeAngularVelocity *= 0.5;
         }
         
-        // Movement
-        game.scroll += game.speed * deltaTime;
-        game.wheelRotation += game.speed * 0.02 * deltaTime;
-        game.distance += game.speed * 0.1 * deltaTime;
-        
-        // Spawn entities
-        coins.spawn();
-        
-        // Update entities
-        coins.update(deltaTime);
+        // Movement - only move forward when speed is positive
+        if (game.speed > 0) {
+            game.scroll += game.speed * deltaTime;
+            game.wheelRotation += game.speed * 0.02 * deltaTime;
+            game.distance += game.speed * 0.1 * deltaTime;
+        }
         
         // Update audio
         audio.updateEngineSound();
@@ -702,11 +617,11 @@ function draw() {
         return;
     }
     
-    // Background
+    // Background - fill entire screen with grass
     ctx.fillStyle = "#2e7d32";
     ctx.fillRect(0, 0, width, height);
     
-    // Sky
+    // Sky - only above the road
     ctx.fillStyle = "#6db3f2";
     ctx.fillRect(0, 0, width, roadYPos - 40);
     
@@ -730,7 +645,6 @@ function draw() {
     camera.apply();
     
     // Draw entities
-    coins.draw();
     particles.draw();
     
     // Draw bike
