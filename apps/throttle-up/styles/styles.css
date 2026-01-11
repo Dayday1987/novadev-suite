@@ -1,152 +1,511 @@
-/* Universal reset */
-* { box-sizing: border-box; margin: 0; padding: 0; }
+/* ==========================================
+   THROTTLE UP - GAME STYLES
+   ========================================== */
 
-html, body {
+/* CSS Reset */
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+}
+
+/* Root Variables */
+:root {
+  --color-primary: #4CAF50;
+  --color-primary-dark: #388E3C;
+  --color-danger: #ff4444;
+  --color-warning: #ffaa00;
+  --color-gold: #ffd700;
+  --color-bg: #1a1a1a;
+  --color-bg-light: #2a2a2a;
+  --color-text: #ffffff;
+  --color-text-dim: rgba(255, 255, 255, 0.7);
+  
+  --spacing-xs: 5px;
+  --spacing-sm: 10px;
+  --spacing-md: 15px;
+  --spacing-lg: 20px;
+  --spacing-xl: 30px;
+  
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+  
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+  
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Base Styles */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Roboto Mono', monospace;
+  background: var(--color-bg);
+  color: var(--color-text);
+  overflow: hidden;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Game Container */
+#game-container {
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Canvas */
+#gameCanvas {
+  display: block;
   width: 100%;
   height: 100%;
-  overflow: hidden;
-  /* Disable selection and highlights */
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  cursor: none;
+  flex: 1;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
-canvas {
-  display: block;
-  touch-action: none;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-
-body {
-  margin: 0;
-  background: #111;
-  font-family: 'Roboto Mono', monospace; /* This matches the font we linked in HTML */
-  color: #eee;
-  /* ... rest of your styles ... */
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-/* Portrait Mode: Show the overlay and hide the game */
-@media screen and (orientation: portrait) {
-    #game-container { display: none; }
-    #rotate-overlay {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 100vh;
-        background: #111;
-        color: white;
-        text-align: center;
-        padding: 20px;
-    }
-}
-
-/* Landscape Mode: Hide the overlay and show the game */
-@media screen and (orientation: landscape) {
-    #rotate-overlay { display: none; }
-    #game-container { display: flex; width: 100vw; max-width: none; }
-}
-
-.rotate-icon { font-size: 50px; margin-bottom: 20px; animation: rotate 2s infinite; }
-@keyframes rotate { 0% { transform: rotate(0deg); } 50% { transform: rotate(90deg); } 100% { transform: rotate(0deg); } }
-
-
-body {
-  margin: 0;
-  background: #111;
-  font-family: 'Roboto Mono', monospace;
-  color: #eee;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  overflow: hidden;
-}
-
-#game-container {
+/* ==========================================
+   ROTATION OVERLAY (Mobile Portrait)
+   ========================================== */
+#rotate-overlay {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background: #000;
-}
-
-#game-container {
-  height: 100vh;
-  height: 100dvh; /* Uses the actual viewable area on mobile */
-}
-
-
-canvas {
-  width: 100% !important;
-  height: 100% !important;
-  display: block;
-}
-
-/* Hide the UI buttons if you want a clean view, or position them absolutely */
-#ui-top {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 100;
-  pointer-events: none;
-}
-#ui-top * { pointer-events: auto; }
-
-
-canvas {
-  flex: 1;
   width: 100%;
-  touch-action: none;
-  display: block;
+  height: 100%;
+  background: var(--color-bg);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }
 
+#rotate-overlay.show {
+  display: flex;
+}
+
+.rotate-icon {
+  font-size: 64px;
+  animation: rotate-animation 2s infinite ease-in-out;
+}
+
+@keyframes rotate-animation {
+  0%, 100% { 
+    transform: rotate(0deg);
+    opacity: 0.8;
+  }
+  50% { 
+    transform: rotate(90deg);
+    opacity: 1;
+  }
+}
+
+#rotate-overlay p {
+  font-size: 18px;
+  text-align: center;
+  padding: 0 var(--spacing-lg);
+  color: var(--color-text-dim);
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* ==========================================
+   HEADER UI
+   ========================================== */
 #ui-top {
   position: absolute;
   top: 0;
-  width: 100%;
-  z-index: 10;
-  padding: 10px;
-  pointer-events: none; /* Allows clicks to pass to canvas unless clicking a button */
-}
-
-#scoreboard, #top-buttons { pointer-events: auto; }
-
-#countdownOverlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  left: 0;
+  right: 0;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 20;
-  pointer-events: none; /* CRITICAL: Allows touch to reach canvas to start game */
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--spacing-md);
+  z-index: 100;
+  pointer-events: none;
 }
 
-#countdownOverlay[hidden] { display: none; }
+/* Scoreboard */
+#scoreboard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  border: 2px solid rgba(76, 175, 80, 0.3);
+  font-size: 16px;
+  font-weight: 700;
+  pointer-events: auto;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-normal);
+}
 
-#lights { display: flex; gap: 15px; }
+#scoreboard:hover {
+  transform: translateY(-2px);
+}
 
-.light {
+#scoreboard div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  min-width: 180px;
+}
+
+#scoreboard span {
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Buttons */
+#top-buttons {
+  display: flex;
+  gap: var(--spacing-sm);
+  pointer-events: auto;
+}
+
+.btn {
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+  font-size: 20px;
   width: 45px;
   height: 45px;
-  border-radius: 50%;
-  background: #333;
-  transition: background 0.2s, box-shadow 0.2s;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-family: 'Roboto Mono', monospace;
+  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
 }
 
-.light.yellow.active { background: #ffff00; box-shadow: 0 0 20px #ffff00; }
-.light.green.active { background: #5ebd2e; box-shadow: 0 0 20px #5ebd2e; }
+.btn:hover {
+  background: var(--color-primary);
+  color: var(--color-bg);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
 
-.btn { background: #5ebd2e; border: none; padding: 8px 12px; border-radius: 5px; color: white; cursor: pointer; }
+.btn:active {
+  transform: translateY(0) scale(0.95);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ==========================================
+   INFO POPUP
+   ========================================== */
+#infoPopup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.95);
+  border: 3px solid var(--color-primary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  max-width: 550px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: 1000;
+  backdrop-filter: blur(15px);
+  box-shadow: var(--shadow-lg);
+  animation: popup-appear 0.3s ease;
+}
+
+@keyframes popup-appear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+#infoPopup h2 {
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
+  font-size: 28px;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+#infoPopup p {
+  line-height: 1.8;
+  margin-bottom: var(--spacing-sm);
+  font-size: 15px;
+  color: var(--color-text-dim);
+}
+
+#infoPopup ul {
+  margin: var(--spacing-md) 0 var(--spacing-lg) var(--spacing-lg);
+  line-height: 1.8;
+  color: var(--color-text-dim);
+}
+
+#infoPopup li {
+  margin-bottom: var(--spacing-xs);
+}
+
+#infoPopup strong {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+#infoPopup .controls {
+  background: rgba(76, 175, 80, 0.1);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  margin: var(--spacing-md) 0;
+}
+
+#infoPopup .controls p {
+  margin-bottom: var(--spacing-xs);
+}
+
+#infoPopup .controls strong {
+  color: var(--color-primary);
+}
+
+#closeInfoBtn {
+  width: 100%;
+  height: 50px;
+  padding: 0;
+  font-size: 18px;
+  font-weight: 700;
+  margin-top: var(--spacing-lg);
+}
+
+/* Custom scrollbar for popup */
+#infoPopup::-webkit-scrollbar {
+  width: 8px;
+}
+
+#infoPopup::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+#infoPopup::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+#infoPopup::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-dark);
+}
+
+/* ==========================================
+   FOOTER
+   ========================================== */
+footer {
+  position: absolute;
+  bottom: var(--spacing-sm);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  z-index: 100;
+  pointer-events: none;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================
+   MOBILE PORTRAIT CHECK
+   ========================================== */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  #rotate-overlay {
+    display: flex !important;
+  }
+  
+  #game-container {
+    display: none;
+  }
+}
+
+/* ==========================================
+   RESPONSIVE BREAKPOINTS
+   ========================================== */
+
+/* Small Mobile Devices */
+@media screen and (max-width: 480px) {
+  :root {
+    font-size: 14px;
+  }
+  
+  #scoreboard {
+    font-size: 14px;
+    padding: var(--spacing-sm);
+    gap: 6px;
+  }
+  
+  #scoreboard div {
+    min-width: 150px;
+  }
+  
+  .btn {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+  
+  #infoPopup {
+    padding: var(--spacing-lg);
+    width: 95%;
+  }
+  
+  #infoPopup h2 {
+    font-size: 24px;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  #infoPopup p,
+  #infoPopup li {
+    font-size: 14px;
+  }
+  
+  footer {
+    font-size: 10px;
+  }
+}
+
+/* Large Screens */
+@media screen and (min-width: 1200px) {
+  #scoreboard {
+    font-size: 18px;
+  }
+  
+  .btn {
+    width: 50px;
+    height: 50px;
+    font-size: 22px;
+  }
+  
+  #infoPopup {
+    max-width: 600px;
+  }
+}
+
+/* ==========================================
+   ACCESSIBILITY
+   ========================================== */
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .rotate-icon {
+    animation: none;
+  }
+  
+  #infoPopup {
+    animation: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  :root {
+    --color-primary: #5dff5d;
+    --border-radius: 4px;
+  }
+  
+  .btn,
+  #scoreboard,
+  #infoPopup {
+    border-width: 3px;
+  }
+}
+
+/* Dark mode support (already dark by default) */
+@media (prefers-color-scheme: light) {
+  /* Could add light mode variant here if needed */
+}
+
+/* ==========================================
+   PRINT STYLES
+   ========================================== */
+@media print {
+  #game-container {
+    display: none;
+  }
+  
+  body::before {
+    content: "Throttle Up - A web game best experienced online at your portfolio URL";
+    display: block;
+    padding: 20px;
+    text-align: center;
+  }
+}
+
+/* ==========================================
+   UTILITY CLASSES
+   ========================================== */
+.hidden {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Loading state */
+.loading {
+  cursor: wait;
+  pointer-events: none;
+}
+
+/* Disabled state */
+.disabled,
+[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
