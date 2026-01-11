@@ -455,15 +455,17 @@ function update(now) {
     
     if (game.phase === "RACING") {
         // Speed and acceleration
-        if (game.throttle && game.speed >= 0) {
+        if (game.throttle) {
             game.speed += CONFIG.acceleration * deltaTime;
             game.bikeAngularVelocity -= CONFIG.torque * deltaTime;
         } else {
+            // Only apply friction when NOT throttling
             game.speed *= Math.pow(CONFIG.friction, deltaTime);
             if (game.speed < 0.05) game.speed = 0;
         }
         
-        game.speed = Math.min(game.speed, CONFIG.maxSpeed);
+        // Clamp speed to max and prevent negative
+        game.speed = Math.max(0, Math.min(game.speed, CONFIG.maxSpeed));
         
         // Physics - gravity pulls nose down (positive direction)
         const gravityForce = -game.bikeAngle * (CONFIG.gravity + Math.abs(game.bikeAngle) * 0.4);
@@ -719,6 +721,17 @@ function draw() {
     // UI overlays
     drawWheelieIndicator();
     drawSpeedometer();
+    
+    // Debug info (temporary)
+    if (game.phase === "RACING") {
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Speed: ${game.speed.toFixed(2)}`, 10, height - 80);
+        ctx.fillText(`Scroll: ${game.scroll.toFixed(2)}`, 10, height - 60);
+        ctx.fillText(`Distance: ${game.distance.toFixed(2)}`, 10, height - 40);
+        ctx.fillText(`Throttle: ${game.throttle}`, 10, height - 20);
+    }
     
     // Pause indicator
     if (paused) {
