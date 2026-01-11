@@ -479,6 +479,10 @@ function update(now) {
         // Movement - move forward with speed (scroll moves background backward)
         if (game.speed > 0) {
             game.scroll -= game.speed * deltaTime;  // Negative = road moves backward as bike goes forward
+            // Keep scroll value in reasonable range to prevent numerical issues
+            if (game.scroll < -10000) game.scroll = 0;
+            if (game.scroll > 10000) game.scroll = 0;
+            
             game.wheelRotation -= game.speed * 0.02 * deltaTime;  // Negative for forward rotation
             game.distance += game.speed * 0.1 * deltaTime;
         }
@@ -633,7 +637,9 @@ function draw() {
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 2;
     ctx.setLineDash([60, 40]);
-    ctx.lineDashOffset = -(game.scroll % 100);
+    // Use modulo to keep offset in range, handle negative values properly
+    const dashOffset = ((game.scroll % 100) + 100) % 100;
+    ctx.lineDashOffset = -dashOffset;
     ctx.beginPath();
     ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2);
     ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2);
