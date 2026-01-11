@@ -76,7 +76,7 @@ const CONFIG = {
     
     // World
     laneCount: 2,
-    roadYPercent: 0.45,  // Moved up from 0.55 to show full track
+    roadYPercent: 0.45,
     roadStripHeight: 150,
     
     // Visual positioning
@@ -455,7 +455,7 @@ function update(now) {
     
     if (game.phase === "RACING") {
         // Speed and acceleration
-        if (game.throttle) {
+        if (game.throttle && game.speed >= 0) {
             game.speed += CONFIG.acceleration * deltaTime;
             game.bikeAngularVelocity -= CONFIG.torque * deltaTime;
         } else {
@@ -465,7 +465,7 @@ function update(now) {
         
         game.speed = Math.min(game.speed, CONFIG.maxSpeed);
         
-        // Physics
+        // Physics - gravity pulls nose down (positive direction)
         const gravityForce = -game.bikeAngle * (CONFIG.gravity + Math.abs(game.bikeAngle) * 0.4);
         game.bikeAngularVelocity += gravityForce * deltaTime;
         game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime);
@@ -476,10 +476,10 @@ function update(now) {
             game.bikeAngularVelocity *= 0.5;
         }
         
-        // Movement - only move forward when speed is positive
+        // Movement - move forward with speed
         if (game.speed > 0) {
             game.scroll += game.speed * deltaTime;
-            game.wheelRotation += game.speed * 0.02 * deltaTime;
+            game.wheelRotation -= game.speed * 0.02 * deltaTime;  // Negative for forward rotation
             game.distance += game.speed * 0.1 * deltaTime;
         }
         
