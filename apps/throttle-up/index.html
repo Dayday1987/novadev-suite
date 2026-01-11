@@ -2,47 +2,326 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <meta name="description" content="Throttle Up – Motorcycle wheelie physics game. Tap, lift, and balance your bike to earn the highest score." />
-  <title>Throttle Up - Motorcycle Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="description" content="Throttle Up – Master the art of motorcycle wheelies. Balance throttle and gravity to achieve the longest wheelie without crashing!" />
+  <meta name="keywords" content="motorcycle game, wheelie game, physics game, HTML5 game, mobile game" />
+  <meta name="author" content="NovaDev Studio" />
   
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Throttle Up - Motorcycle Wheelie Game" />
+  <meta property="og:description" content="Master the art of motorcycle wheelies in this addictive physics-based game!" />
+  
+  <title>Throttle Up - Motorcycle Wheelie Game</title>
+  
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
   
+  <!-- Styles -->
   <link rel="stylesheet" href="styles/styles.css" />
-  <link rel="icon" href="favicon.ico" />
+  
+  <!-- Favicon -->
+  <link rel="icon" href="../../assets/logo-mark.svg" type="image/svg+xml" />
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Roboto Mono', monospace;
+      overflow: hidden;
+      background: #1a1a1a;
+      color: #fff;
+      touch-action: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    #game-container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: none;
+      flex: 1;
+    }
+    
+    /* Rotate Overlay */
+    #rotate-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #1a1a1a;
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 20px;
+    }
+    
+    #rotate-overlay.show {
+      display: flex;
+    }
+    
+    .rotate-icon {
+      font-size: 64px;
+      animation: rotate 2s infinite ease-in-out;
+    }
+    
+    @keyframes rotate {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(90deg); }
+    }
+    
+    #rotate-overlay p {
+      font-size: 20px;
+      text-align: center;
+      padding: 0 20px;
+    }
+    
+    /* Header UI */
+    #ui-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 15px;
+      z-index: 100;
+      pointer-events: none;
+    }
+    
+    #scoreboard {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 700;
+      pointer-events: auto;
+      backdrop-filter: blur(5px);
+    }
+    
+    #scoreboard div {
+      display: flex;
+      gap: 8px;
+    }
+    
+    #scoreboard span {
+      color: #4CAF50;
+      min-width: 60px;
+      text-align: right;
+    }
+    
+    #top-buttons {
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
+    
+    .btn {
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #4CAF50;
+      color: #4CAF50;
+      font-size: 20px;
+      width: 45px;
+      height: 45px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'Roboto Mono', monospace;
+      backdrop-filter: blur(5px);
+    }
+    
+    .btn:hover {
+      background: #4CAF50;
+      color: #000;
+      transform: scale(1.05);
+    }
+    
+    .btn:active {
+      transform: scale(0.95);
+    }
+    
+    /* Info Popup */
+    #infoPopup {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.95);
+      border: 3px solid #4CAF50;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+    }
+    
+    #infoPopup h2 {
+      color: #4CAF50;
+      margin-bottom: 20px;
+      font-size: 28px;
+      text-align: center;
+    }
+    
+    #infoPopup p {
+      line-height: 1.8;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    
+    #infoPopup ul {
+      margin: 15px 0 20px 20px;
+      line-height: 1.8;
+    }
+    
+    #infoPopup .controls {
+      background: rgba(76, 175, 80, 0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+    }
+    
+    #infoPopup .controls strong {
+      color: #4CAF50;
+    }
+    
+    #closeInfoBtn {
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 20px;
+    }
+    
+    /* Footer */
+    footer {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      z-index: 100;
+      pointer-events: none;
+      text-align: center;
+    }
+    
+    /* Mobile Portrait Orientation Check */
+    @media screen and (max-width: 768px) and (orientation: portrait) {
+      #rotate-overlay {
+        display: flex !important;
+      }
+    }
+    
+    /* Responsive adjustments */
+    @media screen and (max-width: 480px) {
+      #scoreboard {
+        font-size: 14px;
+        padding: 10px;
+      }
+      
+      .btn {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+      }
+      
+      #infoPopup {
+        padding: 20px;
+      }
+      
+      #infoPopup h2 {
+        font-size: 24px;
+      }
+      
+      #infoPopup p {
+        font-size: 14px;
+      }
+    }
+  </style>
 </head>
 <body>
+  <!-- Rotation Prompt for Mobile Portrait -->
   <div id="rotate-overlay">
-      <div class="rotate-icon">🔄</div>
-      <p>Please rotate your device to Landscape to play!</p>
+    <div class="rotate-icon">🔄</div>
+    <p>Please rotate your device to landscape mode to play!</p>
   </div>
 
+  <!-- Game Container -->
   <div id="game-container">
+    <!-- Header UI -->
     <header id="ui-top">
       <div id="scoreboard">
         <div>Score: <span id="score">0</span></div>
         <div>Coins: <span id="coins">0</span></div>
-        <div>Dist: <span id="distance">0</span>m</div>
-        <div>High: <span id="highscore">0</span></div>
+        <div>Distance: <span id="distance">0</span>m</div>
+        <div>Best: <span id="highscore">0</span></div>
       </div>
       <div id="top-buttons">
-        <button class="btn" id="infoBtn">ℹ️</button>
-        <button class="btn" id="homeBtn">🏠</button>
+        <button class="btn" id="infoBtn" aria-label="Information">ℹ️</button>
+        <button class="btn" id="homeBtn" aria-label="Home">🏠</button>
       </div>
     </header>
 
-    <canvas id="gameCanvas"></canvas>
+    <!-- Game Canvas -->
+    <canvas id="gameCanvas" role="application" aria-label="Throttle Up Game"></canvas>
 
+    <!-- Info Popup -->
     <div id="infoPopup" hidden>
-      <h2>Instructions</h2>
-      <p>Tap/Hold to lift the front wheel. Don't flip over!</p>
-      <button class="btn" id="closeInfoBtn">Close</button>
+      <h2>🏍️ How to Play</h2>
+      
+      <div class="controls">
+        <p><strong>Desktop:</strong> Hold SPACE to accelerate</p>
+        <p><strong>Mobile:</strong> Tap and hold screen</p>
+        <p><strong>Lanes:</strong> Arrow keys or tap upper/lower half</p>
+        <p><strong>Pause:</strong> Press ESC</p>
+      </div>
+      
+      <p><strong>Objective:</strong></p>
+      <ul>
+        <li>Lift your front wheel to perform a wheelie</li>
+        <li>Balance throttle and gravity</li>
+        <li>Don't flip backwards!</li>
+        <li>Collect coins for extra points</li>
+        <li>Travel as far as you can</li>
+      </ul>
+      
+      <p><strong>Tips:</strong></p>
+      <ul>
+        <li>Tap throttle in bursts for better control</li>
+        <li>The faster you go, the harder it is to balance</li>
+        <li>Watch the angle indicator carefully</li>
+      </ul>
+      
+      <button class="btn" id="closeInfoBtn">Start Playing!</button>
     </div>
 
-    <footer>NovaDev Studio Games</footer>
+    <!-- Footer -->
+    <footer>NovaDev Studio Games © 2026</footer>
   </div>
+
+  <!-- Game Script -->
   <script src="main.js"></script>
 </body>
 </html>
