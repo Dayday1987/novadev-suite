@@ -60,8 +60,8 @@ const CONFIG = {
     
     // Physics
     maxSpeed: 150,
-    acceleration: 0.25,
-    friction: 0.98,
+    acceleration: 0.5,  // Increased from 0.25
+    friction: 0.995,  // Reduced friction from 0.98
     
     // Wheelie mechanics
     torque: 0.0006,
@@ -476,9 +476,9 @@ function update(now) {
             game.bikeAngularVelocity *= 0.5;
         }
         
-        // Movement - move forward with speed
+        // Movement - move forward with speed (scroll moves background backward)
         if (game.speed > 0) {
-            game.scroll += game.speed * deltaTime;
+            game.scroll -= game.speed * deltaTime;  // Negative = road moves backward as bike goes forward
             game.wheelRotation -= game.speed * 0.02 * deltaTime;  // Negative for forward rotation
             game.distance += game.speed * 0.1 * deltaTime;
         }
