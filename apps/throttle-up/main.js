@@ -635,12 +635,12 @@ function draw() {
     ctx.fillStyle = "#333";
     ctx.fillRect(0, roadYPos, width, CONFIG.roadStripHeight);
     
-    // FIXED: Improved road marking rendering
+    // Road markings - use distance instead of scroll for dash offset
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 2;
     ctx.setLineDash([60, 40]);
-    // Simple offset calculation - no wrapping, just let it grow
-    ctx.lineDashOffset = game.scroll;
+    // Use distance which only increases, and negate it for proper direction
+    ctx.lineDashOffset = -game.distance;
     ctx.beginPath();
     ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2);
     ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2);
