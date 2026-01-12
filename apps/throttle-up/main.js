@@ -486,13 +486,11 @@ function update(now) {
             const scrollDelta = game.speed * deltaTime;
             game.scroll -= scrollDelta;
             
-            // Normalize scroll to prevent numerical precision issues
-            // Keep in range [-5000, 5000] instead of allowing unbounded growth
-            const SCROLL_RANGE = 5000;
-            if (game.scroll < -SCROLL_RANGE) {
-                game.scroll += SCROLL_RANGE * 2;
-            } else if (game.scroll > SCROLL_RANGE) {
-                game.scroll -= SCROLL_RANGE * 2;
+            // Simple normalization without causing velocity changes
+            // Just keep scroll in a reasonable range for rendering
+            const SCROLL_WRAP = 10000;
+            if (Math.abs(game.scroll) > SCROLL_WRAP) {
+                game.scroll = game.scroll % SCROLL_WRAP;
             }
             
             game.wheelRotation -= scrollDelta * 0.02;
@@ -711,11 +709,11 @@ function draw() {
                 riderLean = CONFIG.RIDER_LEAN_BACK;
             }
             
-            // Position rider in the CENTER of the bike frame, not on the wheels
-            const bikeCenterX = (bW * CONFIG.frontTireX - CONFIG.rearTireXShift) * 0.4;  // Slightly toward rear from center
-            const riderOffsetY = -bH * 0.65;  // Much higher - above the bike frame
-            const riderWidth = bW * 0.35;  // Bigger - 35% of bike width
-            const riderHeight = bH * 0.65;  // Bigger - 65% of bike height
+            // Position rider in the CENTER of the bike frame
+            const bikeCenterX = (bW * CONFIG.frontTireX - CONFIG.rearTireXShift) * 0.4;  
+            const riderOffsetY = -bH * 0.7;  // Higher up
+            const riderWidth = bW * 0.55;  // MUCH BIGGER - 55% of bike width
+            const riderHeight = bH * 0.85;  // MUCH BIGGER - 85% of bike height
             
             ctx.translate(bikeCenterX, riderOffsetY);
             ctx.rotate(riderLean);
