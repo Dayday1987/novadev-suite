@@ -60,15 +60,16 @@ const CONFIG = {
     
     // Physics
     maxSpeed: 150,
-    acceleration: 0.5,  // Increased from 0.25
-    friction: 0.995,  // Reduced friction from 0.98
+    acceleration: 0.5,
+    friction: 0.995,
     
-    // Wheelie mechanics
-    torque: 0.0006,
+    // Wheelie mechanics - ENHANCED
+    torque: 0.0012,  // Increased from 0.0006 for more dramatic wheelies
     torqueSpeedMult: 0.0001,
     gravity: 0.008,
     damping: 0.92,
     crashAngle: -0.75,
+    wheelieLiftForce: 0.15,  // NEW: Additional lift when wheelie starts
     
     // Wheelie detection thresholds
     WHEELIE_START_ANGLE: -0.02,
@@ -82,6 +83,10 @@ const CONFIG = {
     // Visual positioning
     BIKE_X_PERCENT: 0.10,
     LANE_SWITCH_SMOOTHING: 0.1,
+    
+    // Rider lean
+    RIDER_LEAN_FORWARD: -0.15,  // When accelerating
+    RIDER_LEAN_BACK: 0.2,       // During wheelie
     
     // Countdown
     COUNTDOWN_Y: 60,
@@ -457,14 +462,18 @@ function update(now) {
         // Speed and acceleration
         if (game.throttle) {
             game.speed += CONFIG.acceleration * deltaTime;
+            // ENHANCED: More dramatic wheelie torque
             game.bikeAngularVelocity -= CONFIG.torque * deltaTime;
+            
+            // ENHANCED: Add lift force when starting wheelie
+            if (game.speed > 2 && game.bikeAngle > -0.3) {
+                game.bikeAngularVelocity -= CONFIG.wheelieLiftForce * deltaTime;
+            }
         } else {
-            // Only apply friction when NOT throttling
             game.speed *= Math.pow(CONFIG.friction, deltaTime);
             if (game.speed < 0.05) game.speed = 0;
         }
         
-        // Clamp speed to max and prevent negative
         game.speed = Math.max(0, Math.min(game.speed, CONFIG.maxSpeed));
         
         // Physics - gravity pulls nose down (positive direction)
@@ -478,15 +487,22 @@ function update(now) {
             game.bikeAngularVelocity *= 0.5;
         }
         
-        // Movement - move forward with speed (scroll moves background backward)
+        // FIXED: Improved scroll handling to prevent stopping bug
         if (game.speed > 0) {
-            game.scroll -= game.speed * deltaTime;  // Negative = road moves backward as bike goes forward
-            // Keep scroll value in reasonable range to prevent numerical issues
-            if (game.scroll < -10000) game.scroll = 0;
-            if (game.scroll > 10000) game.scroll = 0;
+            const scrollDelta = game.speed * deltaTime;
+            game.scroll -= scrollDelta;
             
-            game.wheelRotation -= game.speed * 0.02 * deltaTime;  // Negative for forward rotation
-            game.distance += game.speed * 0.1 * deltaTime;
+            // Normalize scroll to prevent numerical precision issues
+            // Keep in range [-5000, 5000] instead of allowing unbounded growth
+            const SCROLL_RANGE = 5000;
+            if (game.scroll < -SCROLL_RANGE) {
+                game.scroll += SCROLL_RANGE * 2;
+            } else if (game.scroll > SCROLL_RANGE) {
+                game.scroll -= SCROLL_RANGE * 2;
+            }
+            
+            game.wheelRotation -= scrollDelta * 0.02;
+            game.distance += scrollDelta * 0.1;
         }
         
         // Update audio
@@ -635,12 +651,13 @@ function draw() {
     ctx.fillStyle = "#333";
     ctx.fillRect(0, roadYPos, width, CONFIG.roadStripHeight);
     
-    // Road markings
+    // FIXED: Improved road marking rendering to prevent visual glitches
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 2;
     ctx.setLineDash([60, 40]);
-    // Use modulo to keep offset in range, handle negative values properly
-    const dashOffset = ((game.scroll % 100) + 100) % 100;
+    // Use a smoother modulo calculation
+    const normalizedScroll = game.scroll % 100;
+    const dashOffset = normalizedScroll >= 0 ? normalizedScroll : 100 + normalizedScroll;
     ctx.lineDashOffset = -dashOffset;
     ctx.beginPath();
     ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2);
@@ -684,6 +701,33 @@ function draw() {
         ctx.rotate(CONFIG.noseDownAngle);
         ctx.drawImage(assets.bike.img, -CONFIG.rearWheelOffsetX - CONFIG.rearTireXShift, -bH/2 + CONFIG.frameYShift, bW, bH);
         ctx.restore();
+        
+        // ADDED: Draw rider with dynamic lean
+        if (assets.rider.loaded) {
+            ctx.save();
+            
+            // Calculate rider lean based on bike state
+            let riderLean = 0;
+            if (game.throttle && game.bikeAngle > CONFIG.WHEELIE_START_ANGLE) {
+                // Lean forward when accelerating on ground
+                riderLean = CONFIG.RIDER_LEAN_FORWARD;
+            }
+            if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
+                // Lean back during wheelie
+                riderLean = CONFIG.RIDER_LEAN_BACK;
+            }
+            
+            // Position rider on bike (adjust these values to match your bike frame)
+            const riderOffsetX = -20;
+            const riderOffsetY = -40;
+            const riderWidth = 40;
+            const riderHeight = 40;
+            
+            ctx.translate(riderOffsetX, riderOffsetY);
+            ctx.rotate(riderLean);
+            ctx.drawImage(assets.rider.img, -riderWidth/2, -riderHeight/2, riderWidth, riderHeight);
+            ctx.restore();
+        }
         
         // Front tire
         ctx.save();
