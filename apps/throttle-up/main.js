@@ -64,7 +64,7 @@ const CONFIG = {
     friction: 0.995,
     
     // Wheelie mechanics
-    torque: 0.0006,  // Back to original value
+    torque: 0.001,  // Increased from 0.0006 for more noticeable wheelies
     torqueSpeedMult: 0.0001,
     gravity: 0.008,
     damping: 0.92,
@@ -478,9 +478,15 @@ function update(now) {
         game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime);
         game.bikeAngle += game.bikeAngularVelocity * deltaTime;
         
+        // Only clamp when front wheel is touching ground (bike angle is positive/level)
         if (game.bikeAngle > CONFIG.GROUND_CONTACT_ANGLE) {
             game.bikeAngle = CONFIG.GROUND_CONTACT_ANGLE;
             game.bikeAngularVelocity *= 0.5;
+        }
+        
+        // Crash if bike loops too far backward (100 degrees = ~1.745 radians)
+        if (game.bikeAngle < -1.745) {
+            crash();
         }
         
         // Movement - move forward with speed (scroll moves background backward)
@@ -516,10 +522,7 @@ function update(now) {
             }
         }
         
-        // Crash detection
-        if (game.bikeAngle < CONFIG.crashAngle) {
-            crash();
-        }
+        // Crash detection - removed the crashAngle check since we now check for full loop
         
         updateUI();
     }
@@ -752,15 +755,17 @@ function draw() {
     drawWheelieIndicator();
     drawSpeedometer();
     
-    // Debug info (temporary)
+    // Debug info
     if (game.phase === "RACING") {
         ctx.fillStyle = '#fff';
         ctx.font = '14px monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`Speed: ${game.speed.toFixed(2)}`, 10, height - 80);
-        ctx.fillText(`Scroll: ${game.scroll.toFixed(2)}`, 10, height - 60);
-        ctx.fillText(`Distance: ${game.distance.toFixed(2)}`, 10, height - 40);
-        ctx.fillText(`Throttle: ${game.throttle}`, 10, height - 20);
+        ctx.fillText(`Speed: ${game.speed.toFixed(2)}`, 10, height - 120);
+        ctx.fillText(`Scroll: ${game.scroll.toFixed(2)}`, 10, height - 100);
+        ctx.fillText(`Distance: ${game.distance.toFixed(2)}`, 10, height - 80);
+        ctx.fillText(`DashOffset: ${game.dashOffset.toFixed(2)}`, 10, height - 60);
+        ctx.fillText(`Throttle: ${game.throttle}`, 10, height - 40);
+        ctx.fillText(`BikeAngle: ${game.bikeAngle.toFixed(3)}`, 10, height - 20);
     }
     
     // Pause indicator
