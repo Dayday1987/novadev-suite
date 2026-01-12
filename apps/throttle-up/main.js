@@ -63,13 +63,12 @@ const CONFIG = {
     acceleration: 0.5,
     friction: 0.995,
     
-    // Wheelie mechanics - ENHANCED
-    torque: 0.0012,  // Increased from 0.0006 for more dramatic wheelies
+    // Wheelie mechanics
+    torque: 0.0006,  // Back to original value
     torqueSpeedMult: 0.0001,
     gravity: 0.008,
     damping: 0.92,
     crashAngle: -0.75,
-    wheelieLiftForce: 0.15,  // NEW: Additional lift when wheelie starts
     
     // Wheelie detection thresholds
     WHEELIE_START_ANGLE: -0.02,
@@ -462,13 +461,8 @@ function update(now) {
         // Speed and acceleration
         if (game.throttle) {
             game.speed += CONFIG.acceleration * deltaTime;
-            // ENHANCED: More dramatic wheelie torque
+            // Wheelie torque - back to original
             game.bikeAngularVelocity -= CONFIG.torque * deltaTime;
-            
-            // ENHANCED: Add lift force when starting wheelie
-            if (game.speed > 2 && game.bikeAngle > -0.3) {
-                game.bikeAngularVelocity -= CONFIG.wheelieLiftForce * deltaTime;
-            }
         } else {
             game.speed *= Math.pow(CONFIG.friction, deltaTime);
             if (game.speed < 0.05) game.speed = 0;
@@ -717,13 +711,13 @@ function draw() {
                 riderLean = CONFIG.RIDER_LEAN_BACK;
             }
             
-            // Position rider on bike (adjust these values to match your bike frame)
-            const riderOffsetX = -20;
-            const riderOffsetY = -40;
-            const riderWidth = 40;
-            const riderHeight = 40;
+            // Position rider in the CENTER of the bike frame, not on the wheels
+            const bikeCenterX = (bW * CONFIG.frontTireX - CONFIG.rearTireXShift) * 0.4;  // Slightly toward rear from center
+            const riderOffsetY = -bH * 0.65;  // Much higher - above the bike frame
+            const riderWidth = bW * 0.35;  // Bigger - 35% of bike width
+            const riderHeight = bH * 0.65;  // Bigger - 65% of bike height
             
-            ctx.translate(riderOffsetX, riderOffsetY);
+            ctx.translate(bikeCenterX, riderOffsetY);
             ctx.rotate(riderLean);
             ctx.drawImage(assets.rider.img, -riderWidth/2, -riderHeight/2, riderWidth, riderHeight);
             ctx.restore();
