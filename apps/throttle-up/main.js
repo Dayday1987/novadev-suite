@@ -489,9 +489,9 @@ function update(now) {
             game.wheelRotation -= game.speed * 0.02 * deltaTime;  // Negative for forward rotation
             game.distance += game.speed * 0.1 * deltaTime;
             
-            // Update dash offset separately, keep in small range
-            game.dashOffset += game.speed * deltaTime;
-            if (game.dashOffset > 100) game.dashOffset -= 100;
+            // Update dash offset separately, keep in small range (subtract to move backward)
+            game.dashOffset -= game.speed * deltaTime;
+            if (game.dashOffset < 0) game.dashOffset += 100;
         }
         
         // Update audio
