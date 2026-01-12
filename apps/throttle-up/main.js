@@ -112,7 +112,8 @@ const game = {
     score: 0,
     bestScore: parseInt(localStorage.getItem('throttleUpBest')) || 0,
     inWheelie: false,
-    distance: 0
+    distance: 0,
+    dashOffset: 0  // NEW: separate tracker for road dash animation
 };
 
 let width, height, roadYPos;
@@ -400,6 +401,7 @@ function resetGame() {
     game.distance = 0;
     game.scroll = 0;
     game.wheelRotation = 0;
+    game.dashOffset = 0;
     particles.list = [];
     audio.stop('engine');
     audio.stop('crowd');
@@ -481,12 +483,15 @@ function update(now) {
             game.bikeAngularVelocity *= 0.5;
         }
         
-        // Movement - continuous scrolling without wrapping issues
+        // Movement - move forward with speed (scroll moves background backward)
         if (game.speed > 0) {
-            const scrollDelta = game.speed * deltaTime;
-            game.scroll -= scrollDelta;
-            game.wheelRotation -= scrollDelta * 0.02;
-            game.distance += scrollDelta * 0.1;
+            game.scroll -= game.speed * deltaTime;  // Negative = road moves backward as bike goes forward
+            game.wheelRotation -= game.speed * 0.02 * deltaTime;  // Negative for forward rotation
+            game.distance += game.speed * 0.1 * deltaTime;
+            
+            // Update dash offset separately, keep in small range
+            game.dashOffset += game.speed * deltaTime;
+            if (game.dashOffset > 100) game.dashOffset -= 100;
         }
         
         // Update audio
@@ -635,12 +640,11 @@ function draw() {
     ctx.fillStyle = "#333";
     ctx.fillRect(0, roadYPos, width, CONFIG.roadStripHeight);
     
-    // Road markings - use distance instead of scroll for dash offset
+    // Road markings - use separate dashOffset tracker
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 2;
     ctx.setLineDash([60, 40]);
-    // Use distance which only increases, and negate it for proper direction
-    ctx.lineDashOffset = -game.distance;
+    ctx.lineDashOffset = -game.dashOffset;
     ctx.beginPath();
     ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2);
     ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2);
