@@ -481,18 +481,10 @@ function update(now) {
             game.bikeAngularVelocity *= 0.5;
         }
         
-        // FIXED: Improved scroll handling to prevent stopping bug
+        // Movement - continuous scrolling without wrapping issues
         if (game.speed > 0) {
             const scrollDelta = game.speed * deltaTime;
             game.scroll -= scrollDelta;
-            
-            // Simple normalization without causing velocity changes
-            // Just keep scroll in a reasonable range for rendering
-            const SCROLL_WRAP = 10000;
-            if (Math.abs(game.scroll) > SCROLL_WRAP) {
-                game.scroll = game.scroll % SCROLL_WRAP;
-            }
-            
             game.wheelRotation -= scrollDelta * 0.02;
             game.distance += scrollDelta * 0.1;
         }
@@ -643,14 +635,12 @@ function draw() {
     ctx.fillStyle = "#333";
     ctx.fillRect(0, roadYPos, width, CONFIG.roadStripHeight);
     
-    // FIXED: Improved road marking rendering to prevent visual glitches
+    // FIXED: Improved road marking rendering
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 2;
     ctx.setLineDash([60, 40]);
-    // Use a smoother modulo calculation
-    const normalizedScroll = game.scroll % 100;
-    const dashOffset = normalizedScroll >= 0 ? normalizedScroll : 100 + normalizedScroll;
-    ctx.lineDashOffset = -dashOffset;
+    // Simple offset calculation - no wrapping, just let it grow
+    ctx.lineDashOffset = game.scroll;
     ctx.beginPath();
     ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2);
     ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2);
