@@ -1,5 +1,5 @@
 // NovaDev Suite — Inline Live Editor
-// Fixed version with global scoping for buttons
+// Fixed version with global scoping and Single File Download support
 
 export function initEditor() {
   const container = document.getElementById("editorContainer");
@@ -8,6 +8,7 @@ export function initEditor() {
   const runBtn = document.getElementById("editorRun");
   const saveBtn = document.getElementById("editorSave");
   const exportBtn = document.getElementById("editorExport");
+  const downloadBtn = document.getElementById("editorDownloadFile"); // New Reference
   const preview = document.getElementById("editorPreview");
 
   const files = {
@@ -17,7 +18,7 @@ export function initEditor() {
   };
   let activeFile = "index.html";
 
-  // Helper function moved to top-level scope of initEditor
+  // Helper function for UI notifications
   function showToast(message) {
     let toast = document.createElement('div');
     toast.textContent = message;
@@ -28,6 +29,17 @@ export function initEditor() {
       toast.style.opacity = '0';
       setTimeout(() => toast.remove(), 300);
     }, 2000);
+  }
+
+  // Helper function for single file downloads
+  function downloadSingleFile(filename, content) {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast(`📥 Downloaded ${filename}`);
   }
 
   // Load Monaco
@@ -42,7 +54,6 @@ export function initEditor() {
       minimap: { enabled: false }
     });
 
-    // CRITICAL FIX: Assign the instance to the window
     window.editorInstance = editor;
 
     // Restore saved project logic
@@ -94,7 +105,15 @@ export function initEditor() {
       showToast("💾 Project saved locally!");
     });
 
-    // Export Button
+    // Download Single File Button
+    if (downloadBtn) {
+      downloadBtn.addEventListener("click", () => {
+        const content = editor.getValue();
+        downloadSingleFile(activeFile, content);
+      });
+    }
+
+    // Export ZIP Button
     exportBtn.addEventListener("click", async () => {
       files[activeFile] = editor.getValue();
       const zip = new JSZip();
