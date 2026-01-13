@@ -331,7 +331,7 @@ textarea, input[type="text"], input[type="email"], input[name="name"]{
 
 /* Desktop: Default hidden */
 .hamburger {
-  display: none !important;
+  display: none;
 }
 
 /* Mobile: Screens 767px and smaller */
