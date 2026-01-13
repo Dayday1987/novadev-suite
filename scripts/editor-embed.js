@@ -85,22 +85,38 @@ export function initEditor() {
     saveBtn.addEventListener("click", () => {
       files[activeFile] = editor.getValue();
       localStorage.setItem("novadev-editor-files", JSON.stringify(files));
-      alert("💾 Project saved locally!");
+      showToast("💾 Project saved locally!");
     });
 
-    // Export — Create ZIP file
-    exportBtn.addEventListener("click", async () => {
-      files[activeFile] = editor.getValue();
-      const zip = new JSZip();
-      zip.file("index.html", files["index.html"]);
-      zip.file("styles.css", files["styles.css"]);
-      zip.file("script.js", files["script.js"]);
-      const blob = await zip.generateAsync({ type: "blob" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "novadev-project.zip";
-      a.click();
-    });
+    // ✅ Export — Create ZIP file and trigger download
+exportBtn.addEventListener("click", async () => {
+  // Save current active file content
+  files[activeFile] = editor.getValue();
+
+  // Create a new ZIP
+  const zip = new JSZip();
+  zip.file("index.html", files["index.html"] || "");
+  zip.file("styles.css", files["styles.css"] || "");
+  zip.file("script.js", files["script.js"] || "");
+
+  try {
+    const blob = await zip.generateAsync({ type: "blob" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "novadev-project.zip";
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+
+    // Optional: nice visual confirmation instead of alert()
+    showToast("📦 Exported ZIP ready!");
+  } catch (err) {
+    console.error("ZIP export failed:", err);
+    showToast("❌ Failed to export ZIP");
+  }
+});
 
     // Restore saved project (if any)
     const saved = localStorage.getItem("novadev-editor-files");
