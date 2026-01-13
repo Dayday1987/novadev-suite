@@ -1,3 +1,4 @@
+alert('MAIN.JS LOADED');
 import { initUI } from './ui.js';
 import { initMemeMaker } from './meme.js';
 import { initPromptLibrary } from './prompts.js';
