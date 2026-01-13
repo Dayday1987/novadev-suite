@@ -107,6 +107,28 @@ export function initEditor() {
     if (saved) {
       Object.assign(files, JSON.parse(saved));
       editor.setValue(files[activeFile]);
+
+      function showToast(message) {
+  let toast = document.createElement('div');
+  toast.textContent = message;
+  toast.style.position = 'fixed';
+  toast.style.bottom = '1.5rem';
+  toast.style.right = '1.5rem';
+  toast.style.background = '#111';
+  toast.style.color = '#fff';
+  toast.style.padding = '0.5rem 1rem';
+  toast.style.borderRadius = '6px';
+  toast.style.fontSize = '0.9rem';
+  toast.style.opacity = '0';
+  toast.style.transition = 'opacity 0.3s';
+  toast.style.zIndex = '9999';
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => (toast.style.opacity = '1'));
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 2000);
+}
     }
   });
 }
