@@ -25,11 +25,6 @@
   <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  
-  <script type="module">
-  import { initEditor } from './scripts/editor-embed.js';
-  window.addEventListener('DOMContentLoaded', initEditor);
-</script>
 </head>
 
 <body>
@@ -225,21 +220,21 @@
         </div>
       </div>
     </section>
-    
-    <section id="tools" class="section tools-section" aria-labelledby="tools-heading">
-      <div class="wrap">
-        <h2 id="tools-heading" class="reveal fade-in">Tools</h2>
-        <div class="tools-grid">
 
-          <section id="editor" class="section" aria-labelledby="editor-heading">
+    <section id="tools" class="section tools-section" aria-labelledby="tools-heading">
+  <div class="wrap">
+    <h2 id="tools-heading" class="reveal fade-in">Tools</h2>
+
+    <!-- ✅ EDITOR IS NOW OUTSIDE THE GRID -->
+    <section id="editor" class="section" aria-labelledby="editor-heading">
       <div class="wrap">
         <h2 id="editor-heading" class="reveal fade-in">Live Code Editor</h2>
         <div class="editor-shell reveal">
           <div class="editor-topbar">
             <div class="file-tabs" role="tablist" aria-label="Files">
-              <button class="file-tab active fade-in" data-file="index.html" role="tab">index.html</button>
-              <button class="file-tab fade-in" data-file="styles.css" role="tab">styles.css</button>
-              <button class="file-tab fade-in" data-file="script.js" role="tab">script.js</button>
+              <button class="file-tab active fade-in" data-file="index.html">index.html</button>
+              <button class="file-tab fade-in" data-file="styles.css">styles.css</button>
+              <button class="file-tab fade-in" data-file="script.js">script.js</button>
             </div>
             <div class="editor-actions">
               <button id="editorRun" class="btn btn--glow fade-in">Run</button>
@@ -250,54 +245,56 @@
           </div>
 
           <div class="editor-body">
-            <div id="editorContainer" class="monaco-editor-container" aria-label="Code editor"></div>
+            <div id="editorContainer" class="monaco-editor-container"></div>
             <div class="preview-pane">
               <div class="preview-toolbar fade-in">Live Preview</div>
-              <iframe id="editorPreview" sandbox="allow-scripts allow-same-origin" title="Live preview"></iframe>
+              <iframe id="editorPreview" sandbox="allow-scripts allow-same-origin"></iframe>
             </div>
           </div>
 
           <div class="editor-footer muted">
-            Tip: edit HTML / CSS / JS, then click <strong>Run</strong>. Projects are saved locally.
-          </div>
-        </div>
-      </div>
-    </section>
-          
-          <div class="card tool reveal">
-            <h3 class="fade-in">Meme Maker</h3>
-            <canvas id="memeCanvas" width="1000" height="600" aria-label="Meme canvas"></canvas>
-
-            <div class="tool-row">
-              <input id="imageInput" type="file" accept="image/*" />
-              <input id="topText" type="text" placeholder="Top text" />
-              <input id="bottomText" type="text" placeholder="Bottom text" />
-            </div>
-
-            <div class="tool-row">
-              <button id="drawMeme" class="btn primary btn--glow fade-in">Draw</button>
-              <button id="downloadMeme" class="btn ghost fade-in" aria-label="Download meme">Download PNG</button>
-              <button id="resetMeme" class="btn fade-in">Reset</button>
-            </div>
-
-            <p class="muted fade-in">Tip: Use Impact-style text (uppercase) for classic memes.</p>
-          </div>
-
-          <div class="card tool reveal">
-            <h3 class="fade-in">AI Prompt Library</h3>
-            <textarea id="promptInput" placeholder="Write a prompt here..."></textarea>
-
-            <div class="tool-row">
-              <button id="savePrompt" class="btn primary btn--glow fade-in">Save Prompt</button>
-              <button id="clearPrompts" class="btn ghost fade-in">Clear All</button>
-            </div>
-
-            <ul id="promptList" class="prompt-list" aria-live="polite"></ul>
+            Tip: edit HTML / CSS / JS, then click <strong>Run</strong>.
           </div>
         </div>
       </div>
     </section>
 
+    <!-- ✅ ONLY TOOL CARDS REMAIN IN GRID -->
+    <div class="tools-grid">
+
+      <div class="card tool reveal">
+        <h3 class="fade-in">Meme Maker</h3>
+        <canvas id="memeCanvas" width="1000" height="600"></canvas>
+
+        <div class="tool-row">
+          <input id="imageInput" type="file" accept="image/*" />
+          <input id="topText" type="text" placeholder="Top text" />
+          <input id="bottomText" type="text" placeholder="Bottom text" />
+        </div>
+
+        <div class="tool-row">
+          <button id="drawMeme" class="btn primary btn--glow fade-in">Draw</button>
+          <button id="downloadMeme" class="btn ghost fade-in">Download PNG</button>
+          <button id="resetMeme" class="btn fade-in">Reset</button>
+        </div>
+      </div>
+
+      <div class="card tool reveal">
+        <h3 class="fade-in">AI Prompt Library</h3>
+        <textarea id="promptInput" placeholder="Write a prompt here..."></textarea>
+
+        <div class="tool-row">
+          <button id="savePrompt" class="btn primary btn--glow fade-in">Save Prompt</button>
+          <button id="clearPrompts" class="btn ghost fade-in">Clear All</button>
+        </div>
+
+        <ul id="promptList" class="prompt-list"></ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+    
     <section id="contact" class="section" aria-labelledby="contact-heading">
       <div class="wrap">
         <h2 id="contact-heading" class="reveal fade-in">Get in touch</h2>
