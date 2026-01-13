@@ -1,5 +1,5 @@
 // NovaDev Suite — Inline Live Editor
-// Fixed version with global scoping and Single File Download support
+// Fixed version with Clipboard and Copy/Paste support
 
 export function initEditor() {
   const container = document.getElementById("editorContainer");
@@ -8,7 +8,7 @@ export function initEditor() {
   const runBtn = document.getElementById("editorRun");
   const saveBtn = document.getElementById("editorSave");
   const exportBtn = document.getElementById("editorExport");
-  const downloadBtn = document.getElementById("editorDownloadFile"); // New Reference
+  const downloadBtn = document.getElementById("editorDownloadFile");
   const preview = document.getElementById("editorPreview");
 
   const files = {
@@ -18,7 +18,6 @@ export function initEditor() {
   };
   let activeFile = "index.html";
 
-  // Helper function for UI notifications
   function showToast(message) {
     let toast = document.createElement('div');
     toast.textContent = message;
@@ -31,7 +30,6 @@ export function initEditor() {
     }, 2000);
   }
 
-  // Helper function for single file downloads
   function downloadSingleFile(filename, content) {
     const blob = new Blob([content], { type: 'text/plain' });
     const a = document.createElement("a");
@@ -42,7 +40,6 @@ export function initEditor() {
     showToast(`📥 Downloaded ${filename}`);
   }
 
-  // Load Monaco
   require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs" } });
   require(["vs/editor/editor.main"], function () {
     const editor = monaco.editor.create(container, {
@@ -51,7 +48,13 @@ export function initEditor() {
       theme: "vs-dark",
       automaticLayout: true,
       fontSize: 14,
-      minimap: { enabled: false }
+      minimap: { enabled: false },
+      // --- ADDED SETTINGS FOR COPY/PASTE ---
+      contextmenu: true,           // Ensures right-click menu is available
+      readOnly: false,             // Ensures the editor isn't locked
+      links: true,
+      scrollBeyondLastLine: false,
+      "semanticHighlighting.enabled": true
     });
 
     window.editorInstance = editor;
@@ -59,7 +62,8 @@ export function initEditor() {
     // Restore saved project logic
     const saved = localStorage.getItem("novadev-editor-files");
     if (saved) {
-      Object.assign(files, JSON.parse(saved));
+      const parsed = JSON.parse(saved);
+      Object.assign(files, parsed);
       editor.setValue(files[activeFile]);
     }
 
@@ -105,7 +109,6 @@ export function initEditor() {
       showToast("💾 Project saved locally!");
     });
 
-    // Download Single File Button
     if (downloadBtn) {
       downloadBtn.addEventListener("click", () => {
         const content = editor.getValue();
