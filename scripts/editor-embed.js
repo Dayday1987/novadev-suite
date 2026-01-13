@@ -31,6 +31,18 @@ export function initEditor() {
       minimap: { enabled: false }
     });
 
+    window.addEventListener('resize', () => {
+  if (window.editorInstance) {
+    window.editorInstance.layout();
+  }
+});
+
+    document.querySelectorAll('.file-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    setTimeout(() => window.editorInstance?.layout(), 200);
+  });
+});
+
     // Handle file tab switching
     document.querySelectorAll(".file-tab").forEach(tab => {
       tab.addEventListener("click", () => {
