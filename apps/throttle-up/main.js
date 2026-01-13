@@ -521,8 +521,8 @@ function update(now) {
             game.wheelRotation -= game.speed * 0.02 * deltaTime; // Rotate wheels
             game.distance += game.speed * 0.1 * deltaTime;       // Increase distance
             
-            // Update dash offset - just let it grow without wrapping
-            game.dashOffset += game.speed * deltaTime; // Increase dash offset (positive direction)
+            // Update dash offset - let it decrease (go negative) without wrapping
+            game.dashOffset -= game.speed * deltaTime; // Decrease dash offset for forward motion
         }
         
         // Update audio
