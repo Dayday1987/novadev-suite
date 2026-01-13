@@ -6,7 +6,6 @@
   <title>NovaDevStudio — NovaDev Suite</title>
   <meta name="description" content="NovaDev Suite — Portfolio & Tools by NovaDev Studio (David Munoz). Meme maker, prompt library, and interactive demos." />
 
-  <!-- Open Graph / Social preview -->
   <meta property="og:image" content="assets/og-img.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
@@ -14,10 +13,8 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="assets/og-img.png">
 
-  <!-- Styles (production file) -->
   <link rel="stylesheet" href="styles/main.css" />
 
-  <!-- Inline SVG favicon (small, safe) -->
   <link rel="icon" href='data:image/svg+xml;utf8,
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
     <defs><linearGradient id="a" x1="0" x2="1"><stop offset="0" stop-color="%236EE7F7"/><stop offset="1" stop-color="%237C5CFF"/></linearGradient></defs>
@@ -25,10 +22,8 @@
     <text x="50" y="64" font-size="56" text-anchor="middle" fill="%23071242" font-family="Inter,Arial" font-weight="900">N</text>
   </svg>' type="image/svg+xml">
 
-  <!-- Monaco Editor -->
-<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
 
-<!-- JSZip (for exporting projects) -->
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   
   <script type="module">
@@ -61,17 +56,14 @@
   </header>
 
   <main>
-    <!-- HERO -->
     <section class="hero" aria-labelledby="hero-heading">
       <div class="wrap hero-centered">
-        <!-- decorative glow -->
         <div class="hero-glow" aria-hidden="true">
           <div class="float-dot dot-a"></div>
           <div class="float-dot dot-b"></div>
           <div class="float-dot dot-c"></div>
         </div>
 
-        <!-- profile -->
         <div class="hero-profile">
           <img src="assets/avatar.png" alt="David Munoz — NovaDev Studio" class="avatar" width="220" height="220" loading="lazy" />
           <div class="hero-personal">
@@ -97,7 +89,6 @@
       </div>
     </section>
 
-    <!-- PROJECTS -->
     <section id="projects" class="section" aria-labelledby="projects-heading">
       <div class="wrap">
         <h2 id="projects-heading" class="reveal fade-in">Selected Projects</h2>
@@ -146,13 +137,11 @@
       </div>
     </section>
 
-    <!-- BLOG ---->
     <section id="blog" class="section" aria-labelledby="blog-heading">
       <div class="wrap">
         <h2 id="blog-heading" class="reveal fade-in">Blog & Updates</h2>
 
         <div class="blog-grid">
-          <!-- Blog Post 1 -->
           <article class="card blog-post reveal fade-in" data-post-id="1">
             <div class="blog-header">
               <h3 class="fade-in">Welcome to NovaDev Suite</h3>
@@ -180,7 +169,6 @@
             </div>
           </article>
 
-          <!-- Blog Post 2 -->
           <article class="card blog-post reveal fade-in" data-post-id="2">
             <div class="blog-header">
               <h3 class="fade-in">Throttle Up: Building a Canvas Game</h3>
@@ -208,7 +196,6 @@
             </div>
           </article>
 
-          <!-- Blog Post 3 -->
           <article class="card blog-post reveal fade-in" data-post-id="3">
             <div class="blog-header">
               <h3 class="fade-in">Looking for Contributors!</h3>
@@ -239,13 +226,11 @@
       </div>
     </section>
     
-    <!-- TOOLS -->
     <section id="tools" class="section tools-section" aria-labelledby="tools-heading">
       <div class="wrap">
         <h2 id="tools-heading" class="reveal fade-in">Tools</h2>
         <div class="tools-grid">
 
-          <!-- EDITOR -->
           <section id="editor" class="section" aria-labelledby="editor-heading">
       <div class="wrap">
         <h2 id="editor-heading" class="reveal fade-in">Live Code Editor</h2>
@@ -259,6 +244,7 @@
             <div class="editor-actions">
               <button id="editorRun" class="btn btn--glow fade-in">Run</button>
               <button id="editorSave" class="btn fade-in">Save</button>
+              <button id="editorDownloadFile" class="btn ghost fade-in">Download File</button>
               <button id="editorExport" class="btn ghost fade-in">Export ZIP</button>
             </div>
           </div>
@@ -278,7 +264,6 @@
       </div>
     </section>
           
-          <!-- Meme Maker -->
           <div class="card tool reveal">
             <h3 class="fade-in">Meme Maker</h3>
             <canvas id="memeCanvas" width="1000" height="600" aria-label="Meme canvas"></canvas>
@@ -298,7 +283,6 @@
             <p class="muted fade-in">Tip: Use Impact-style text (uppercase) for classic memes.</p>
           </div>
 
-          <!-- Prompt Library -->
           <div class="card tool reveal">
             <h3 class="fade-in">AI Prompt Library</h3>
             <textarea id="promptInput" placeholder="Write a prompt here..."></textarea>
@@ -314,13 +298,11 @@
       </div>
     </section>
 
-    <!-- CONTACT -->
     <section id="contact" class="section" aria-labelledby="contact-heading">
       <div class="wrap">
         <h2 id="contact-heading" class="reveal fade-in">Get in touch</h2>
 
         <div class="contact-grid">
-          <!-- Sponsor Form -->
           <div class="card contact reveal fade-in">
             <h3 class="fade-in">💎 Become a Sponsor</h3>
             <p class="muted fade-in">Support NovaDev Suite development and get your brand featured.</p>
@@ -350,7 +332,6 @@
             </form>
           </div>
 
-          <!-- Contributor Form -->
           <div class="card contact reveal fade-in">
             <h3 class="fade-in">🤝 Join as Contributor</h3>
             <p class="muted fade-in">Developers, designers, and creators — let's build together!</p>
@@ -384,7 +365,6 @@
             </form>
           </div>
 
-          <!-- General Contact Form -->
           <div class="card contact reveal fade-in full-width">
             <h3 class="fade-in">📧 General Inquiries</h3>
             <p class="muted fade-in">Questions, feedback, or just want to say hi? Drop a message!</p>
@@ -435,7 +415,6 @@
     </div>
   </footer>
 
-  <!-- main script (your app) -->
   <script type="module" src="scripts/main.js"></script>
 </body>
 </html>
