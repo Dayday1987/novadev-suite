@@ -1,5 +1,5 @@
-// NovaDev Suite — Inline Live Editor
-// Fixed version with Clipboard and Copy/Paste support
+// scripts/editor-embed.js — NovaDev Suite
+// Enhanced version with full Clipboard and Copy/Paste support
 
 export function initEditor() {
   const container = document.getElementById("editorContainer");
@@ -30,16 +30,6 @@ export function initEditor() {
     }, 2000);
   }
 
-  function downloadSingleFile(filename, content) {
-    const blob = new Blob([content], { type: 'text/plain' });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(a.href);
-    showToast(`📥 Downloaded ${filename}`);
-  }
-
   require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs" } });
   require(["vs/editor/editor.main"], function () {
     const editor = monaco.editor.create(container, {
@@ -49,17 +39,21 @@ export function initEditor() {
       automaticLayout: true,
       fontSize: 14,
       minimap: { enabled: false },
-      // --- ADDED SETTINGS FOR COPY/PASTE ---
-      contextmenu: true,           // Ensures right-click menu is available
-      readOnly: false,             // Ensures the editor isn't locked
+      // --- CRITICAL FOR COPY/PASTE SUPPORT ---
+      contextmenu: true,           // Enables right-click "Copy/Paste"
+      readOnly: false,             // Allows editing
+      copyWithSyntaxHighlighting: true,
       links: true,
-      scrollBeyondLastLine: false,
-      "semanticHighlighting.enabled": true
+      autoClosingBrackets: "always",
+      scrollbar: {
+        vertical: 'visible',
+        horizontal: 'visible'
+      }
     });
 
     window.editorInstance = editor;
 
-    // Restore saved project logic
+    // Load saved data
     const saved = localStorage.getItem("novadev-editor-files");
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -67,73 +61,47 @@ export function initEditor() {
       editor.setValue(files[activeFile]);
     }
 
-    // Handle file tab switching
+    // Tab Logic
     document.querySelectorAll(".file-tab").forEach(tab => {
       tab.addEventListener("click", () => {
         files[activeFile] = editor.getValue();
         activeFile = tab.dataset.file;
-        
         document.querySelectorAll(".file-tab").forEach(t => t.classList.remove("active"));
         tab.classList.add("active");
-
         editor.setValue(files[activeFile]);
-        monaco.editor.setModelLanguage(editor.getModel(),
-          activeFile.endsWith(".css") ? "css" :
+        monaco.editor.setModelLanguage(editor.getModel(), 
+          activeFile.endsWith(".css") ? "css" : 
           activeFile.endsWith(".js") ? "javascript" : "html"
         );
       });
     });
 
-    // Run Button
+    // Run Logic
     runBtn.addEventListener("click", () => {
       files[activeFile] = editor.getValue();
-      const output = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>${files["styles.css"]}</style>
-        </head>
-        <body>
-          ${files["index.html"]}
-          <script>${files["script.js"]}<\/script>
-        </body>
-        </html>`;
+      const output = `<html><head><style>${files["styles.css"]}</style></head><body>${files["index.html"]}<script>${files["script.js"]}<\/script></body></html>`;
       preview.srcdoc = output;
-      showToast("🚀 Code Updated!");
+      showToast("🚀 Preview updated!");
     });
 
-    // Save Button
+    // Save Logic
     saveBtn.addEventListener("click", () => {
       files[activeFile] = editor.getValue();
       localStorage.setItem("novadev-editor-files", JSON.stringify(files));
-      showToast("💾 Project saved locally!");
+      showToast("💾 Saved locally!");
     });
 
-    if (downloadBtn) {
-      downloadBtn.addEventListener("click", () => {
-        const content = editor.getValue();
-        downloadSingleFile(activeFile, content);
-      });
-    }
-
-    // Export ZIP Button
+    // Zip Export
     exportBtn.addEventListener("click", async () => {
-      files[activeFile] = editor.getValue();
       const zip = new JSZip();
       zip.file("index.html", files["index.html"]);
       zip.file("styles.css", files["styles.css"]);
       zip.file("script.js", files["script.js"]);
-
-      try {
-        const blob = await zip.generateAsync({ type: "blob" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = "novadev-project.zip";
-        a.click();
-        showToast("📦 Exported ZIP ready!");
-      } catch (err) {
-        showToast("❌ Failed to export");
-      }
+      const content = await zip.generateAsync({type:"blob"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(content);
+      a.download = "project.zip";
+      a.click();
     });
   });
 }
