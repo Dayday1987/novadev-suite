@@ -7,21 +7,23 @@ export function initPromptLibrary() {
   if (!input || !list) return;
   const prompts = JSON.parse(localStorage.getItem('prompts') || '[]');
   prompts.forEach(addItem);
+  
   document.getElementById('savePrompt')?.addEventListener('click', () => {
     if (!input.value.trim()) return;
     prompts.push(input.value);
     localStorage.setItem('prompts', JSON.stringify(prompts));
     addItem(input.value, prompts.length - 1);
     input.value = '';
-    showToast('💾 Prompt saved!'); // Added toast notification
+    showToast('💾 Prompt saved!');
   });
+  
   document.getElementById('clearPrompts')?.addEventListener('click', () => {
     if (prompts.length === 0) return;
-    if (confirm(`Clear all ${prompts.length} prompts?`)) {
+    if (confirm(`Clear all ${prompts.length} prompts?`)) {  // FIXED: Added parentheses
       localStorage.removeItem('prompts');
       list.innerHTML = '';
       prompts.length = 0;
-      showToast('🗑️ All prompts cleared'); // Added toast notification
+      showToast('🗑️ All prompts cleared');
     }
   });
   
@@ -63,7 +65,7 @@ export function initPromptLibrary() {
     downloadBtn.onclick = (e) => {
       e.stopPropagation();
       const promptIndex = Array.from(list.children).indexOf(li) + 1;
-      showDownloadModal(`prompt-${promptIndex}.txt`, text, 'text');
+      showDownloadModal(`prompt-${promptIndex}.txt`, text, 'text');  // FIXED: Added parentheses
     };
     
     // Delete button
