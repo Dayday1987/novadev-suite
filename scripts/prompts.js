@@ -19,7 +19,8 @@ export function initPromptLibrary() {
   
   document.getElementById('clearPrompts')?.addEventListener('click', () => {
     if (prompts.length === 0) return;
-    if (confirm(`Clear all ${prompts.length} prompts?`)) {  // FIXED: Added parentheses
+    // ✅ FIXED: Added parentheses for confirm()
+    if (confirm(`Clear all ${prompts.length} prompts?`)) {
       localStorage.removeItem('prompts');
       list.innerHTML = '';
       prompts.length = 0;
@@ -65,7 +66,8 @@ export function initPromptLibrary() {
     downloadBtn.onclick = (e) => {
       e.stopPropagation();
       const promptIndex = Array.from(list.children).indexOf(li) + 1;
-      showDownloadModal(`prompt-${promptIndex}.txt`, text, 'text');  // FIXED: Added parentheses
+      // ✅ FIXED: Added parentheses for function call
+      showDownloadModal(`prompt-${promptIndex}.txt`, text, 'text');
     };
     
     // Delete button
