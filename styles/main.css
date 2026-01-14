@@ -452,3 +452,34 @@ h1, h2, h3, h4, h5, h6, p, a, li {
   opacity: 1 !important;
   visibility: visible !important;
 }
+
+/* ==================== CRITICAL FIX FOR CANVAS ====================
+   Add this to the VERY END of your main.css file
+   Prevents canvas from disappearing due to reveal animations
+   ================================================================ */
+
+/* Force canvas to always be visible */
+#memeCanvas {
+  opacity: 1 !important;
+  transform: none !important;
+  visibility: visible !important;
+}
+
+/* Ensure tool cards are visible */
+.tool {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Make sure editor container is visible and has proper height */
+#editorContainer {
+  opacity: 1 !important;
+  visibility: visible !important;
+  min-height: 360px !important;
+}
+
+/* Ensure editor shell is visible */
+.editor-shell {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
