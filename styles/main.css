@@ -391,3 +391,64 @@ textarea, input[type="text"], input[type="email"], input[name="name"]{
     pointer-events: auto;
   }
 }
+
+
+/* ==================== EMERGENCY FIX ====================
+   Add this to the VERY END of your main.css file
+   This will make all content visible immediately
+   ====================================================== */
+
+/* Force all reveal elements to be visible */
+.reveal,
+.fade-in,
+.hero-intro-item,
+.fade-scroll {
+  opacity: 1 !important;
+  transform: none !important;
+  visibility: visible !important;
+}
+
+/* Ensure sections are visible */
+.section {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure cards are visible */
+.card {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure all content is visible */
+main,
+main * {
+  visibility: visible !important;
+}
+
+/* Remove any display:none that might be hiding things */
+.hidden {
+  /* Only this class should hide things */
+}
+
+/* Make sure projects grid is visible */
+.projects-grid,
+.blog-grid,
+.tools-grid,
+.contact-grid {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Ensure buttons are visible and clickable */
+.btn {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Make sure text is visible */
+h1, h2, h3, h4, h5, h6, p, a, li {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
