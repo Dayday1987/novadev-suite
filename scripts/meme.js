@@ -2,6 +2,11 @@ export function initMemeMaker() {
   const canvas = document.getElementById('memeCanvas');
   if (!canvas) return;
 
+  // CRITICAL FIX: Force canvas to be visible immediately
+  canvas.style.opacity = '1';
+  canvas.style.visibility = 'visible';
+  canvas.style.transform = 'none';
+
   const ctx = canvas.getContext('2d');
   const imgInput = document.getElementById('imageInput');
   const topText = document.getElementById('topText');
@@ -30,6 +35,7 @@ export function initMemeMaker() {
     imgInput.value = '';
     topText.value = '';
     bottomText.value = '';
+    image = new Image();
   });
 
   function draw() {
@@ -50,4 +56,6 @@ export function initMemeMaker() {
     ctx.strokeText(text.toUpperCase(), x, y);
     ctx.fillText(text.toUpperCase(), x, y);
   }
+  
+  console.log('✅ Meme Maker initialized');
 }
