@@ -4,7 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Meme Maker - NovaDev Suite</title>
+
+  <meta name="title" content="Meme Maker - NovaDev Suite">
+  <meta name="description" content="Create custom memes instantly in your browser. Mobile-friendly and fast.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://dayday1987.github.io/novadev-suite/">
+  <meta property="og:title" content="Meme Maker - NovaDev Suite">
+  <meta property="og:description" content="Generate memes on the go. Optimized for all devices.">
+  <meta property="og:image" content="https://dayday1987.github.io/novadev-suite/preview.jpg">
+
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  
   <style>
     * { box-sizing: border-box; }
     body {
@@ -15,10 +25,7 @@
       color: #e6eef6;
       min-height: 100vh;
     }
-    .container {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
+    .container { max-width: 1100px; margin: 0 auto; }
     h1 {
       text-align: center;
       background: linear-gradient(90deg, #6EE7F7, #7C5CFF);
@@ -31,8 +38,9 @@
       border-radius: 12px;
       padding: 24px;
       border: 1px solid rgba(255,255,255,0.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    /* SAFARI FIX: Added -webkit-transform to force GPU stay active */
+    /* SAFARI FIX: Hardware Acceleration Wrapper */
     #canvasWrapper {
       width: 100%;
       background: #000;
@@ -42,17 +50,8 @@
       -webkit-transform: translate3d(0,0,0);
       transform: translate3d(0,0,0);
     }
-    canvas {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-    .tool-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 10px;
-      flex-wrap: wrap;
-    }
+    canvas { width: 100%; height: auto; display: block; }
+    .tool-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
     input {
       flex: 1;
       min-width: 150px;
@@ -61,6 +60,7 @@
       border: 1px solid rgba(255,255,255,0.1);
       background: rgba(255,255,255,0.05);
       color: #fff;
+      font-family: inherit;
     }
     .btn {
       padding: 12px 20px;
@@ -68,10 +68,16 @@
       cursor: pointer;
       font-weight: 600;
       border: none;
-      transition: opacity 0.2s;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
     }
-    .btn:active { opacity: 0.7; }
+    .btn:active { transform: scale(0.96); }
     .primary { background: linear-gradient(90deg, #6EE7F7, #7C5CFF); color: #04121a; }
+    .facebook { background: #1877F2; color: white; }
     .ghost { background: transparent; border: 1px solid #333; color: #98a0b3; }
     .back-link { color: #6EE7F7; text-decoration: none; margin-bottom: 20px; display: inline-block; }
   </style>
@@ -92,8 +98,13 @@
       </div>
 
       <div class="tool-row" style="margin-top: 20px;">
-        <button id="drawBtn" class="btn primary">Update Meme</button>
-        <button id="downloadBtn" class="btn ghost">Download PNG</button>
+        <button id="shareBtn" class="btn primary">Share Meme</button>
+        <button id="fbBtn" class="btn facebook">
+          <svg style="width:18px;height:18px" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z" /></svg>
+          Facebook
+        </button>
+        <button id="downloadBtn" class="btn ghost">Download</button>
+        <button onclick="location.reload()" class="btn ghost">Reset</button>
       </div>
     </div>
   </div>
@@ -109,7 +120,6 @@
       let loadedImage = null;
 
       function drawMeme() {
-        // Clear and fill base
         ctx.fillStyle = "#071422";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -124,7 +134,7 @@
         const bottom = bottomInput.value.toUpperCase();
         const fontSize = 70;
 
-        ctx.font = `bold ${fontSize}px 'Anton', Impact, Arial, sans-serif`;
+        ctx.font = `bold ${fontSize}px 'Anton', Impact, sans-serif`;
         ctx.textAlign = 'center';
         ctx.fillStyle = 'white';
         ctx.strokeStyle = 'black';
@@ -147,19 +157,34 @@
         const reader = new FileReader();
         reader.onload = (event) => {
           const img = new Image();
-          img.onload = () => {
-            loadedImage = img;
-            drawMeme();
-          };
+          img.onload = () => { loadedImage = img; drawMeme(); };
           img.src = event.target.result;
         };
         reader.readAsDataURL(file);
       });
 
-      // Safari Fix: Force a redraw when typing
       topInput.addEventListener('input', drawMeme);
       bottomInput.addEventListener('input', drawMeme);
-      document.getElementById('drawBtn').addEventListener('click', drawMeme);
+
+      document.getElementById('shareBtn').onclick = async () => {
+        const dataUrl = canvas.toDataURL('image/png');
+        const blob = await (await fetch(dataUrl)).blob();
+        const file = new File([blob], 'meme.png', { type: 'image/png' });
+
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], title: 'Meme Maker', text: 'Created with NovaDev Suite' });
+          } catch (err) { console.log("Share cancelled"); }
+        } else {
+            alert("Sharing not supported on this browser. Use the Download button!");
+        }
+      };
+
+      document.getElementById('fbBtn').onclick = () => {
+        const pageUrl = encodeURIComponent(window.location.href);
+        alert("Download your meme first, then upload it to your Facebook post for the best quality!");
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`, 'fb-share', 'width=600,height=400');
+      };
 
       document.getElementById('downloadBtn').onclick = () => {
         const link = document.createElement('a');
@@ -168,9 +193,7 @@
         link.click();
       };
 
-      // Initial draw with a small Safari-friendly delay
       setTimeout(drawMeme, 100);
-      // Extra kick for fonts
       window.onload = drawMeme;
     })();
   </script>
