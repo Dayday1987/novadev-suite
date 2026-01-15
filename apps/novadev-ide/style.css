@@ -717,3 +717,28 @@ body {
     width: 100vw;
   }
 }
+
+/* =========================
+   MOBILE SIDEBAR TOGGLE
+   ========================= */
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: var(--activity-bar-width);
+    height: 100vh;
+    z-index: 900;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.6);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-area {
+    flex: 1;
+  }
+}
