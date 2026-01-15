@@ -248,7 +248,8 @@
         drawMemeCanvas();
       });
 
-      drawMemeCanvas();
+            // Wait for all assets (fonts, etc.) to be ready before the first draw
+      window.addEventListener('load', drawMemeCanvas);
     })();
   </script>
 </body>
