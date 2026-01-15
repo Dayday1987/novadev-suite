@@ -1,84 +1,54 @@
 // NovaDev Suite — Inline Live Editor
-// Full working version with cloud storage support
+// Full working version with cloud storage support + working download button
 console.log("🧩 editor-embed.js loaded");
+
 export function initEditor() {
   const container = document.getElementById("editorContainer");
   if (!container) return;
 
-  console.log('📝 Editor initializing...');
+  console.log("📝 Editor initializing...");
 
+  // Buttons
   const runBtn = document.getElementById("editorRun");
   const saveBtn = document.getElementById("editorSave");
   const exportBtn = document.getElementById("editorExport");
+  const downloadFileBtn = document.getElementById("editorDownloadFile");
   const preview = document.getElementById("editorPreview");
-  // Download single file
-const downloadFileBtn = document.getElementById("editorDownloadFile");
-if (downloadFileBtn) {
-  downloadFileBtn.addEventListener("click", () => {
-    const fileName = activeFile || "index.html";
-    const fileContent = editor.getValue();
-
-    // Set MIME type based on file extension
-    const mimeTypes = {
-      "html": "text/html",
-      "css": "text/css",
-      "js": "application/javascript"
-    };
-    const ext = fileName.split(".").pop();
-    const mimeType = mimeTypes[ext] || "text/plain";
-
-    // Create file blob and trigger download
-    const blob = new Blob([fileContent], { type: mimeType });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = fileName;
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(a.href);
-
-    if (typeof showToast === "function") {
-      showToast(`💾 Downloaded ${fileName}`);
-    } else {
-      console.log(`Downloaded ${fileName}`);
-    }
-  });
-}
 
   if (!runBtn || !saveBtn || !exportBtn || !preview) {
-    console.error('Missing editor elements');
+    console.error("Missing editor elements");
     return;
   }
 
+  // Default files
   const files = {
     "index.html": "<h1>Hello NovaDev!</h1>\n<p>Edit me!</p>",
     "styles.css": "/* Type CSS here */\nbody { \n  font-family: sans-serif; \n  color: #222; \n  padding: 20px;\n}",
-    "script.js": "// Type JS here\nconsole.log('NovaDev IDE running!');"
+    "script.js": "// Type JS here\nconsole.log('NovaDev IDE running!');",
   };
-  
+
   let activeFile = "index.html";
 
-  // Cloud storage modal
+  // --- CLOUD EXPORT MODAL ---
   function showCloudExportModal() {
-    const modal = document.createElement('div');
+    const modal = document.createElement("div");
     modal.style.cssText = `
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.8); display: flex;
       justify-content: center; align-items: center; z-index: 10001;
     `;
-    
-    const modalContent = document.createElement('div');
+
+    const modalContent = document.createElement("div");
     modalContent.style.cssText = `
       background: #1a2332; border-radius: 16px; padding: 2rem;
       max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
       border: 2px solid #6EE7F7;
     `;
-    
+
     modalContent.innerHTML = `
       <h2 style="color: #6EE7F7; margin: 0 0 1rem 0;">📦 Export Project</h2>
       <p style="color: #d1dae3; margin-bottom: 1.5rem;">Choose where to save your ZIP:</p>
-      
+
       <div style="display: flex; flex-direction: column; gap: 0.75rem;">
         <button class="export-option" data-action="local" style="
           background: linear-gradient(90deg, #6EE7F7, #7C5CFF); color: #071422;
@@ -92,7 +62,7 @@ if (downloadFileBtn) {
             <div style="font-size: 0.85rem; opacity: 0.8; font-weight: 400;">Save ZIP to Downloads</div>
           </div>
         </button>
-        
+
         <button class="export-option" data-action="gdrive" style="
           background: rgba(255, 255, 255, 0.05); color: #f0f4f8;
           border: 1px solid rgba(110, 231, 247, 0.2); padding: 1rem;
@@ -104,7 +74,7 @@ if (downloadFileBtn) {
             <div style="font-size: 0.85rem; opacity: 0.7;">Download & upload to Drive</div>
           </div>
         </button>
-        
+
         <button class="export-option" data-action="onedrive" style="
           background: rgba(255, 255, 255, 0.05); color: #f0f4f8;
           border: 1px solid rgba(110, 231, 247, 0.2); padding: 1rem;
@@ -116,7 +86,7 @@ if (downloadFileBtn) {
             <div style="font-size: 0.85rem; opacity: 0.7;">Download & upload to OneDrive</div>
           </div>
         </button>
-        
+
         <button class="export-option" data-action="dropbox" style="
           background: rgba(255, 255, 255, 0.05); color: #f0f4f8;
           border: 1px solid rgba(110, 231, 247, 0.2); padding: 1rem;
@@ -129,40 +99,43 @@ if (downloadFileBtn) {
           </div>
         </button>
       </div>
-      
+
       <button id="closeModal" style="
         margin-top: 1.5rem; width: 100%; background: transparent;
         color: #a8b5c7; border: 1px solid rgba(255, 255, 255, 0.1);
         padding: 0.75rem; border-radius: 8px; cursor: pointer;
       ">Cancel</button>
     `;
-    
+
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
-    
+
     // Handle export actions
-    modalContent.addEventListener('click', async (e) => {
-      const btn = e.target.closest('.export-option');
+    modalContent.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".export-option");
       if (!btn) return;
-      
+
       const action = btn.dataset.action;
-      
+
       try {
-        // Save current file
-        files[activeFile] = window.editorInstance ? window.editorInstance.getValue() : files[activeFile];
-        
-        // Create ZIP
-        if (typeof JSZip === 'undefined') {
-          alert('JSZip library not loaded');
+        files[activeFile] = window.editorInstance
+          ? window.editorInstance.getValue()
+          : files[activeFile];
+
+        if (typeof JSZip === "undefined") {
+          alert("JSZip library not loaded");
           return;
         }
-        
+
         const zip = new JSZip();
         zip.file("index.html", files["index.html"]);
         zip.file("styles.css", files["styles.css"]);
         zip.file("script.js", files["script.js"]);
-        zip.file("README.md", `# NovaDev Project\n\nCreated with NovaDev IDE\n\nDate: ${new Date().toLocaleString()}`);
-        
+        zip.file(
+          "README.md",
+          `# NovaDev Project\n\nCreated with NovaDev IDE\n\nDate: ${new Date().toLocaleString()}`
+        );
+
         const blob = await zip.generateAsync({ type: "blob" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -170,37 +143,40 @@ if (downloadFileBtn) {
         a.download = `novadev-project-${Date.now()}.zip`;
         a.click();
         URL.revokeObjectURL(url);
-        
-        // Open cloud service if needed
-        if (action !== 'local') {
+
+        if (action !== "local") {
           setTimeout(() => {
             const urls = {
-              gdrive: 'https://drive.google.com/drive/upload',
-              onedrive: 'https://onedrive.live.com',
-              dropbox: 'https://www.dropbox.com/home'
+              gdrive: "https://drive.google.com/drive/upload",
+              onedrive: "https://onedrive.live.com",
+              dropbox: "https://www.dropbox.com/home",
             };
-            window.open(urls[action], '_blank');
+            window.open(urls[action], "_blank");
           }, 500);
         }
-        
+
         modal.remove();
       } catch (error) {
-        console.error('Export error:', error);
-        alert('Export failed: ' + error.message);
+        console.error("Export error:", error);
+        alert("Export failed: " + error.message);
       }
     });
-    
-    modalContent.querySelector('#closeModal').addEventListener('click', () => modal.remove());
-    modal.addEventListener('click', (e) => {
+
+    modalContent
+      .querySelector("#closeModal")
+      .addEventListener("click", () => modal.remove());
+    modal.addEventListener("click", (e) => {
       if (e.target === modal) modal.remove();
     });
   }
 
-  // Initialize Monaco Editor
-  require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs" } });
+  // --- Initialize Monaco Editor ---
+  require.config({
+    paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs" },
+  });
   require(["vs/editor/editor.main"], function () {
-    console.log('✅ Monaco loaded');
-    
+    console.log("✅ Monaco loaded");
+
     const editor = monaco.editor.create(container, {
       value: files[activeFile],
       language: "html",
@@ -210,48 +186,53 @@ if (downloadFileBtn) {
       minimap: { enabled: false },
       contextmenu: true,
       readOnly: false,
-      scrollbar: { vertical: 'visible', horizontal: 'visible' }
+      scrollbar: { vertical: "visible", horizontal: "visible" },
     });
-    
+
     window.editorInstance = editor;
 
-    // Load saved files from localStorage
+    // Load saved files
     const saved = localStorage.getItem("novadev-editor-files");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         Object.assign(files, parsed);
         editor.setValue(files[activeFile]);
-        console.log('✅ Loaded saved files');
+        console.log("✅ Loaded saved files");
       } catch (e) {
-        console.error('Failed to load saved files:', e);
+        console.error("Failed to load saved files:", e);
       }
     }
 
     // Tab switching
-    document.querySelectorAll(".file-tab").forEach(tab => {
+    document.querySelectorAll(".file-tab").forEach((tab) => {
       tab.addEventListener("click", () => {
         files[activeFile] = editor.getValue();
         activeFile = tab.dataset.file;
-        
-        document.querySelectorAll(".file-tab").forEach(t => t.classList.remove("active"));
+
+        document
+          .querySelectorAll(".file-tab")
+          .forEach((t) => t.classList.remove("active"));
         tab.classList.add("active");
-        
+
         editor.setValue(files[activeFile]);
-        
-        const language = activeFile.endsWith(".css") ? "css" : 
-                        activeFile.endsWith(".js") ? "javascript" : "html";
+
+        const language = activeFile.endsWith(".css")
+          ? "css"
+          : activeFile.endsWith(".js")
+          ? "javascript"
+          : "html";
         monaco.editor.setModelLanguage(editor.getModel(), language);
-        
+
         console.log(`Switched to ${activeFile}`);
       });
     });
 
-    // Run button - Update preview
+    // Run button
     runBtn.addEventListener("click", () => {
-      console.log('▶️ Running...');
+      console.log("▶️ Running...");
       files[activeFile] = editor.getValue();
-      
+
       const output = `<!DOCTYPE html>
 <html>
 <head>
@@ -262,30 +243,60 @@ if (downloadFileBtn) {
   <script>${files["script.js"]}<\/script>
 </body>
 </html>`;
-      
+
       preview.srcdoc = output;
-      console.log('✅ Preview updated');
+      console.log("✅ Preview updated");
     });
 
-    // Save button - Save to localStorage
+    // Save button
     saveBtn.addEventListener("click", () => {
-      console.log('💾 Saving...');
+      console.log("💾 Saving...");
       files[activeFile] = editor.getValue();
       localStorage.setItem("novadev-editor-files", JSON.stringify(files));
-      
+
       const original = saveBtn.textContent;
-      saveBtn.textContent = '✓ Saved';
-      setTimeout(() => { saveBtn.textContent = original; }, 1500);
-      
-      console.log('✅ Saved');
+      saveBtn.textContent = "✓ Saved";
+      setTimeout(() => {
+        saveBtn.textContent = original;
+      }, 1500);
+
+      console.log("✅ Saved");
     });
 
-    // Export button - Show cloud storage modal
+    // Export button
     exportBtn.addEventListener("click", () => {
-      console.log('📦 Exporting...');
+      console.log("📦 Exporting...");
       showCloudExportModal();
     });
 
-    console.log('✅ Editor fully initialized');
+    // --- DOWNLOAD SINGLE FILE ---
+    if (downloadFileBtn) {
+      downloadFileBtn.addEventListener("click", () => {
+        files[activeFile] = editor.getValue();
+        const fileName = activeFile || "index.html";
+
+        const mimeTypes = {
+          html: "text/html",
+          css: "text/css",
+          js: "application/javascript",
+        };
+        const ext = fileName.split(".").pop();
+        const mimeType = mimeTypes[ext] || "text/plain";
+
+        const blob = new Blob([files[fileName]], { type: mimeType });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = fileName;
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+
+        console.log(`✅ Downloaded ${fileName}`);
+      });
+    }
+
+    console.log("✅ Editor fully initialized");
   });
 }
