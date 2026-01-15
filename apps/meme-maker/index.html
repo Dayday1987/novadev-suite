@@ -28,8 +28,9 @@
       background: linear-gradient(90deg, #6EE7F7, #7C5CFF);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      font-size: 2rem;
+      font-size: 2.2rem;
       margin: 20px 0;
+      font-weight: 800;
     }
     .card {
       background: #0b1a28;
@@ -39,7 +40,7 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
 
-    /* CANVAS FIX */
+    /* Safari-Friendly Canvas Wrapper */
     #canvasWrapper {
       width: 100%;
       background: #000;
@@ -51,35 +52,34 @@
     }
     canvas { width: 100%; height: auto; display: block; }
 
-    /* INPUTS */
+    /* Inputs Stacking */
     .input-group {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       margin-bottom: 20px;
     }
     input {
       width: 100%;
-      padding: 12px;
+      padding: 14px;
       border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.1);
       background: rgba(255,255,255,0.05);
       color: #fff;
-      font-size: 16px; /* Prevents iOS zoom on focus */
+      font-size: 16px;
     }
 
-    /* BUTTONS GRID */
+    /* Professional Button Grid */
     .button-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr); /* 2 per row */
-      gap: 10px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
     }
-    /* Make the Share button span both columns if it's the main action */
-    #shareBtn { grid-column: span 2; }
+    #shareBtn { grid-column: span 2; } /* Main action takes full width */
 
     .btn {
-      padding: 12px;
-      border-radius: 8px;
+      padding: 14px;
+      border-radius: 10px;
       cursor: pointer;
       font-weight: 600;
       border: none;
@@ -89,51 +89,75 @@
       justify-content: center;
       position: relative;
       overflow: hidden;
-      text-decoration: none;
       transition: transform 0.1s;
+      z-index: 1;
     }
-    .btn:active { transform: scale(0.95); }
+    .btn:active { transform: scale(0.96); }
 
     .primary { background: linear-gradient(90deg, #6EE7F7, #7C5CFF); color: #04121a; }
     .facebook { background: #1877F2; color: white; }
     
+    /* GHOST BUTTONS WITH DUAL CODE STREAMS */
     .ghost {
-      background: rgba(7, 20, 34, 0.9);
+      background: rgba(7, 20, 34, 0.95);
       border: 1px solid #1a2633;
       color: #6EE7F7;
     }
 
-    /* Animated Code Effect */
+    /* Top layer code - Left to Right */
     .ghost::before {
-      content: "1010101100101010101101";
+      content: "101100110101011011010101011010110";
       position: absolute;
+      top: 4px;
+      left: 0;
       font-family: 'Fira Code', monospace;
       font-size: 8px;
-      color: rgba(110, 231, 247, 0.1);
+      color: rgba(110, 231, 247, 0.12);
       white-space: nowrap;
-      animation: scrollCode 5s linear infinite;
-      z-index: 0;
+      animation: scrollRight 6s linear infinite;
+      z-index: -1;
       pointer-events: none;
     }
-    @keyframes scrollCode {
+
+    /* Bottom layer code - Right to Left */
+    .ghost::after {
+      content: "001010111010001101011010101101010";
+      position: absolute;
+      bottom: 4px;
+      right: 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 8px;
+      color: rgba(124, 92, 255, 0.12);
+      white-space: nowrap;
+      animation: scrollLeft 4s linear infinite;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    @keyframes scrollRight {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(100%); }
+    }
+
+    @keyframes scrollLeft {
       from { transform: translateX(100%); }
       to { transform: translateX(-100%); }
     }
 
-    /* TOAST NOTIFICATION */
+    /* Toast Notification (Floating bottom center) */
     #toast {
       position: fixed;
-      bottom: 30px;
+      bottom: 40px;
       left: 50%;
-      transform: translate(-50%, 150px); /* Hidden by default */
+      transform: translate(-50%, 150px);
       background: #7C5CFF;
       color: white;
-      padding: 12px 25px;
+      padding: 12px 28px;
       border-radius: 50px;
-      font-weight: bold;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+      font-weight: 700;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
       transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 9999;
+      z-index: 10000;
     }
     #toast.show { transform: translate(-50%, 0); }
 
@@ -186,9 +210,11 @@
       }
 
       function drawMeme() {
+        // Render Background
         ctx.fillStyle = "#071422";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+        // Render Image
         if (loadedImage) {
           const scale = Math.max(canvas.width / loadedImage.width, canvas.height / loadedImage.height);
           const w = loadedImage.width * scale;
@@ -196,14 +222,15 @@
           ctx.drawImage(loadedImage, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
         }
 
+        // Render Text
         const top = topInput.value.toUpperCase();
         const bottom = bottomInput.value.toUpperCase();
         ctx.textAlign = 'center';
         ctx.fillStyle = 'white';
         ctx.strokeStyle = 'black';
-        ctx.lineWidth = 7;
+        ctx.lineWidth = 8;
         ctx.lineJoin = 'round';
-        ctx.font = "bold 70px 'Anton', sans-serif";
+        ctx.font = "bold 72px 'Anton', sans-serif";
 
         if (top) {
           ctx.strokeText(top, canvas.width / 2, 90);
@@ -245,15 +272,16 @@
         const blob = await (await fetch(dataUrl)).blob();
         const file = new File([blob], 'meme.png', { type: 'image/png' });
         if (navigator.share && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'Meme Maker' });
-        } else { alert("Share not supported, please Download!"); }
+          await navigator.share({ files: [file], title: 'NovaDev Meme Maker' });
+        } else { alert("Sharing not supported on this browser. Try Download!"); }
       };
 
       document.getElementById('fbBtn').onclick = () => {
         window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`, 'fb-share', 'width=600,height=400');
       };
 
-      setTimeout(drawMeme, 100);
+      // Ensure fonts load before first draw
+      setTimeout(drawMeme, 300);
     })();
   </script>
 </body>
