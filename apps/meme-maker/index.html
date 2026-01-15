@@ -4,12 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Meme Maker - NovaDev Suite</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
     body {
       margin: 0;
       padding: 20px;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background: linear-gradient(180deg, #04121a 0%, #071422 60%);
       color: #e6eef6;
       min-height: 100vh;
@@ -121,7 +122,7 @@
         <button id="resetMeme" class="btn ghost">Reset</button>
       </div>
 
-      <p class="muted">Tip: Use Impact-style text (uppercase) for classic memes.</p>
+      <p class="muted">Tip: Use uppercase text for classic memes.</p>
     </div>
   </div>
 
@@ -146,6 +147,7 @@
       function drawBase() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (loadedImage) {
+          ctx.imageSmoothingEnabled = true;
           const scale = Math.max(canvas.width / loadedImage.width, canvas.height / loadedImage.height);
           const w = loadedImage.width * scale;
           const h = loadedImage.height * scale;
@@ -198,7 +200,8 @@
         ctx.strokeStyle = 'black';
         ctx.lineWidth = Math.max(6, Math.round(baseFont / 10));
         ctx.textAlign = 'center';
-        ctx.font = `${baseFont}px Impact, Arial, sans-serif`;
+        // Updated font string to include 'Anton' (Google Font)
+        ctx.font = `${baseFont}px 'Anton', Impact, Arial, sans-serif`;
 
         const padding = Math.round(baseFont * 0.8);
         const topY = padding + baseFont;
@@ -248,7 +251,7 @@
         drawMemeCanvas();
       });
 
-            // Wait for all assets (fonts, etc.) to be ready before the first draw
+      // FIX: This event listener ensures the initial draw happens AFTER fonts and styles are loaded
       window.addEventListener('load', drawMemeCanvas);
     })();
   </script>
