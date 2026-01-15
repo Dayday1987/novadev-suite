@@ -10,9 +10,8 @@
     body {
       margin: 0;
       padding: 20px;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: #04121a; /* Fallback */
-      background: linear-gradient(180deg, #04121a 0%, #071422 60%);
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: #04121a;
       color: #e6eef6;
       min-height: 100vh;
     }
@@ -25,25 +24,28 @@
       background: linear-gradient(90deg, #6EE7F7, #7C5CFF);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      background-clip: text;
       margin-bottom: 30px;
     }
     .card {
       background: #0b1a28;
       border-radius: 12px;
       padding: 24px;
-      box-shadow: 0 12px 36px rgba(2,6,23,0.6);
-      border: 1px solid rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
     }
-    /* Fixed canvas style to ensure it doesn't collapse */
+    /* SAFARI FIX: Added -webkit-transform to force GPU stay active */
+    #canvasWrapper {
+      width: 100%;
+      background: #000;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      -webkit-transform: translate3d(0,0,0);
+      transform: translate3d(0,0,0);
+    }
     canvas {
       width: 100%;
-      max-width: 1000px;
       height: auto;
-      border-radius: 8px;
-      background: #070b10;
       display: block;
-      margin: 0 auto 16px auto;
     }
     .tool-row {
       display: flex;
@@ -51,54 +53,27 @@
       margin-top: 10px;
       flex-wrap: wrap;
     }
-    input[type="file"],
-    input[type="text"] {
+    input {
       flex: 1;
       min-width: 150px;
-      padding: 10px;
+      padding: 12px;
       border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.1);
       background: rgba(255,255,255,0.05);
-      color: #e6eef6;
-      font-family: inherit;
+      color: #fff;
     }
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border: none;
-      padding: 10px 14px;
+      padding: 12px 20px;
       border-radius: 10px;
       cursor: pointer;
-      text-decoration: none;
-      font-family: inherit;
-      font-size: 14px;
-      transition: transform 220ms;
-    }
-    .btn.primary {
-      background: linear-gradient(90deg, #6EE7F7, #7C5CFF);
-      color: #071422;
       font-weight: 600;
+      border: none;
+      transition: opacity 0.2s;
     }
-    .btn.ghost {
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.1);
-      color: #98a0b3;
-    }
-    .btn:hover {
-      transform: translateY(-2px);
-    }
-    .muted {
-      color: #98a0b3;
-      font-size: 14px;
-      margin-top: 12px;
-    }
-    .back-link {
-      display: inline-block;
-      margin-bottom: 20px;
-      color: #6EE7F7;
-      text-decoration: none;
-    }
+    .btn:active { opacity: 0.7; }
+    .primary { background: linear-gradient(90deg, #6EE7F7, #7C5CFF); color: #04121a; }
+    .ghost { background: transparent; border: 1px solid #333; color: #98a0b3; }
+    .back-link { color: #6EE7F7; text-decoration: none; margin-bottom: 20px; display: inline-block; }
   </style>
 </head>
 <body>
@@ -106,18 +81,20 @@
     <a href="../../index.html" class="back-link">← Back to Portfolio</a>
     <h1>Meme Maker</h1>
     <div class="card">
-      <canvas id="memeCanvas" width="1000" height="600"></canvas>
+      <div id="canvasWrapper">
+        <canvas id="memeCanvas" width="1000" height="600"></canvas>
+      </div>
+
       <div class="tool-row">
         <input id="imageInput" type="file" accept="image/*" />
-        <input id="topText" type="text" placeholder="Top text" />
-        <input id="bottomText" type="text" placeholder="Bottom text" />
+        <input id="topText" type="text" placeholder="TOP TEXT" />
+        <input id="bottomText" type="text" placeholder="BOTTOM TEXT" />
       </div>
-      <div class="tool-row">
-        <button id="drawMeme" class="btn primary">Draw</button>
-        <button id="downloadMeme" class="btn ghost">Download PNG</button>
-        <button id="resetMeme" class="btn ghost">Reset</button>
+
+      <div class="tool-row" style="margin-top: 20px;">
+        <button id="drawBtn" class="btn primary">Update Meme</button>
+        <button id="downloadBtn" class="btn ghost">Download PNG</button>
       </div>
-      <p class="muted">Tip: Use uppercase text for classic memes.</p>
     </div>
   </div>
 
@@ -126,76 +103,41 @@
       const canvas = document.getElementById('memeCanvas');
       const ctx = canvas.getContext('2d');
       const imageInput = document.getElementById('imageInput');
-      const topTextInput = document.getElementById('topText');
-      const bottomTextInput = document.getElementById('bottomText');
+      const topInput = document.getElementById('topText');
+      const bottomInput = document.getElementById('bottomText');
       
       let loadedImage = null;
 
-      function drawMemeCanvas() {
-        // Clear everything
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // 1. Draw Background
+      function drawMeme() {
+        // Clear and fill base
+        ctx.fillStyle = "#071422";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
         if (loadedImage) {
-          ctx.imageSmoothingEnabled = true;
           const scale = Math.max(canvas.width / loadedImage.width, canvas.height / loadedImage.height);
           const w = loadedImage.width * scale;
           const h = loadedImage.height * scale;
-          const x = (canvas.width - w) / 2;
-          const y = (canvas.height - h) / 2;
-          ctx.drawImage(loadedImage, x, y, w, h);
-        } else {
-          ctx.fillStyle = '#071422';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(loadedImage, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
         }
 
-        // 2. Draw Text
-        const top = (topTextInput.value || '').toUpperCase();
-        const bottom = (bottomTextInput.value || '').toUpperCase();
-        const baseFont = Math.max(28, Math.round(canvas.width / 15));
-        
+        const top = topInput.value.toUpperCase();
+        const bottom = bottomInput.value.toUpperCase();
+        const fontSize = 70;
+
+        ctx.font = `bold ${fontSize}px 'Anton', Impact, Arial, sans-serif`;
+        ctx.textAlign = 'center';
         ctx.fillStyle = 'white';
         ctx.strokeStyle = 'black';
-        ctx.lineWidth = Math.max(5, Math.round(baseFont / 8));
-        ctx.textAlign = 'center';
-        ctx.font = `${baseFont}px 'Anton', Impact, Arial, sans-serif`;
+        ctx.lineWidth = 7;
+        ctx.lineJoin = 'round';
 
-        const padding = Math.round(baseFont * 0.8);
-        
         if (top) {
-            wrapText(ctx, top, canvas.width / 2, padding + baseFont, canvas.width - 60, baseFont * 1.1, false);
+          ctx.strokeText(top, canvas.width / 2, fontSize + 20);
+          ctx.fillText(top, canvas.width / 2, fontSize + 20);
         }
         if (bottom) {
-            wrapText(ctx, bottom, canvas.width / 2, canvas.height - padding, canvas.width - 60, baseFont * 1.1, true);
-        }
-      }
-
-      function wrapText(ctx, text, x, y, maxWidth, lineHeight, fromBottom) {
-        const words = text.split(' ');
-        let lines = [];
-        let currentLine = words[0];
-
-        for (let i = 1; i < words.length; i++) {
-          let testLine = currentLine + ' ' + words[i];
-          if (ctx.measureText(testLine).width > maxWidth) {
-            lines.push(currentLine);
-            currentLine = words[i];
-          } else {
-            currentLine = testLine;
-          }
-        }
-        lines.push(currentLine);
-
-        if (fromBottom) {
-          lines.reverse().forEach((line, i) => {
-            ctx.strokeText(line, x, y - (i * lineHeight));
-            ctx.fillText(line, x, y - (i * lineHeight));
-          });
-        } else {
-          lines.forEach((line, i) => {
-            ctx.strokeText(line, x, y + (i * lineHeight));
-            ctx.fillText(line, x, y + (i * lineHeight));
-          });
+          ctx.strokeText(bottom, canvas.width / 2, canvas.height - 30);
+          ctx.fillText(bottom, canvas.width / 2, canvas.height - 30);
         }
       }
 
@@ -207,37 +149,29 @@
           const img = new Image();
           img.onload = () => {
             loadedImage = img;
-            drawMemeCanvas();
+            drawMeme();
           };
           img.src = event.target.result;
         };
         reader.readAsDataURL(file);
       });
 
-      // Update on typing
-      topTextInput.addEventListener('input', drawMemeCanvas);
-      bottomTextInput.addEventListener('input', drawMemeCanvas);
-      document.getElementById('drawMeme').addEventListener('click', drawMemeCanvas);
-      
-      document.getElementById('downloadMeme').addEventListener('click', () => {
+      // Safari Fix: Force a redraw when typing
+      topInput.addEventListener('input', drawMeme);
+      bottomInput.addEventListener('input', drawMeme);
+      document.getElementById('drawBtn').addEventListener('click', drawMeme);
+
+      document.getElementById('downloadBtn').onclick = () => {
         const link = document.createElement('a');
         link.download = 'meme.png';
-        link.href = canvas.toDataURL();
+        link.href = canvas.toDataURL('image/png');
         link.click();
-      });
+      };
 
-      document.getElementById('resetMeme').addEventListener('click', () => {
-        loadedImage = null;
-        imageInput.value = '';
-        topTextInput.value = '';
-        bottomTextInput.value = '';
-        drawMemeCanvas();
-      });
-
-      // HEALING LOGIC: Multiple attempts to draw to fix the "disappearing" bug
-      drawMemeCanvas(); // 1. Immediate
-      window.addEventListener('load', drawMemeCanvas); // 2. When fonts load
-      setTimeout(drawMemeCanvas, 500); // 3. Safety net after half a second
+      // Initial draw with a small Safari-friendly delay
+      setTimeout(drawMeme, 100);
+      // Extra kick for fonts
+      window.onload = drawMeme;
     })();
   </script>
 </body>
