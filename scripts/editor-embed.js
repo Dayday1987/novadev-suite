@@ -11,6 +11,40 @@ export function initEditor() {
   const saveBtn = document.getElementById("editorSave");
   const exportBtn = document.getElementById("editorExport");
   const preview = document.getElementById("editorPreview");
+  // Download single file
+const downloadFileBtn = document.getElementById("editorDownloadFile");
+if (downloadFileBtn) {
+  downloadFileBtn.addEventListener("click", () => {
+    const fileName = activeFile || "index.html";
+    const fileContent = editor.getValue();
+
+    // Set MIME type based on file extension
+    const mimeTypes = {
+      "html": "text/html",
+      "css": "text/css",
+      "js": "application/javascript"
+    };
+    const ext = fileName.split(".").pop();
+    const mimeType = mimeTypes[ext] || "text/plain";
+
+    // Create file blob and trigger download
+    const blob = new Blob([fileContent], { type: mimeType });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+
+    if (typeof showToast === "function") {
+      showToast(`💾 Downloaded ${fileName}`);
+    } else {
+      console.log(`Downloaded ${fileName}`);
+    }
+  });
+}
 
   if (!runBtn || !saveBtn || !exportBtn || !preview) {
     console.error('Missing editor elements');
