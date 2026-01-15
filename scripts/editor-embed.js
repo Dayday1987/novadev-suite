@@ -1,6 +1,6 @@
 // NovaDev Suite — Inline Live Editor
 // Full working version with cloud storage support
-
+console.log("🧩 editor-embed.js loaded");
 export function initEditor() {
   const container = document.getElementById("editorContainer");
   if (!container) return;
