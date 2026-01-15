@@ -13,7 +13,7 @@
   <meta property="og:description" content="Generate memes on the go. Optimized for all devices.">
   <meta property="og:image" content="https://dayday1987.github.io/novadev-suite/preview.jpg">
 
-  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700&family=Fira+Code:wght@400&display=swap" rel="stylesheet">
   
   <style>
     * { box-sizing: border-box; }
@@ -74,14 +74,53 @@
       justify-content: center;
       gap: 8px;
       font-family: inherit;
+      position: relative;
+      overflow: hidden;
     }
     .btn:active { transform: scale(0.96); }
-    .primary { background: linear-gradient(90deg, #6EE7F7, #7C5CFF); color: #04121a; }
-    .facebook { background: #1877F2; color: white; }
-    .ghost { background: transparent; border: 1px solid #333; color: #98a0b3; }
-    .back-link { color: #6EE7F7; text-decoration: none; margin-bottom: 20px; display: inline-block; }
+    
+    .primary { background: linear-gradient(90deg, #6EE7F7, #7C5CFF); color: #04121a; z-index: 1; }
 
-    /* Toast Notification Style */
+    /* --- ANIMATED CODE BUTTONS --- */
+    .ghost {
+      background: rgba(7, 20, 34, 0.8);
+      border: 1px solid #1a2633;
+      color: #6EE7F7;
+    }
+
+    /* Scrolling Code Effect */
+    .ghost::before {
+      content: "1011010010110010101101011001010110010110101010110101010101101";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 200%;
+      font-family: 'Fira Code', monospace;
+      font-size: 10px;
+      color: rgba(110, 231, 247, 0.15); /* Very subtle teal code */
+      white-space: nowrap;
+      pointer-events: none;
+      animation: scrollCode 5s linear infinite;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .ghost:hover::before {
+      opacity: 1;
+    }
+
+    .ghost:hover {
+      border-color: #6EE7F7;
+      box-shadow: 0 0 15px rgba(110, 231, 247, 0.2);
+    }
+
+    @keyframes scrollCode {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* Toast Notification */
     #toast {
       position: fixed;
       bottom: 20px;
@@ -97,6 +136,8 @@
       z-index: 1000;
     }
     #toast.show { transform: translateX(-50%) translateY(0); }
+    
+    .back-link { color: #6EE7F7; text-decoration: none; margin-bottom: 20px; display: inline-block; }
   </style>
 </head>
 <body>
@@ -189,11 +230,8 @@
       topInput.addEventListener('input', drawMeme);
       bottomInput.addEventListener('input', drawMeme);
 
-      // --- COPY LINK LOGIC ---
       document.getElementById('copyBtn').onclick = () => {
-        navigator.clipboard.writeText(window.location.href).then(() => {
-          showToast();
-        });
+        navigator.clipboard.writeText(window.location.href).then(showToast);
       };
 
       document.getElementById('shareBtn').onclick = async () => {
@@ -206,13 +244,13 @@
             await navigator.share({ files: [file], title: 'Meme Maker', text: 'Created with NovaDev Suite' });
           } catch (err) { console.log("Share cancelled"); }
         } else {
-            alert("Sharing not supported on this browser. Use the Download button!");
+            alert("Sharing not supported on this browser. Use Download!");
         }
       };
 
       document.getElementById('fbBtn').onclick = () => {
         const pageUrl = encodeURIComponent(window.location.href);
-        alert("Download your meme first, then upload it to your Facebook post for the best quality!");
+        alert("Download first for best quality!");
         window.open(`https://www.facebook.com/sharer/sharer.php?u=${pageUrl}`, 'fb-share', 'width=600,height=400');
       };
 
