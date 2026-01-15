@@ -1,719 +1,699 @@
-/* NovaDev IDE - Professional Web Development Environment */
+/* NovaDev IDE - Main Application */
 
-:root {
-  --bg-primary: #1e1e1e;
-  --bg-secondary: #252526;
-  --bg-tertiary: #2d2d30;
-  --bg-hover: #2a2d2e;
-  --border-color: #3e3e42;
-  --text-primary: #cccccc;
-  --text-secondary: #969696;
-  --text-muted: #6a6a6a;
-  --accent-blue: #007acc;
-  --accent-green: #4ec9b0;
-  --accent-orange: #ce9178;
-  --accent-purple: #c586c0;
-  --activity-bar-width: 48px;
-  --sidebar-width: 250px;
-  --panel-height: 200px;
-  --status-bar-height: 22px;
-}
+(() => {
+  'use strict';
 
-* {
-  box-sizing: border-box;
+  // Configuration
+  const MONACO_BASE = 'https://unpkg.com/monaco-editor@0.44.0/min/vs';
+  const STORAGE_KEY = 'novadev_ide_project_v1';
+  const SETTINGS_KEY = 'novadev_ide_settings_v1';
+
+  // State
+  let editor = null;
+  let currentFile = null;
+  let project = {
+    name: 'my-project',
+    files: {
+      'index.html': {
+        content: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NovaDev Project</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Welcome to NovaDev IDE</h1>
+  <p>Start building your project!</p>
+  <script src="script.js"></script>
+</body>
+</html>`,
+        language: 'html'
+      },
+      'style.css': {
+        content: `body {
+  font-family: system-ui, -apple-system, sans-serif;
   margin: 0;
-  padding: 0;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 13px;
-  color: var(--text-primary);
-  background: var(--bg-primary);
-  overflow: hidden;
-  height: 100vh;
-}
-
-/* IDE Container */
-.ide-container {
-  display: flex;
-  height: calc(100vh - var(--status-bar-height));
-  width: 100vw;
-}
-
-/* Activity Bar */
-.activity-bar {
-  width: var(--activity-bar-width);
-  background: var(--bg-tertiary);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px 0;
-  border-right: 1px solid var(--border-color);
-}
-
-.activity-btn {
-  width: 48px;
-  height: 48px;
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  transition: color 0.2s;
-}
-
-.activity-btn:hover {
-  color: var(--text-primary);
-}
-
-.activity-btn.active {
-  color: var(--text-primary);
-}
-
-.activity-btn.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--accent-blue);
-}
-
-.activity-spacer {
-  flex: 1;
-}
-
-/* Sidebar */
-.sidebar {
-  width: var(--sidebar-width);
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.sidebar-view {
-  display: none;
-  flex-direction: column;
-  height: 100%;
-}
-
-.sidebar-view.active {
-  display: flex;
-}
-
-.sidebar-header {
-  padding: 12px 16px;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.sidebar-header h3 {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  color: var(--text-secondary);
-}
-
-.sidebar-actions {
-  display: flex;
-  gap: 4px;
-}
-
-.sidebar-actions button {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 4px 8px;
-  font-size: 16px;
-}
-
-.sidebar-actions button:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-}
-
-.sidebar-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px;
-}
-
-/* Project Name */
-.project-name {
-  padding: 8px 0;
-  margin-bottom: 8px;
-}
-
-.project-name input {
-  width: 100%;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  padding: 6px 8px;
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-/* File Tree */
-.file-tree {
-  user-select: none;
-}
-
-.file-item {
-  padding: 4px 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: 4px;
-  transition: background 0.1s;
-}
-
-.file-item:hover {
-  background: var(--bg-hover);
-}
-
-.file-item.active {
-  background: var(--bg-hover);
-  color: var(--accent-blue);
-}
-
-.file-icon {
-  font-size: 16px;
-}
-
-.file-name {
-  flex: 1;
-  font-size: 13px;
-}
-
-.file-actions {
-  display: none;
-  gap: 4px;
-}
-
-.file-item:hover .file-actions {
-  display: flex;
-}
-
-.file-action-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 2px 4px;
-  font-size: 12px;
-}
-
-.file-action-btn:hover {
-  color: var(--text-primary);
-}
-
-/* Search */
-#searchInput {
-  width: 100%;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  padding: 8px;
-  border-radius: 4px;
-  margin-bottom: 12px;
-}
-
-.search-results {
-  font-size: 12px;
-}
-
-.search-result-item {
-  padding: 6px 8px;
-  margin-bottom: 4px;
-  background: var(--bg-tertiary);
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.search-result-item:hover {
-  background: var(--bg-hover);
-}
-
-/* Git Panel */
-.git-status {
-  padding: 8px 0;
-}
-
-.git-panel {
-  margin-top: 12px;
-}
-
-.git-panel input {
-  width: 100%;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  padding: 8px;
-  border-radius: 4px;
-  margin-bottom: 8px;
-}
-
-.changed-files {
-  margin-top: 12px;
-}
-
-.changed-file {
-  padding: 6px 8px;
-  background: var(--bg-tertiary);
-  border-radius: 4px;
-  margin-bottom: 4px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-/* Extensions */
-.extension-item {
-  padding: 12px;
-  background: var(--bg-tertiary);
-  border-radius: 4px;
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.ext-info strong {
-  display: block;
-  margin-bottom: 4px;
-}
-
-.ext-info p {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-/* Main Area */
-.main-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* Editor Tabs */
-.editor-tabs {
-  display: flex;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  overflow-x: auto;
-  height: 35px;
-}
-
-.editor-tab {
-  padding: 8px 16px;
-  background: var(--bg-secondary);
-  border: none;
-  border-right: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  white-space: nowrap;
-  transition: background 0.1s;
-}
-
-.editor-tab:hover {
-  background: var(--bg-hover);
-}
-
-.editor-tab.active {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  border-top: 1px solid var(--accent-blue);
-}
-
-.editor-tab .close-tab {
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.editor-tab:hover .close-tab {
-  opacity: 1;
-}
-
-.close-tab {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 0;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.close-tab:hover {
-  color: var(--text-primary);
-}
-
-/* Editor Wrapper */
-.editor-wrapper {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
-
-.editor-container {
-  flex: 1;
-  height: 100%;
-}
-
-/* Panel */
-.panel {
-  height: var(--panel-height);
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-}
-
-.panel-tabs {
-  display: flex;
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
-  height: 35px;
-}
-
-.panel-tab {
-  padding: 8px 16px;
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  transition: color 0.2s;
-}
-
-.panel-tab:hover {
-  color: var(--text-primary);
-}
-
-.panel-tab.active {
-  color: var(--text-primary);
-  border-bottom: 1px solid var(--accent-blue);
-}
-
-.panel-content {
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-}
-
-.panel-view {
-  display: none;
-  height: 100%;
-  overflow-y: auto;
-}
-
-.panel-view.active {
-  display: block;
-}
-
-/* Terminal */
-.terminal-output {
-  padding: 8px 12px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 13px;
-  line-height: 1.5;
-  height: calc(100% - 30px);
-  overflow-y: auto;
-}
-
-.terminal-line {
-  margin-bottom: 4px;
-}
-
-.terminal-input-wrapper {
-  display: flex;
-  align-items: center;
-  padding: 4px 12px;
-  background: var(--bg-tertiary);
-  border-top: 1px solid var(--border-color);
-}
-
-.terminal-prompt {
-  color: var(--accent-green);
-  margin-right: 8px;
-  font-family: 'Courier New', Courier, monospace;
-}
-
-.terminal-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 13px;
-  outline: none;
-}
-
-/* Output Panel */
-.output-content,
-.problems-content,
-.debug-content {
-  padding: 12px;
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 12px;
-}
-
-/* Status Bar */
-.status-bar {
-  height: var(--status-bar-height);
-  background: var(--accent-blue);
-  color: white;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 12px;
-  font-size: 12px;
-}
-
-.status-left,
-.status-right {
-  display: flex;
-  gap: 16px;
-}
-
-.status-item {
-  cursor: pointer;
-  padding: 0 4px;
-}
-
-.status-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* Command Palette */
-.command-palette {
-  position: fixed;
-  top: 20%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 600px;
-  max-width: 90vw;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-}
-
-.command-palette.hidden {
-  display: none;
-}
-
-#commandInput {
-  width: 100%;
-  padding: 12px 16px;
-  background: var(--bg-tertiary);
-  border: none;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 14px;
-  outline: none;
-}
-
-.command-results {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.command-item {
-  padding: 10px 16px;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.command-item:hover {
-  background: var(--bg-hover);
-}
-
-.command-item.selected {
-  background: var(--accent-blue);
-  color: white;
-}
-
-/* Settings Panel */
-.settings-panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 400px;
-  max-width: 90vw;
-  height: 100vh;
-  background: var(--bg-secondary);
-  border-left: 1px solid var(--border-color);
-  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
-  display: flex;
-  flex-direction: column;
-}
-
-.settings-panel.hidden {
-  display: none;
-}
-
-.settings-header {
-  padding: 16px;
-  background: var(--bg-tertiary);
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.settings-header h2 {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.close-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 24px;
-  line-height: 1;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-}
-
-.close-btn:hover {
-  color: var(--text-primary);
-  background: var(--bg-hover);
-  border-radius: 4px;
-}
-
-.settings-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px;
-}
-
-.setting-group {
-  margin-bottom: 20px;
-}
-
-.setting-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.setting-group input[type="number"],
-.setting-group select {
-  width: 100%;
-  padding: 8px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  border-radius: 4px;
-  font-size: 13px;
-}
-
-.setting-group input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-
-/* Buttons */
-.btn {
-  padding: 8px 16px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: background 0.2s;
-}
-
-.btn:hover {
-  background: var(--bg-hover);
-}
-
-.btn.primary {
-  background: var(--accent-blue);
-  border-color: var(--accent-blue);
-  color: white;
-}
-
-.btn.primary:hover {
-  background: #006bb3;
-}
-
-.btn.ghost {
-  background: transparent;
-}
-
-/* Utilities */
-.muted {
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.hidden {
-  display: none !important;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--bg-tertiary);
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--border-color);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  :root {
-    --sidebar-width: 200px;
-    --panel-height: 150px;
+  padding: 20px;
+  background: #f5f5f5;
+}
+
+h1 {
+  color: #333;
+}`,
+        language: 'css'
+      },
+      'script.js': {
+        content: `console.log('NovaDev IDE is ready!');
+
+// Your code here
+`,
+        language: 'javascript'
+      }
+    }
+  };
+
+  let settings = {
+    theme: 'vs-dark',
+    fontSize: 14,
+    tabSize: 2,
+    wordWrap: 'off',
+    minimap: true,
+    lineNumbers: true
+  };
+
+  // DOM Elements
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => document.querySelectorAll(sel);
+
+  // Initialize
+  function init() {
+    loadSettings();
+    loadProject();
+    setupActivityBar();
+    setupSidebar();
+    setupCommandPalette();
+    setupSettings();
+    setupTerminal();
+    setupPanelTabs();
+    initMonaco();
   }
-  
-  .command-palette {
-    width: 90vw;
+
+  // Load settings from localStorage
+  function loadSettings() {
+    const saved = localStorage.getItem(SETTINGS_KEY);
+    if (saved) {
+      settings = { ...settings, ...JSON.parse(saved) };
+    }
+    applySettings();
   }
-  
-  .settings-panel {
-    width: 100vw;
+
+  // Save settings to localStorage
+  function saveSettings() {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
-}
+
+  // Apply settings to UI
+  function applySettings() {
+    $('#themeSelect').value = settings.theme;
+    $('#fontSizeInput').value = settings.fontSize;
+    $('#tabSizeInput').value = settings.tabSize;
+    $('#wordWrapSelect').value = settings.wordWrap;
+    $('#minimapToggle').checked = settings.minimap;
+    $('#lineNumbersToggle').checked = settings.lineNumbers;
+  }
+
+  // Load project from localStorage
+  function loadProject() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        project = JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to load project:', e);
+      }
+    }
+    $('#projectNameInput').value = project.name;
+    renderFileTree();
+  }
+
+  // Save project to localStorage
+  function saveProject() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+  }
+
+  // Activity Bar
+  function setupActivityBar() {
+    $$('.activity-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const view = btn.dataset.view;
+        
+        if (view === 'settings') {
+          $('#settingsPanel').classList.remove('hidden');
+          return;
+        }
+
+        // Update active state
+        $$('.activity-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Show corresponding sidebar view
+        $$('.sidebar-view').forEach(v => v.classList.remove('active'));
+        $(`#${view}View`).classList.add('active');
+      });
+    });
+  }
+
+  // Sidebar
+  function setupSidebar() {
+    // New File
+    $('#newFileBtn').addEventListener('click', () => {
+      const name = prompt('Enter file name:');
+      if (name && !project.files[name]) {
+        const ext = name.split('.').pop();
+        const language = getLanguageFromExtension(ext);
+        project.files[name] = {
+          content: '',
+          language
+        };
+        saveProject();
+        renderFileTree();
+        openFile(name);
+      }
+    });
+
+    // New Folder (simplified - just prefix)
+    $('#newFolderBtn').addEventListener('click', () => {
+      const name = prompt('Enter folder name:');
+      if (name) {
+        alert('Folder support coming soon! For now, use file names like "folder/file.js"');
+      }
+    });
+
+    // Project name
+    $('#projectNameInput').addEventListener('change', (e) => {
+      project.name = e.target.value;
+      saveProject();
+    });
+
+    // Search
+    $('#searchInput').addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      if (!query) {
+        $('#searchResults').innerHTML = '';
+        return;
+      }
+
+      const results = [];
+      Object.keys(project.files).forEach(filename => {
+        const content = project.files[filename].content;
+        const lines = content.split('\n');
+        lines.forEach((line, index) => {
+          if (line.toLowerCase().includes(query)) {
+            results.push({ filename, line: index + 1, text: line.trim() });
+          }
+        });
+      });
+
+      renderSearchResults(results);
+    });
+
+    // Git
+    $('#gitInitBtn').addEventListener('click', () => {
+      $('#gitPanel').classList.remove('hidden');
+      addTerminalLine('Initialized empty Git repository');
+    });
+
+    $('#commitBtn').addEventListener('click', () => {
+      const message = $('#commitMessage').value;
+      if (message) {
+        addTerminalLine(`[main ${Math.random().toString(36).substr(2, 7)}] ${message}`);
+        addTerminalLine(`${Object.keys(project.files).length} files changed`);
+        $('#commitMessage').value = '';
+      }
+    });
+  }
+
+  // Render file tree
+  function renderFileTree() {
+    const tree = $('#fileTree');
+    tree.innerHTML = '';
+
+    Object.keys(project.files).sort().forEach(filename => {
+      const item = document.createElement('div');
+      item.className = 'file-item';
+      if (currentFile === filename) {
+        item.classList.add('active');
+      }
+
+      const icon = document.createElement('span');
+      icon.className = 'file-icon';
+      icon.textContent = getFileIcon(filename);
+
+      const name = document.createElement('span');
+      name.className = 'file-name';
+      name.textContent = filename;
+
+      const actions = document.createElement('div');
+      actions.className = 'file-actions';
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'file-action-btn';
+      deleteBtn.textContent = '×';
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm(`Delete ${filename}?`)) {
+          delete project.files[filename];
+          saveProject();
+          renderFileTree();
+          if (currentFile === filename) {
+            const remaining = Object.keys(project.files)[0];
+            if (remaining) {
+              openFile(remaining);
+            } else {
+              currentFile = null;
+              renderTabs();
+            }
+          }
+        }
+      });
+
+      actions.appendChild(deleteBtn);
+      item.appendChild(icon);
+      item.appendChild(name);
+      item.appendChild(actions);
+
+      item.addEventListener('click', () => openFile(filename));
+      tree.appendChild(item);
+    });
+  }
+
+  // Get file icon
+  function getFileIcon(filename) {
+    const ext = filename.split('.').pop();
+    const icons = {
+      html: '📄',
+      css: '🎨',
+      js: '📜',
+      json: '📋',
+      md: '📝',
+      txt: '📃'
+    };
+    return icons[ext] || '📄';
+  }
+
+  // Get language from extension
+  function getLanguageFromExtension(ext) {
+    const map = {
+      html: 'html',
+      css: 'css',
+      js: 'javascript',
+      json: 'json',
+      md: 'markdown',
+      txt: 'plaintext'
+    };
+    return map[ext] || 'plaintext';
+  }
+
+  // Open file
+  function openFile(filename) {
+    if (!project.files[filename]) return;
+
+    // Save current file content
+    if (currentFile && editor) {
+      project.files[currentFile].content = editor.getValue();
+      saveProject();
+    }
+
+    currentFile = filename;
+    renderFileTree();
+    renderTabs();
+
+    if (editor) {
+      const file = project.files[filename];
+      const model = monaco.editor.createModel(
+        file.content,
+        file.language
+      );
+      editor.setModel(model);
+      updateStatusBar();
+    }
+  }
+
+  // Render tabs
+  function renderTabs() {
+    const tabs = $('#editorTabs');
+    tabs.innerHTML = '';
+
+    if (!currentFile) return;
+
+    const tab = document.createElement('div');
+    tab.className = 'editor-tab active';
+
+    const icon = document.createElement('span');
+    icon.textContent = getFileIcon(currentFile);
+
+    const name = document.createElement('span');
+    name.textContent = currentFile;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-tab';
+    closeBtn.textContent = '×';
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // For now, just switch to another file
+      const files = Object.keys(project.files);
+      const index = files.indexOf(currentFile);
+      const nextFile = files[index + 1] || files[index - 1];
+      if (nextFile) {
+        openFile(nextFile);
+      }
+    });
+
+    tab.appendChild(icon);
+    tab.appendChild(name);
+    tab.appendChild(closeBtn);
+    tabs.appendChild(tab);
+  }
+
+  // Render search results
+  function renderSearchResults(results) {
+    const container = $('#searchResults');
+    container.innerHTML = '';
+
+    if (results.length === 0) {
+      container.innerHTML = '<p class="muted">No results found</p>';
+      return;
+    }
+
+    results.forEach(result => {
+      const item = document.createElement('div');
+      item.className = 'search-result-item';
+      item.innerHTML = `
+        <div><strong>${result.filename}</strong> : ${result.line}</div>
+        <div class="muted">${result.text}</div>
+      `;
+      item.addEventListener('click', () => {
+        openFile(result.filename);
+        if (editor) {
+          editor.setPosition({ lineNumber: result.line, column: 1 });
+          editor.revealLineInCenter(result.line);
+        }
+      });
+      container.appendChild(item);
+    });
+  }
+
+  // Command Palette
+  function setupCommandPalette() {
+    const palette = $('#commandPalette');
+    const input = $('#commandInput');
+    const results = $('#commandResults');
+
+    const commands = [
+      { name: 'File: New File', action: () => $('#newFileBtn').click() },
+      { name: 'File: Save', action: () => saveProject() },
+      { name: 'View: Toggle Terminal', action: () => togglePanel() },
+      { name: 'View: Command Palette', action: () => {} },
+      { name: 'Preferences: Open Settings', action: () => $('#settingsPanel').classList.remove('hidden') },
+      { name: 'Git: Initialize Repository', action: () => $('#gitInitBtn').click() },
+      { name: 'Format Document', action: () => formatDocument() },
+      { name: 'Export Project', action: () => exportProject() }
+    ];
+
+    // Toggle with Ctrl+Shift+P
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
+        e.preventDefault();
+        palette.classList.toggle('hidden');
+        if (!palette.classList.contains('hidden')) {
+          input.focus();
+        }
+      }
+      // Close with Escape
+      if (e.key === 'Escape') {
+        palette.classList.add('hidden');
+      }
+    });
+
+    input.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = commands.filter(cmd => 
+        cmd.name.toLowerCase().includes(query)
+      );
+
+      results.innerHTML = '';
+      filtered.forEach((cmd, index) => {
+        const item = document.createElement('div');
+        item.className = 'command-item';
+        if (index === 0) item.classList.add('selected');
+        item.textContent = cmd.name;
+        item.addEventListener('click', () => {
+          cmd.action();
+          palette.classList.add('hidden');
+          input.value = '';
+        });
+        results.appendChild(item);
+      });
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const selected = results.querySelector('.command-item.selected');
+        if (selected) {
+          selected.click();
+        }
+      }
+    });
+  }
+
+  // Settings
+  function setupSettings() {
+    $('#closeSettings').addEventListener('click', () => {
+      $('#settingsPanel').classList.add('hidden');
+    });
+
+    $('#themeSelect').addEventListener('change', (e) => {
+      settings.theme = e.target.value;
+      if (editor) {
+        monaco.editor.setTheme(settings.theme);
+      }
+      saveSettings();
+    });
+
+    $('#fontSizeInput').addEventListener('change', (e) => {
+      settings.fontSize = parseInt(e.target.value);
+      if (editor) {
+        editor.updateOptions({ fontSize: settings.fontSize });
+      }
+      saveSettings();
+    });
+
+    $('#tabSizeInput').addEventListener('change', (e) => {
+      settings.tabSize = parseInt(e.target.value);
+      if (editor) {
+        editor.updateOptions({ tabSize: settings.tabSize });
+      }
+      saveSettings();
+    });
+
+    $('#wordWrapSelect').addEventListener('change', (e) => {
+      settings.wordWrap = e.target.value;
+      if (editor) {
+        editor.updateOptions({ wordWrap: settings.wordWrap });
+      }
+      saveSettings();
+    });
+
+    $('#minimapToggle').addEventListener('change', (e) => {
+      settings.minimap = e.target.checked;
+      if (editor) {
+        editor.updateOptions({ minimap: { enabled: settings.minimap } });
+      }
+      saveSettings();
+    });
+
+    $('#lineNumbersToggle').addEventListener('change', (e) => {
+      settings.lineNumbers = e.target.checked;
+      if (editor) {
+        editor.updateOptions({ lineNumbers: settings.lineNumbers ? 'on' : 'off' });
+      }
+      saveSettings();
+    });
+  }
+
+  // Terminal
+  function setupTerminal() {
+    const input = $('#terminalInput');
+    const output = $('#terminalOutput');
+
+    // Welcome message
+    addTerminalLine('NovaDev IDE Terminal v1.0.0');
+    addTerminalLine('Type "help" for available commands');
+    addTerminalLine('');
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const command = input.value.trim();
+        if (command) {
+          addTerminalLine(`$ ${command}`);
+          executeCommand(command);
+          input.value = '';
+        }
+      }
+    });
+  }
+
+  function addTerminalLine(text) {
+    const output = $('#terminalOutput');
+    const line = document.createElement('div');
+    line.className = 'terminal-line';
+    line.textContent = text;
+    output.appendChild(line);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function executeCommand(command) {
+    const parts = command.split(' ');
+    const cmd = parts[0];
+
+    switch (cmd) {
+      case 'help':
+        addTerminalLine('Available commands:');
+        addTerminalLine('  help     - Show this help message');
+        addTerminalLine('  clear    - Clear terminal');
+        addTerminalLine('  ls       - List files');
+        addTerminalLine('  cat      - Show file content');
+        addTerminalLine('  pwd      - Print working directory');
+        addTerminalLine('  echo     - Print message');
+        break;
+      case 'clear':
+        $('#terminalOutput').innerHTML = '';
+        break;
+      case 'ls':
+        Object.keys(project.files).forEach(file => {
+          addTerminalLine(`  ${file}`);
+        });
+        break;
+      case 'cat':
+        if (parts[1] && project.files[parts[1]]) {
+          addTerminalLine(project.files[parts[1]].content);
+        } else {
+          addTerminalLine(`cat: ${parts[1]}: No such file`);
+        }
+        break;
+      case 'pwd':
+        addTerminalLine(`/${project.name}`);
+        break;
+      case 'echo':
+        addTerminalLine(parts.slice(1).join(' '));
+        break;
+      default:
+        addTerminalLine(`${cmd}: command not found`);
+    }
+  }
+
+  // Panel Tabs
+  function setupPanelTabs() {
+    $$('.panel-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const panel = tab.dataset.panel;
+        
+        $$('.panel-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        $$('.panel-view').forEach(v => v.classList.remove('active'));
+        $(`#${panel}Panel`).classList.add('active');
+      });
+    });
+  }
+
+  function togglePanel() {
+    const panel = $('.panel');
+    panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+  }
+
+  // Monaco Editor
+  function initMonaco() {
+    require.config({ paths: { vs: MONACO_BASE } });
+    require(['vs/editor/editor.main'], () => {
+      const firstFile = Object.keys(project.files)[0];
+      const file = project.files[firstFile];
+
+      editor = monaco.editor.create($('#editorContainer'), {
+        value: file.content,
+        language: file.language,
+        theme: settings.theme,
+        fontSize: settings.fontSize,
+        tabSize: settings.tabSize,
+        wordWrap: settings.wordWrap,
+        minimap: { enabled: settings.minimap },
+        lineNumbers: settings.lineNumbers ? 'on' : 'off',
+        automaticLayout: true,
+        scrollBeyondLastLine: false,
+        renderWhitespace: 'selection',
+        cursorBlinking: 'smooth',
+        cursorSmoothCaretAnimation: true
+      });
+
+      currentFile = firstFile;
+      renderFileTree();
+      renderTabs();
+
+      // Auto-save on change
+      editor.onDidChangeModelContent(() => {
+        if (currentFile) {
+          project.files[currentFile].content = editor.getValue();
+          saveProject();
+          updateStatusBar();
+        }
+      });
+
+      // Update cursor position
+      editor.onDidChangeCursorPosition(() => {
+        updateStatusBar();
+      });
+
+      // Keyboard shortcuts
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, () => {
+        saveProject();
+        addTerminalLine('Project saved');
+      });
+
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_B, () => {
+        $('.sidebar').style.display = 
+          $('.sidebar').style.display === 'none' ? 'flex' : 'none';
+      });
+
+      updateStatusBar();
+    });
+  }
+
+  // Update status bar
+  function updateStatusBar() {
+    if (!editor || !currentFile) return;
+
+    const position = editor.getPosition();
+    $('#cursorPosition').textContent = `Ln ${position.lineNumber}, Col ${position.column}`;
+
+    const language = project.files[currentFile].language;
+    $('#fileLanguage').textContent = language.toUpperCase();
+  }
+
+  // Format document
+  function formatDocument() {
+    if (editor) {
+      editor.getAction('editor.action.formatDocument').run();
+      addTerminalLine('Document formatted');
+    }
+  }
+
+  // Export project
+  function exportProject() {
+    // Create a simple HTML export
+    const html = project.files['index.html']?.content || '';
+    const css = project.files['style.css']?.content || '';
+    const js = project.files['script.js']?.content || '';
+
+    const fullHTML = html.replace('</head>', `<style>${css}</style></head>`)
+                         .replace('</body>', `<script>${js}</script></body>`);
+
+    const blob = new Blob([fullHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${project.name}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    addTerminalLine(`Exported ${project.name}.html`);
+  }
+
+  // Start the IDE
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
