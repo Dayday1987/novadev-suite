@@ -39,8 +39,8 @@
       padding: 24px;
       border: 1px solid rgba(255,255,255,0.05);
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      position: relative;
     }
-    /* SAFARI FIX: Hardware Acceleration Wrapper */
     #canvasWrapper {
       width: 100%;
       background: #000;
@@ -80,9 +80,28 @@
     .facebook { background: #1877F2; color: white; }
     .ghost { background: transparent; border: 1px solid #333; color: #98a0b3; }
     .back-link { color: #6EE7F7; text-decoration: none; margin-bottom: 20px; display: inline-block; }
+
+    /* Toast Notification Style */
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #7C5CFF;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 50px;
+      font-weight: bold;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: transform 0.3s ease;
+      z-index: 1000;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
+  <div id="toast">Link Copied!</div>
+
   <div class="container">
     <a href="../../index.html" class="back-link">← Back to Portfolio</a>
     <h1>Meme Maker</h1>
@@ -99,10 +118,8 @@
 
       <div class="tool-row" style="margin-top: 20px;">
         <button id="shareBtn" class="btn primary">Share Meme</button>
-        <button id="fbBtn" class="btn facebook">
-          <svg style="width:18px;height:18px" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.04C6.5 2.04 2 6.53 2 12.06C2 17.06 5.66 21.21 10.44 21.96V14.96H7.9V12.06H10.44V9.85C10.44 7.34 11.93 5.96 14.22 5.96C15.31 5.96 16.45 6.15 16.45 6.15V8.62H15.19C13.95 8.62 13.56 9.39 13.56 10.18V12.06H16.34L15.89 14.96H13.56V21.96A10 10 0 0 0 22 12.06C22 6.53 17.5 2.04 12 2.04Z" /></svg>
-          Facebook
-        </button>
+        <button id="fbBtn" class="btn facebook">Facebook</button>
+        <button id="copyBtn" class="btn ghost">Copy Link</button>
         <button id="downloadBtn" class="btn ghost">Download</button>
         <button onclick="location.reload()" class="btn ghost">Reset</button>
       </div>
@@ -116,8 +133,14 @@
       const imageInput = document.getElementById('imageInput');
       const topInput = document.getElementById('topText');
       const bottomInput = document.getElementById('bottomText');
+      const toast = document.getElementById('toast');
       
       let loadedImage = null;
+
+      function showToast() {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      }
 
       function drawMeme() {
         ctx.fillStyle = "#071422";
@@ -165,6 +188,13 @@
 
       topInput.addEventListener('input', drawMeme);
       bottomInput.addEventListener('input', drawMeme);
+
+      // --- COPY LINK LOGIC ---
+      document.getElementById('copyBtn').onclick = () => {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          showToast();
+        });
+      };
 
       document.getElementById('shareBtn').onclick = async () => {
         const dataUrl = canvas.toDataURL('image/png');
