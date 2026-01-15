@@ -11,6 +11,7 @@
       margin: 0;
       padding: 20px;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #04121a; /* Fallback */
       background: linear-gradient(180deg, #04121a 0%, #071422 60%);
       color: #e6eef6;
       min-height: 100vh;
@@ -34,13 +35,15 @@
       box-shadow: 0 12px 36px rgba(2,6,23,0.6);
       border: 1px solid rgba(255,255,255,0.02);
     }
+    /* Fixed canvas style to ensure it doesn't collapse */
     canvas {
       width: 100%;
+      max-width: 1000px;
       height: auto;
       border-radius: 8px;
       background: #070b10;
       display: block;
-      margin-bottom: 16px;
+      margin: 0 auto 16px auto;
     }
     .tool-row {
       display: flex;
@@ -70,7 +73,7 @@
       text-decoration: none;
       font-family: inherit;
       font-size: 14px;
-      transition: transform 220ms, box-shadow 220ms;
+      transition: transform 220ms;
     }
     .btn.primary {
       background: linear-gradient(90deg, #6EE7F7, #7C5CFF);
@@ -96,32 +99,24 @@
       color: #6EE7F7;
       text-decoration: none;
     }
-    .back-link:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
   <div class="container">
     <a href="../../index.html" class="back-link">← Back to Portfolio</a>
-    
     <h1>Meme Maker</h1>
-    
     <div class="card">
-      <canvas id="memeCanvas" width="1000" height="600" aria-label="Meme canvas"></canvas>
-
+      <canvas id="memeCanvas" width="1000" height="600"></canvas>
       <div class="tool-row">
         <input id="imageInput" type="file" accept="image/*" />
         <input id="topText" type="text" placeholder="Top text" />
         <input id="bottomText" type="text" placeholder="Bottom text" />
       </div>
-
       <div class="tool-row">
         <button id="drawMeme" class="btn primary">Draw</button>
         <button id="downloadMeme" class="btn ghost">Download PNG</button>
         <button id="resetMeme" class="btn ghost">Reset</button>
       </div>
-
       <p class="muted">Tip: Use uppercase text for classic memes.</p>
     </div>
   </div>
@@ -133,19 +128,14 @@
       const imageInput = document.getElementById('imageInput');
       const topTextInput = document.getElementById('topText');
       const bottomTextInput = document.getElementById('bottomText');
-      const drawBtn = document.getElementById('drawMeme');
-      const downloadBtn = document.getElementById('downloadMeme');
-      const resetBtn = document.getElementById('resetMeme');
-
-      const CANVAS_W = 1000;
-      const CANVAS_H = 600;
-      canvas.width = CANVAS_W;
-      canvas.height = CANVAS_H;
-
+      
       let loadedImage = null;
 
-      function drawBase() {
+      function drawMemeCanvas() {
+        // Clear everything
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 1. Draw Background
         if (loadedImage) {
           ctx.imageSmoothingEnabled = true;
           const scale = Math.max(canvas.width / loadedImage.width, canvas.height / loadedImage.height);
@@ -158,92 +148,85 @@
           ctx.fillStyle = '#071422';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
-      }
 
-      function wrapAndDrawText(ctx, text, x, y, maxWidth, lineHeight, fromBottom = false) {
-        if (!text) return;
-        const words = text.split(' ');
-        let line = '';
-        const lines = [];
-        for (let i = 0; i < words.length; i++) {
-          const test = (line + words[i] + ' ').trim();
-          if (ctx.measureText(test).width > maxWidth && line) {
-            lines.push(line.trim());
-            line = words[i] + ' ';
-          } else {
-            line = test + ' ';
-          }
-        }
-        if (line) lines.push(line.trim());
-        if (fromBottom) {
-          for (let i = 0; i < lines.length; i++) {
-            const t = lines[lines.length - 1 - i];
-            ctx.strokeText(t, x, y - (i * lineHeight));
-            ctx.fillText(t, x, y - (i * lineHeight));
-          }
-        } else {
-          for (let i = 0; i < lines.length; i++) {
-            const t = lines[i];
-            ctx.strokeText(t, x, y + (i * lineHeight));
-            ctx.fillText(t, x, y + (i * lineHeight));
-          }
-        }
-      }
-
-      function drawMemeCanvas() {
-        drawBase();
+        // 2. Draw Text
         const top = (topTextInput.value || '').toUpperCase();
         const bottom = (bottomTextInput.value || '').toUpperCase();
-
         const baseFont = Math.max(28, Math.round(canvas.width / 15));
+        
         ctx.fillStyle = 'white';
         ctx.strokeStyle = 'black';
-        ctx.lineWidth = Math.max(6, Math.round(baseFont / 10));
+        ctx.lineWidth = Math.max(5, Math.round(baseFont / 8));
         ctx.textAlign = 'center';
-        // Updated font string to include 'Anton' (Google Font)
         ctx.font = `${baseFont}px 'Anton', Impact, Arial, sans-serif`;
 
         const padding = Math.round(baseFont * 0.8);
-        const topY = padding + baseFont;
-        const bottomY = canvas.height - padding;
+        
+        if (top) {
+            wrapText(ctx, top, canvas.width / 2, padding + baseFont, canvas.width - 60, baseFont * 1.1, false);
+        }
+        if (bottom) {
+            wrapText(ctx, bottom, canvas.width / 2, canvas.height - padding, canvas.width - 60, baseFont * 1.1, true);
+        }
+      }
 
-        wrapAndDrawText(ctx, top, canvas.width / 2, topY, canvas.width - 80, baseFont * 1.1, false);
-        wrapAndDrawText(ctx, bottom, canvas.width / 2, bottomY, canvas.width - 80, baseFont * 1.1, true);
+      function wrapText(ctx, text, x, y, maxWidth, lineHeight, fromBottom) {
+        const words = text.split(' ');
+        let lines = [];
+        let currentLine = words[0];
+
+        for (let i = 1; i < words.length; i++) {
+          let testLine = currentLine + ' ' + words[i];
+          if (ctx.measureText(testLine).width > maxWidth) {
+            lines.push(currentLine);
+            currentLine = words[i];
+          } else {
+            currentLine = testLine;
+          }
+        }
+        lines.push(currentLine);
+
+        if (fromBottom) {
+          lines.reverse().forEach((line, i) => {
+            ctx.strokeText(line, x, y - (i * lineHeight));
+            ctx.fillText(line, x, y - (i * lineHeight));
+          });
+        } else {
+          lines.forEach((line, i) => {
+            ctx.strokeText(line, x, y + (i * lineHeight));
+            ctx.fillText(line, x, y + (i * lineHeight));
+          });
+        }
       }
 
       imageInput.addEventListener('change', (e) => {
-        const file = e.target.files && e.target.files[0];
-        if (!file) {
-          loadedImage = null;
-          drawMemeCanvas();
-          return;
-        }
-        const url = URL.createObjectURL(file);
-        const img = new Image();
-        img.onload = () => {
-          loadedImage = img;
-          drawMemeCanvas();
-          URL.revokeObjectURL(url);
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            loadedImage = img;
+            drawMemeCanvas();
+          };
+          img.src = event.target.result;
         };
-        img.onerror = () => {
-          loadedImage = null;
-          drawMemeCanvas();
-          URL.revokeObjectURL(url);
-        };
-        img.src = url;
+        reader.readAsDataURL(file);
       });
 
-      drawBtn.addEventListener('click', drawMemeCanvas);
+      // Update on typing
+      topTextInput.addEventListener('input', drawMemeCanvas);
+      bottomTextInput.addEventListener('input', drawMemeCanvas);
+      document.getElementById('drawMeme').addEventListener('click', drawMemeCanvas);
       
-      downloadBtn.addEventListener('click', () => {
-        const data = canvas.toDataURL('image/png');
-        const a = document.createElement('a');
-        a.href = data;
-        a.download = 'novadev-meme.png';
-        a.click();
+      document.getElementById('downloadMeme').addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'meme.png';
+        link.href = canvas.toDataURL();
+        link.click();
       });
-      
-      resetBtn.addEventListener('click', () => {
+
+      document.getElementById('resetMeme').addEventListener('click', () => {
         loadedImage = null;
         imageInput.value = '';
         topTextInput.value = '';
@@ -251,8 +234,10 @@
         drawMemeCanvas();
       });
 
-      // FIX: This event listener ensures the initial draw happens AFTER fonts and styles are loaded
-      window.addEventListener('load', drawMemeCanvas);
+      // HEALING LOGIC: Multiple attempts to draw to fix the "disappearing" bug
+      drawMemeCanvas(); // 1. Immediate
+      window.addEventListener('load', drawMemeCanvas); // 2. When fonts load
+      setTimeout(drawMemeCanvas, 500); // 3. Safety net after half a second
     })();
   </script>
 </body>
