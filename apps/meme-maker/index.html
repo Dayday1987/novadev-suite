@@ -16,54 +16,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;700&family=Fira+Code:wght@400&display=swap" rel="stylesheet">
   
   <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      padding: 20px;
-      font-family: 'Inter', -apple-system, sans-serif;
-      background: #04121a;
-      color: #e6eef6;
-      min-height: 100vh;
-    }
-    .container { max-width: 1100px; margin: 0 auto; }
-    h1 {
-      text-align: center;
-      background: linear-gradient(90deg, #6EE7F7, #7C5CFF);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 30px;
-    }
-    .card {
-      background: #0b1a28;
-      border-radius: 12px;
-      padding: 24px;
-      border: 1px solid rgba(255,255,255,0.05);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      position: relative;
-    }
-    #canvasWrapper {
-      width: 100%;
-      background: #000;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      overflow: hidden;
-      -webkit-transform: translate3d(0,0,0);
-      transform: translate3d(0,0,0);
-    }
-    canvas { width: 100%; height: auto; display: block; }
-    .tool-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-    input {
-      flex: 1;
-      min-width: 150px;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.05);
-      color: #fff;
-      font-family: inherit;
-    }
+        /* --- UPDATED BUTTONS FOR MOBILE & DESKTOP --- */
     .btn {
-      padding: 12px 20px;
+      padding: 14px 22px; /* Slightly larger touch targets for mobile */
       border-radius: 10px;
       cursor: pointer;
       font-weight: 600;
@@ -76,16 +31,22 @@
       font-family: inherit;
       position: relative;
       overflow: hidden;
+      touch-action: manipulation; /* Prevents accidental zooming on double-tap */
     }
-    .btn:active { transform: scale(0.96); }
-    
-    .primary { background: linear-gradient(90deg, #6EE7F7, #7C5CFF); color: #04121a; z-index: 1; }
 
-    /* --- ANIMATED CODE BUTTONS --- */
+    .primary { 
+      background: linear-gradient(90deg, #6EE7F7, #7C5CFF); 
+      color: #04121a; 
+      z-index: 1; 
+    }
+
+    .facebook { background: #1877F2; color: white; }
+
     .ghost {
-      background: rgba(7, 20, 34, 0.8);
+      background: rgba(7, 20, 34, 0.9);
       border: 1px solid #1a2633;
       color: #6EE7F7;
+      z-index: 1;
     }
 
     /* Scrolling Code Effect */
@@ -95,24 +56,34 @@
       top: 0;
       left: 0;
       width: 200%;
+      height: 100%;
       font-family: 'Fira Code', monospace;
       font-size: 10px;
-      color: rgba(110, 231, 247, 0.15); /* Very subtle teal code */
+      line-height: 45px; /* Centers the code vertically */
+      color: rgba(110, 231, 247, 0.12); /* Subtle default for mobile */
       white-space: nowrap;
       pointer-events: none;
-      animation: scrollCode 5s linear infinite;
-      z-index: 0;
-      opacity: 0;
-      transition: opacity 0.3s;
+      animation: scrollCode 8s linear infinite;
+      z-index: -1;
+      transition: color 0.3s ease;
     }
 
-    .ghost:hover::before {
-      opacity: 1;
+    /* Desktop Hover Effect */
+    @media (hover: hover) {
+      .ghost::before { opacity: 0.4; }
+      .ghost:hover::before { 
+        color: rgba(110, 231, 247, 0.5); 
+        opacity: 1;
+      }
+      .ghost:hover {
+        border-color: #6EE7F7;
+        box-shadow: 0 0 15px rgba(110, 231, 247, 0.3);
+      }
     }
 
-    .ghost:hover {
-      border-color: #6EE7F7;
-      box-shadow: 0 0 15px rgba(110, 231, 247, 0.2);
+    /* Mobile Tap Effect */
+    .ghost:active::before {
+      color: rgba(110, 231, 247, 0.8);
     }
 
     @keyframes scrollCode {
@@ -120,24 +91,18 @@
       to { transform: translateX(-50%); }
     }
 
-    /* Toast Notification */
-    #toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: #7C5CFF;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 50px;
-      font-weight: bold;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      transition: transform 0.3s ease;
-      z-index: 1000;
+    /* Responsive adjustments for the tool-row */
+    @media (max-width: 600px) {
+      .tool-row {
+        flex-direction: column; /* Stack inputs and buttons on small screens */
+      }
+      .btn {
+        width: 100%; /* Full width buttons for easier tapping */
+      }
+      input {
+        width: 100%;
+      }
     }
-    #toast.show { transform: translateX(-50%) translateY(0); }
-    
-    .back-link { color: #6EE7F7; text-decoration: none; margin-bottom: 20px; display: inline-block; }
   </style>
 </head>
 <body>
