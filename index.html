@@ -304,7 +304,8 @@
             <h3 class="fade-in">💎 Become a Sponsor</h3>
             <p class="muted fade-in">Support NovaDev Suite development and get your brand featured.</p>
 
-            <form id="sponsorForm" class="contact-form fade-in" name="sponsorForm" method="POST">
+            <form id="sponsorForm" class="contact-form fade-in" name="sponsorForm" method="POST" data-netlify="true"
+  netlify-honeypot="bot-field" >
               <input name="company" placeholder="Company name" required />
               <input name="name" placeholder="Your name" required />
               <input name="email" type="email" placeholder="you@company.com" required />
@@ -333,7 +334,8 @@
             <h3 class="fade-in">🤝 Join as Contributor</h3>
             <p class="muted fade-in">Developers, designers, and creators — let's build together!</p>
 
-            <form id="contributorForm" class="contact-form fade-in" name="contributorForm" method="POST">
+            <form id="contributorForm" class="contact-form fade-in" name="contributorForm" method="POST" data-netlify="true"
+  netlify-honeypot="bot-field" >
               <input name="name" placeholder="Your name" required />
               <input name="email" type="email" placeholder="you@example.com" required />
               
@@ -366,7 +368,14 @@
             <h3 class="fade-in">📧 General Inquiries</h3>
             <p class="muted fade-in">Questions, feedback, or just want to say hi? Drop a message!</p>
 
-            <form id="contactForm" class="contact-form fade-in" name="contactForm" method="POST">
+            <form
+  id="contactForm"
+  class="contact-form fade-in"
+  name="contactForm"
+  method="POST"
+  data-netlify="true"
+  netlify-honeypot="bot-field"
+>
               <div class="tool-row">
                 <input name="name" placeholder="Your name" required />
                 <input name="email" type="email" placeholder="you@example.com" required />
