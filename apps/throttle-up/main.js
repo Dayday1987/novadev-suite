@@ -63,12 +63,12 @@ const CONFIG = {
     frontTireX: 0.60,         // Front tire position as fraction of bike width
     
     // Physics
-    maxSpeed: 150,            // Maximum speed in game units
+    maxSpeed: 70,            // Maximum speed in game units
     acceleration: 0.5,        // Acceleration rate when throttle is applied
     friction: 0.995,          // Friction multiplier (closer to 1 = less friction)
     
     // Wheelie mechanics
-    torque: 0.0015,           // INCREASED: Rotational force applied during wheelie (was 0.001)
+    torque: 0.0020,           // INCREASED: Rotational force applied during wheelie (was 0.001)
     torqueSpeedMult: 0.0001,  // Speed-dependent torque multiplier
     gravity: 0.008,           // Gravity force pulling bike nose down
     damping: 0.92,            // Angular velocity damping (rotation slowdown)
@@ -507,7 +507,7 @@ function update(now) {
         // Only clamp when front wheel is touching ground (bike angle is positive/level)
         if (game.bikeAngle > CONFIG.GROUND_CONTACT_ANGLE) {   // If front wheel on ground
             game.bikeAngle = CONFIG.GROUND_CONTACT_ANGLE;     // Clamp to ground level
-            game.bikeAngularVelocity *= 0.5;                  // Reduce bounce
+            game.bikeAngularVelocity *= 1.0;                  // Reduce bounce
         }
         
         // Crash if bike loops too far backward (100 degrees = ~1.745 radians)
