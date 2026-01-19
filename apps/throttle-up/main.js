@@ -499,7 +499,7 @@ function update(now) {
         game.speed = Math.max(0, Math.min(game.speed, CONFIG.maxSpeed)); // Clamp speed to valid range
         
         // Physics - gravity pulls nose down (positive direction)
-        const gravityForce = -game.bikeAngle * (CONFIG.gravity + Math.abs(game.bikeAngle) * 0.4); // Calculate gravity force
+        const gravityForce = CONFIG.gravity * game.bikeAngle; // Calculate gravity force
         game.bikeAngularVelocity += gravityForce * deltaTime;  // Apply gravity to angular velocity
         game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime); // Apply damping
         game.bikeAngle += game.bikeAngularVelocity * deltaTime; // Update bike angle
