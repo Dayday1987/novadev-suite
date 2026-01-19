@@ -69,7 +69,7 @@ const CONFIG = {
     
     // Wheelie mechanics
     torque: 0.0030,           // INCREASED: Rotational force applied during wheelie (was 0.001)
-    torqueSpeedMult: 0.0001,  // Speed-dependent torque multiplier
+    torqueSpeedMult: 0.0005,  // Speed-dependent torque multiplier
     gravity: 0.008,           // Gravity force pulling bike nose down
     damping: 0.92,            // Angular velocity damping (rotation slowdown)
     
