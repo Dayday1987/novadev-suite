@@ -68,10 +68,10 @@ const CONFIG = {
     friction: 0.995,          // Friction multiplier (closer to 1 = less friction)
     
     // Wheelie mechanics
-    torque: 0.0001,           // INCREASED: Rotational force applied during wheelie (was 0.001)
+    torque: 0.0004,           // INCREASED: Rotational force applied during wheelie (was 0.001)
     torqueSpeedMult: 0.0001,  // Speed-dependent torque multiplier
-    gravity: 0.01,           // Gravity force pulling bike nose down
-    damping: 0.98,            // Angular velocity damping (rotation slowdown)
+    gravity: 0.015,           // Gravity force pulling bike nose down
+    damping: 0.96,            // Angular velocity damping (rotation slowdown)
     
     // Wheelie detection thresholds
     WHEELIE_START_ANGLE: -0.02,      // Angle at which wheelie is considered started
@@ -488,9 +488,13 @@ function update(now) {
     // RACING PHASE - game is active
     if (game.phase === "RACING") {
         // Speed and acceleration
+        // Speed and acceleration
         if (game.throttle) {                   // If throttle is pressed
             game.speed += CONFIG.acceleration * deltaTime;    // Increase speed
-            game.bikeAngularVelocity -= CONFIG.torque * deltaTime; // Apply wheelie torque
+            // Apply torque that decreases as wheelie angle increases (prevents runaway rotation)
+            const wheelieAngle = Math.max(0, -game.bikeAngle); // How far back we're tilted
+            const torqueMultiplier = Math.max(0.1, 1 - (wheelieAngle * 2)); // Reduces as angle increases
+            game.bikeAngularVelocity -= CONFIG.torque * torqueMultiplier * deltaTime;
         } else {                               // If throttle not pressed
             game.speed *= Math.pow(CONFIG.friction, deltaTime); // Apply friction
             if (game.speed < 0.05) game.speed = 0;             // Stop if very slow
