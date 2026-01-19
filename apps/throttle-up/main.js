@@ -56,7 +56,7 @@ const CONFIG = {
     // Frame alignment
     rearWheelOffsetX: 55,     // Distance from bike center to rear wheel pivot
     frameYShift: -35,         // Vertical offset to align bike frame
-    noseDownAngle: 0.02,      // Slight forward tilt of bike frame
+    noseDownAngle: 0.01,      // Slight forward tilt of bike frame
     
     // Wheel alignment
     rearTireXShift: -42,      // Horizontal shift for rear tire position
@@ -70,7 +70,7 @@ const CONFIG = {
     // Wheelie mechanics
     torque: 0.0003,           // INCREASED: Rotational force applied during wheelie (was 0.001)
     torqueSpeedMult: 0.0001,  // Speed-dependent torque multiplier
-    gravity: 0.1,           // Gravity force pulling bike nose down
+    gravity: 0.01,           // Gravity force pulling bike nose down
     damping: 0.93,            // Angular velocity damping (rotation slowdown)
     
     // Wheelie detection thresholds
