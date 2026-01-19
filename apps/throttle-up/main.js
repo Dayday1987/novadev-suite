@@ -64,13 +64,13 @@ const CONFIG = {
     
     // Physics
     maxSpeed: 170,            // Maximum speed in game units
-    acceleration: 1.0,        // Acceleration rate when throttle is applied
+    acceleration: 1,        // Acceleration rate when throttle is applied
     friction: 0.995,          // Friction multiplier (closer to 1 = less friction)
     
     // Wheelie mechanics
     torque: 0.0003,           // INCREASED: Rotational force applied during wheelie (was 0.001)
     torqueSpeedMult: 0.0001,  // Speed-dependent torque multiplier
-    gravity: -0.01,           // Gravity force pulling bike nose down
+    gravity: 0.01,           // Gravity force pulling bike nose down
     damping: 0.93,            // Angular velocity damping (rotation slowdown)
     
     // Wheelie detection thresholds
