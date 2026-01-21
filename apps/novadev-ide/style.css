@@ -765,6 +765,18 @@ body {
   transform: translateX(0);
 }
 
+.hidden {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+.editor-container,
+.editor-wrapper,
+.monaco-editor {
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+
 /* Make editor take full width when preview hidden */
 .editor-container.full-width {
   width: 100%;
