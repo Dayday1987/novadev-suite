@@ -41,6 +41,10 @@ body {
   width: 100vw;
 }
 
+.sidebar.open {
+  transform: translateX(0);
+}
+
 /* Activity Bar */
 .activity-bar {
   width: var(--activity-bar-width);
