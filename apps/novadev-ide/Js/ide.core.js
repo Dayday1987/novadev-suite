@@ -173,7 +173,12 @@
   }
 
   /* ------------------ UI BINDINGS ------------------ */
+console.log('[NovaIDE] bindUI running');
 
+document.body.addEventListener('click', e => {
+  console.log('[CLICK]', e.target);
+});
+  
   function bindUI() {
     document.getElementById('newFileBtn')
       ?.addEventListener('click', () => {
