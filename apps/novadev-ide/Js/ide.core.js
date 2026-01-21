@@ -173,20 +173,75 @@
   }
 
   /* ------------------ UI BINDINGS ------------------ */
-console.log('[NovaIDE] bindUI running');
+function bindUI() {
+  console.log('[NovaIDE] UI binding started');
 
-document.body.addEventListener('click', e => {
-  console.log('[CLICK]', e.target);
-});
-  
-  function bindUI() {
-    document.getElementById('newFileBtn')
-      ?.addEventListener('click', () => {
-        const name = prompt('File name');
-        if (name) createFile(name);
-      });
-  }
+  /* ---------- Activity Bar ---------- */
+  document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = btn.dataset.view;
 
+      document.querySelectorAll('.activity-btn')
+        .forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.sidebar-view')
+        .forEach(v => v.classList.remove('active'));
+
+      document.getElementById(view + 'View')
+        ?.classList.add('active');
+    });
+  });
+
+  /* ---------- Sidebar Toggle ---------- */
+  document.querySelector('.sidebar-toggle')
+    ?.addEventListener('click', () => {
+      document.querySelector('.sidebar')
+        ?.classList.toggle('open');
+    });
+
+  /* ---------- New File ---------- */
+  document.getElementById('newFileBtn')
+    ?.addEventListener('click', () => {
+      const name = prompt('File name');
+      if (name) createFile(name);
+    });
+
+  /* ---------- Settings ---------- */
+  document.querySelector('[data-view="settings"]')
+    ?.addEventListener('click', () => {
+      document.getElementById('settingsPanel')
+        ?.classList.remove('hidden');
+    });
+
+  document.getElementById('closeSettings')
+    ?.addEventListener('click', () => {
+      document.getElementById('settingsPanel')
+        ?.classList.add('hidden');
+    });
+
+  /* ---------- Live Preview ---------- */
+  document.getElementById('livePreviewToggle')
+    ?.addEventListener('click', () => {
+      const frame = document.getElementById('livePreviewFrame');
+      frame.classList.toggle('hidden');
+      if (!frame.classList.contains('hidden') && state.editor) {
+        frame.srcdoc = state.editor.getValue();
+      }
+    });
+
+  /* ---------- Terminal ---------- */
+  const terminalInput = document.getElementById('terminalInput');
+  terminalInput?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const cmd = terminalInput.value.trim();
+      terminalInput.value = '';
+      addTerminalLine(`$ ${cmd}`);
+    }
+  });
+
+  console.log('[NovaIDE] UI binding complete');
+}
   /* ------------------ INIT ------------------ */
 
   NovaIDE.core = {
