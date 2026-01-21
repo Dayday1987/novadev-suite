@@ -210,13 +210,6 @@
         automaticLayout:true
       });
 
-      // Auto-save
-      editor.onDidChangeModelContent(() => {
-  if (currentTab) {
-    saveProject();
-  }
-});
-
       // Update cursor position
       editor.onDidChangeCursorPosition(() => {
         updateStatusBar();
