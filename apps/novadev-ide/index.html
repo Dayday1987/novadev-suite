@@ -9,6 +9,14 @@
   <script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
   <script src="https://unpkg.com/prettier@2.8.8/parser-babel.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/eslint@8.46.0/dist/eslint.min.js"></script>
+  <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
+<script>
+  require.config({
+    paths: {
+      vs: 'https://unpkg.com/monaco-editor@0.44.0/min/vs'
+    }
+  });
+</script>
 </head>
 <body>
   <!-- Command Palette -->
@@ -196,14 +204,7 @@
   </div>
 
   <!-- Monaco Editor -->
-  <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
-<script>
-  require.config({
-    paths: {
-      vs: 'https://unpkg.com/monaco-editor@0.44.0/min/vs'
-    }
-  });
-</script>
+  
 
 <script src="js/ide.bootstrap.js"></script>
 <script src="js/ide.core.js"></script>
