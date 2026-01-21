@@ -169,10 +169,11 @@
 
   NovaIDE.core = {
     init() {
-      loadStorage();
-      initEditor();
-      console.log('[NovaIDE] Core initialized');
-    },
+  loadStorage();
+  initEditor();
+  bindUI();
+  console.log('[NovaIDE] Core initialized');
+}
     openFile,
     closeFile,
     createFile,
