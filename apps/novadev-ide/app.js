@@ -211,8 +211,11 @@
       });
 
       // Auto-save
-      editor.onDidChangeModelContent(()=>{ if(currentTab){ currentTab.model.setValue(editor.getValue()); saveProject
-               });
+      editor.onDidChangeModelContent(() => {
+  if (currentTab) {
+    saveProject();
+  }
+});
 
       // Update cursor position
       editor.onDidChangeCursorPosition(() => {
