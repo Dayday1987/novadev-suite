@@ -12,17 +12,9 @@
     ready: false
   };
 
-  function waitForMonaco(cb) {
-    if (window.monaco && window.monaco.editor) {
-      cb();
-    } else {
-      setTimeout(() => waitForMonaco(cb), 50);
-    }
-  }
-
   document.addEventListener('DOMContentLoaded', () => {
-    waitForMonaco(() => {
-      if (NovaIDE.core.init) {
+    require(['vs/editor/editor.main'], () => {
+      if (NovaIDE.core?.init) {
         NovaIDE.core.init();
         NovaIDE.ready = true;
         console.log('[NovaIDE] Bootstrap complete');
