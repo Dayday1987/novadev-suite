@@ -1,58 +1,15 @@
-/* NovaDev IDE - Main Application */
-
 (() => {
   'use strict';
 
-  // Configuration
   const MONACO_BASE = 'https://unpkg.com/monaco-editor@0.44.0/min/vs';
   const STORAGE_KEY = 'novadev_ide_project_v1';
   const SETTINGS_KEY = 'novadev_ide_settings_v1';
+  const PROFILES_KEY = 'novadev_ide_profiles_v1';
 
-  // State
   let editor = null;
-  let currentFile = null;
-  let project = {
-    name: 'my-project',
-    files: {
-      'index.html': {
-        content: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NovaDev Project</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <h1>Welcome to NovaDev IDE</h1>
-  <p>Start building your project!</p>
-  <script src="script.js"></script>
-</body>
-</html>`,
-        language: 'html'
-      },
-      'style.css': {
-        content: `body {
-  font-family: system-ui, -apple-system, sans-serif;
-  margin: 0;
-  padding: 20px;
-  background: #f5f5f5;
-}
-
-h1 {
-  color: #333;
-}`,
-        language: 'css'
-      },
-      'script.js': {
-        content: `console.log('NovaDev IDE is ready!');
-
-// Your code here
-`,
-        language: 'javascript'
-      }
-    }
-  };
+  let tabs = []; // {name, model}
+  let currentTab = null;
+  let livePreview = false;
 
   let settings = {
     theme: 'vs-dark',
@@ -63,11 +20,19 @@ h1 {
     lineNumbers: true
   };
 
-  // DOM Elements
-  const $ = (sel) => document.querySelector(sel);
-  const $$ = (sel) => document.querySelectorAll(sel);
+  let project = {
+    name: 'my-project',
+    files: {
+      'index.html': { content: '<!DOCTYPE html>\n<html>\n<head></head>\n<body></body>\n</html>', language: 'html' },
+      'style.css': { content: 'body { margin:0; }', language: 'css' },
+      'script.js': { content: 'console.log("NovaDev IDE");', language: 'javascript' }
+    }
+  };
 
-  // Initialize
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => document.querySelectorAll(s);
+
+  // Init
   function init() {
     loadSettings();
     loadProject();
@@ -78,561 +43,190 @@ h1 {
     setupTerminal();
     setupPanelTabs();
     initMonaco();
+    setupExtensions();
+    setupSidebarToggle();
   }
 
-  // Load settings from localStorage
+  // ------------------------
+  // Load/Save Settings & Project
+  // ------------------------
   function loadSettings() {
     const saved = localStorage.getItem(SETTINGS_KEY);
-    if (saved) {
-      settings = { ...settings, ...JSON.parse(saved) };
-    }
-    applySettings();
+    if (saved) settings = { ...settings, ...JSON.parse(saved) };
   }
 
-  // Save settings to localStorage
   function saveSettings() {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
   }
 
-  // Apply settings to UI
-  function applySettings() {
-    $('#themeSelect').value = settings.theme;
-    $('#fontSizeInput').value = settings.fontSize;
-    $('#tabSizeInput').value = settings.tabSize;
-    $('#wordWrapSelect').value = settings.wordWrap;
-    $('#minimapToggle').checked = settings.minimap;
-    $('#lineNumbersToggle').checked = settings.lineNumbers;
-  }
-
-  // Load project from localStorage
   function loadProject() {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try {
-        project = JSON.parse(saved);
-      } catch (e) {
-        console.error('Failed to load project:', e);
-      }
-    }
-    $('#projectNameInput').value = project.name;
-    renderFileTree();
+    if (saved) project = JSON.parse(saved);
   }
 
-  // Save project to localStorage
   function saveProject() {
+    if(currentTab) project.files[currentTab.name].content = editor.getValue();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
   }
 
+  // ------------------------
+  // Sidebar Toggle
+  // ------------------------
+  function setupSidebarToggle() {
+    $('.sidebar-toggle').addEventListener('click', () => {
+      const sidebar = $('.sidebar');
+      sidebar.classList.toggle('open');
+    });
+  }
+
+  // ------------------------
   // Activity Bar
+  // ------------------------
   function setupActivityBar() {
     $$('.activity-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const view = btn.dataset.view;
-        
-        if (view === 'settings') {
-          $('#settingsPanel').classList.remove('hidden');
-          return;
-        }
+        if(view==='settings'){ $('#settingsPanel').classList.remove('hidden'); return; }
 
-        // Update active state
-        $$('.activity-btn').forEach(b => b.classList.remove('active'));
+        $$('.activity-btn').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');
 
-        // Show corresponding sidebar view
-        $$('.sidebar-view').forEach(v => v.classList.remove('active'));
+        $$('.sidebar-view').forEach(v=>v.classList.remove('active'));
         $(`#${view}View`).classList.add('active');
       });
     });
   }
 
-  // Sidebar
+  // ------------------------
+  // Sidebar / File tree
+  // ------------------------
   function setupSidebar() {
-    // New File
-    $('#newFileBtn').addEventListener('click', () => {
-      const name = prompt('Enter file name:');
-      if (name && !project.files[name]) {
-        const ext = name.split('.').pop();
-        const language = getLanguageFromExtension(ext);
-        project.files[name] = {
-          content: '',
-          language
-        };
+    $('#newFileBtn').addEventListener('click', ()=> {
+      const name = prompt('File name:');
+      if(name && !project.files[name]){
+        const lang = getLang(name);
+        project.files[name] = { content:'', language: lang };
         saveProject();
         renderFileTree();
         openFile(name);
       }
     });
 
-    // New Folder (simplified - just prefix)
-    $('#newFolderBtn').addEventListener('click', () => {
-      const name = prompt('Enter folder name:');
-      if (name) {
-        alert('Folder support coming soon! For now, use file names like "folder/file.js"');
-      }
-    });
+    $('#newFolderBtn').addEventListener('click', ()=> alert('Folder support coming soon.'));
 
-    // Project name
-    $('#projectNameInput').addEventListener('change', (e) => {
-      project.name = e.target.value;
-      saveProject();
-    });
+    $('#projectNameInput').addEventListener('change',(e)=>{project.name=e.target.value; saveProject();});
 
-    // Search
-    $('#searchInput').addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase();
-      if (!query) {
-        $('#searchResults').innerHTML = '';
-        return;
-      }
-
-      const results = [];
-      Object.keys(project.files).forEach(filename => {
-        const content = project.files[filename].content;
-        const lines = content.split('\n');
-        lines.forEach((line, index) => {
-          if (line.toLowerCase().includes(query)) {
-            results.push({ filename, line: index + 1, text: line.trim() });
-          }
+    $('#searchInput').addEventListener('input',(e)=>{
+      const query=e.target.value.toLowerCase();
+      const results=[];
+      Object.keys(project.files).forEach(f=>{
+        project.files[f].content.split('\n').forEach((line,idx)=>{
+          if(line.toLowerCase().includes(query)) results.push({filename:f,line:idx+1,text:line.trim()});
         });
       });
-
       renderSearchResults(results);
-    });
-
-    // Git
-    $('#gitInitBtn').addEventListener('click', () => {
-      $('#gitPanel').classList.remove('hidden');
-      addTerminalLine('Initialized empty Git repository');
-    });
-
-    $('#commitBtn').addEventListener('click', () => {
-      const message = $('#commitMessage').value;
-      if (message) {
-        addTerminalLine(`[main ${Math.random().toString(36).substr(2, 7)}] ${message}`);
-        addTerminalLine(`${Object.keys(project.files).length} files changed`);
-        $('#commitMessage').value = '';
-      }
     });
   }
 
-  // Render file tree
   function renderFileTree() {
-    const tree = $('#fileTree');
-    tree.innerHTML = '';
-
-    Object.keys(project.files).sort().forEach(filename => {
-      const item = document.createElement('div');
-      item.className = 'file-item';
-      if (currentFile === filename) {
-        item.classList.add('active');
-      }
-
-      const icon = document.createElement('span');
-      icon.className = 'file-icon';
-      icon.textContent = getFileIcon(filename);
-
-      const name = document.createElement('span');
-      name.className = 'file-name';
-      name.textContent = filename;
-
-      const actions = document.createElement('div');
-      actions.className = 'file-actions';
-
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'file-action-btn';
-      deleteBtn.textContent = '×';
-      deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (confirm(`Delete ${filename}?`)) {
-          delete project.files[filename];
-          saveProject();
-          renderFileTree();
-          if (currentFile === filename) {
-            const remaining = Object.keys(project.files)[0];
-            if (remaining) {
-              openFile(remaining);
-            } else {
-              currentFile = null;
-              renderTabs();
-            }
-          }
-        }
+    const tree=$('#fileTree'); tree.innerHTML='';
+    Object.keys(project.files).sort().forEach(f=>{
+      const item=document.createElement('div'); item.className='file-item';
+      if(currentTab && currentTab.name===f) item.classList.add('active');
+      const icon=document.createElement('span'); icon.className='file-icon'; icon.textContent=getFileIcon(f);
+      const name=document.createElement('span'); name.className='file-name'; name.textContent=f;
+      const actions=document.createElement('div'); actions.className='file-actions';
+      const del=document.createElement('button'); del.className='file-action-btn'; del.textContent='×';
+      del.addEventListener('click', e=>{
+        e.stopPropagation(); if(confirm(`Delete ${f}?`)){ delete project.files[f]; saveProject(); renderFileTree(); closeTab(f); }
       });
-
-      actions.appendChild(deleteBtn);
-      item.appendChild(icon);
-      item.appendChild(name);
-      item.appendChild(actions);
-
-      item.addEventListener('click', () => openFile(filename));
+      actions.appendChild(del); item.appendChild(icon); item.appendChild(name); item.appendChild(actions);
+      item.addEventListener('click',()=>openFile(f));
       tree.appendChild(item);
     });
   }
 
-  // Get file icon
-  function getFileIcon(filename) {
-    const ext = filename.split('.').pop();
-    const icons = {
-      html: '📄',
-      css: '🎨',
-      js: '📜',
-      json: '📋',
-      md: '📝',
-      txt: '📃'
-    };
-    return icons[ext] || '📄';
-  }
+  function getFileIcon(f){ const e=f.split('.').pop(); const map={html:'📄',css:'🎨',js:'📜'}; return map[e]||'📄'; }
+  function getLang(f){ const e=f.split('.').pop(); const map={html:'html',css:'css',js:'javascript'}; return map[e]||'plaintext'; }
 
-  // Get language from extension
-  function getLanguageFromExtension(ext) {
-    const map = {
-      html: 'html',
-      css: 'css',
-      js: 'javascript',
-      json: 'json',
-      md: 'markdown',
-      txt: 'plaintext'
-    };
-    return map[ext] || 'plaintext';
-  }
-
-  // Open file
-  function openFile(filename) {
-    if (!project.files[filename]) return;
-
-    // Save current file content
-    if (currentFile && editor) {
-      project.files[currentFile].content = editor.getValue();
-      saveProject();
-    }
-
-    currentFile = filename;
-    renderFileTree();
-    renderTabs();
-
-    if (editor) {
-      const file = project.files[filename];
-      const model = monaco.editor.createModel(
-        file.content,
-        file.language
-      );
-      editor.setModel(model);
-      updateStatusBar();
-    }
-  }
-
-  // Render tabs
+  // ------------------------
+  // Tabs
+  // ------------------------
   function renderTabs() {
-    const tabs = $('#editorTabs');
-    tabs.innerHTML = '';
-
-    if (!currentFile) return;
-
-    const tab = document.createElement('div');
-    tab.className = 'editor-tab active';
-
-    const icon = document.createElement('span');
-    icon.textContent = getFileIcon(currentFile);
-
-    const name = document.createElement('span');
-    name.textContent = currentFile;
-
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'close-tab';
-    closeBtn.textContent = '×';
-    closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      // For now, just switch to another file
-      const files = Object.keys(project.files);
-      const index = files.indexOf(currentFile);
-      const nextFile = files[index + 1] || files[index - 1];
-      if (nextFile) {
-        openFile(nextFile);
-      }
+    const tabsContainer=$('#editorTabs'); tabsContainer.innerHTML='';
+    tabs.forEach(tab=>{
+      const t=document.createElement('div'); t.className='editor-tab'; if(currentTab===tab) t.classList.add('active');
+      const icon=document.createElement('span'); icon.textContent=getFileIcon(tab.name);
+      const name=document.createElement('span'); name.textContent=tab.name;
+      const close=document.createElement('button'); close.className='close-tab'; close.textContent='×';
+      close.addEventListener('click', e=>{ e.stopPropagation(); closeTab(tab.name); });
+      t.appendChild(icon); t.appendChild(name); t.appendChild(close);
+      t.addEventListener('click', ()=>openTab(tab.name));
+      tabsContainer.appendChild(t);
     });
-
-    tab.appendChild(icon);
-    tab.appendChild(name);
-    tab.appendChild(closeBtn);
-    tabs.appendChild(tab);
   }
 
-  // Render search results
-  function renderSearchResults(results) {
-    const container = $('#searchResults');
-    container.innerHTML = '';
-
-    if (results.length === 0) {
-      container.innerHTML = '<p class="muted">No results found</p>';
-      return;
+  function openFile(name){
+    if(!project.files[name]) return;
+    const existing = tabs.find(t=>t.name===name);
+    if(!existing){
+      const model = monaco.editor.createModel(project.files[name].content, project.files[name].language);
+      const tab = {name, model}; tabs.push(tab);
     }
-
-    results.forEach(result => {
-      const item = document.createElement('div');
-      item.className = 'search-result-item';
-      item.innerHTML = `
-        <div><strong>${result.filename}</strong> : ${result.line}</div>
-        <div class="muted">${result.text}</div>
-      `;
-      item.addEventListener('click', () => {
-        openFile(result.filename);
-        if (editor) {
-          editor.setPosition({ lineNumber: result.line, column: 1 });
-          editor.revealLineInCenter(result.line);
-        }
-      });
-      container.appendChild(item);
-    });
+    openTab(name);
+    renderTabs();
   }
 
-  // Command Palette
-  function setupCommandPalette() {
-    const palette = $('#commandPalette');
-    const input = $('#commandInput');
-    const results = $('#commandResults');
-
-    const commands = [
-      { name: 'File: New File', action: () => $('#newFileBtn').click() },
-      { name: 'File: Save', action: () => saveProject() },
-      { name: 'View: Toggle Terminal', action: () => togglePanel() },
-      { name: 'View: Command Palette', action: () => {} },
-      { name: 'Preferences: Open Settings', action: () => $('#settingsPanel').classList.remove('hidden') },
-      { name: 'Git: Initialize Repository', action: () => $('#gitInitBtn').click() },
-      { name: 'Format Document', action: () => formatDocument() },
-      { name: 'Export Project', action: () => exportProject() }
-    ];
-
-    // Toggle with Ctrl+Shift+P
-    document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
-        e.preventDefault();
-        palette.classList.toggle('hidden');
-        if (!palette.classList.contains('hidden')) {
-          input.focus();
-        }
-      }
-      // Close with Escape
-      if (e.key === 'Escape') {
-        palette.classList.add('hidden');
-      }
-    });
-
-    input.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase();
-      const filtered = commands.filter(cmd => 
-        cmd.name.toLowerCase().includes(query)
-      );
-
-      results.innerHTML = '';
-      filtered.forEach((cmd, index) => {
-        const item = document.createElement('div');
-        item.className = 'command-item';
-        if (index === 0) item.classList.add('selected');
-        item.textContent = cmd.name;
-        item.addEventListener('click', () => {
-          cmd.action();
-          palette.classList.add('hidden');
-          input.value = '';
-        });
-        results.appendChild(item);
-      });
-    });
-
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        const selected = results.querySelector('.command-item.selected');
-        if (selected) {
-          selected.click();
-        }
-      }
-    });
+  function openTab(name){
+    const tab = tabs.find(t=>t.name===name); if(!tab) return;
+    currentTab = tab; editor.setModel(tab.model); updateStatusBar(); if(livePreview) updatePreview();
   }
 
-  // Settings
-  function setupSettings() {
-    $('#closeSettings').addEventListener('click', () => {
-      $('#settingsPanel').classList.add('hidden');
-    });
-
-    $('#themeSelect').addEventListener('change', (e) => {
-      settings.theme = e.target.value;
-      if (editor) {
-        monaco.editor.setTheme(settings.theme);
-      }
-      saveSettings();
-    });
-
-    $('#fontSizeInput').addEventListener('change', (e) => {
-      settings.fontSize = parseInt(e.target.value);
-      if (editor) {
-        editor.updateOptions({ fontSize: settings.fontSize });
-      }
-      saveSettings();
-    });
-
-    $('#tabSizeInput').addEventListener('change', (e) => {
-      settings.tabSize = parseInt(e.target.value);
-      if (editor) {
-        editor.updateOptions({ tabSize: settings.tabSize });
-      }
-      saveSettings();
-    });
-
-    $('#wordWrapSelect').addEventListener('change', (e) => {
-      settings.wordWrap = e.target.value;
-      if (editor) {
-        editor.updateOptions({ wordWrap: settings.wordWrap });
-      }
-      saveSettings();
-    });
-
-    $('#minimapToggle').addEventListener('change', (e) => {
-      settings.minimap = e.target.checked;
-      if (editor) {
-        editor.updateOptions({ minimap: { enabled: settings.minimap } });
-      }
-      saveSettings();
-    });
-
-    $('#lineNumbersToggle').addEventListener('change', (e) => {
-      settings.lineNumbers = e.target.checked;
-      if (editor) {
-        editor.updateOptions({ lineNumbers: settings.lineNumbers ? 'on' : 'off' });
-      }
-      saveSettings();
-    });
+  function closeTab(name){
+    const idx = tabs.findIndex(t=>t.name===name); if(idx<0) return;
+    tabs[idx].model.dispose(); tabs.splice(idx,1);
+    if(currentTab.name===name) currentTab = tabs[0]||null; if(currentTab) editor.setModel(currentTab.model);
+    renderTabs(); updateStatusBar();
   }
 
-  // Terminal
-  function setupTerminal() {
-    const input = $('#terminalInput');
-    const output = $('#terminalOutput');
-
-    // Welcome message
-    addTerminalLine('NovaDev IDE Terminal v1.0.0');
-    addTerminalLine('Type "help" for available commands');
-    addTerminalLine('');
-
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        const command = input.value.trim();
-        if (command) {
-          addTerminalLine(`$ ${command}`);
-          executeCommand(command);
-          input.value = '';
-        }
-      }
-    });
-  }
-
-  function addTerminalLine(text) {
-    const output = $('#terminalOutput');
-    const line = document.createElement('div');
-    line.className = 'terminal-line';
-    line.textContent = text;
-    output.appendChild(line);
-    output.scrollTop = output.scrollHeight;
-  }
-
-  function executeCommand(command) {
-    const parts = command.split(' ');
-    const cmd = parts[0];
-
-    switch (cmd) {
-      case 'help':
-        addTerminalLine('Available commands:');
-        addTerminalLine('  help     - Show this help message');
-        addTerminalLine('  clear    - Clear terminal');
-        addTerminalLine('  ls       - List files');
-        addTerminalLine('  cat      - Show file content');
-        addTerminalLine('  pwd      - Print working directory');
-        addTerminalLine('  echo     - Print message');
-        break;
-      case 'clear':
-        $('#terminalOutput').innerHTML = '';
-        break;
-      case 'ls':
-        Object.keys(project.files).forEach(file => {
-          addTerminalLine(`  ${file}`);
-        });
-        break;
-      case 'cat':
-        if (parts[1] && project.files[parts[1]]) {
-          addTerminalLine(project.files[parts[1]].content);
-        } else {
-          addTerminalLine(`cat: ${parts[1]}: No such file`);
-        }
-        break;
-      case 'pwd':
-        addTerminalLine(`/${project.name}`);
-        break;
-      case 'echo':
-        addTerminalLine(parts.slice(1).join(' '));
-        break;
-      default:
-        addTerminalLine(`${cmd}: command not found`);
-    }
-  }
-
-  // Panel Tabs
-  function setupPanelTabs() {
-    $$('.panel-tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        const panel = tab.dataset.panel;
-        
-        $$('.panel-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-
-        $$('.panel-view').forEach(v => v.classList.remove('active'));
-        $(`#${panel}Panel`).classList.add('active');
-      });
-    });
-  }
-
-  function togglePanel() {
-    const panel = $('.panel');
-    panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
-  }
-
+  // ------------------------
   // Monaco Editor
+  // ------------------------
   function initMonaco() {
-    require.config({ paths: { vs: MONACO_BASE } });
-    require(['vs/editor/editor.main'], () => {
+    require.config({ paths:{vs:MONACO_BASE} });
+    require(['vs/editor/editor.main'],()=>{
       const firstFile = Object.keys(project.files)[0];
-      const file = project.files[firstFile];
+      openFile(firstFile);
 
       editor = monaco.editor.create($('#editorContainer'), {
-        value: file.content,
-        language: file.language,
+        value: project.files[firstFile].content,
+        language: project.files[firstFile].language,
         theme: settings.theme,
         fontSize: settings.fontSize,
         tabSize: settings.tabSize,
         wordWrap: settings.wordWrap,
         minimap: { enabled: settings.minimap },
-        lineNumbers: settings.lineNumbers ? 'on' : 'off',
-        automaticLayout: true,
-        scrollBeyondLastLine: false,
-        renderWhitespace: 'selection',
-        cursorBlinking: 'smooth',
-        cursorSmoothCaretAnimation: true
+        lineNumbers: settings.lineNumbers ? 'on':'off',
+        automaticLayout:true
       });
 
-      currentFile = firstFile;
-      renderFileTree();
-      renderTabs();
-
-      // Auto-save on change
-      editor.onDidChangeModelContent(() => {
-        if (currentFile) {
-          project.files[currentFile].content = editor.getValue();
-          saveProject();
-          updateStatusBar();
-        }
-      });
+      // Auto-save
+      editor.onDidChangeModelContent(()=>{ if(currentTab){ currentTab.model.setValue(editor.getValue()); saveProject
+               });
 
       // Update cursor position
       editor.onDidChangeCursorPosition(() => {
         updateStatusBar();
+      });
+
+      // Update live preview on content change
+      editor.onDidChangeModelContent(() => {
+        if(currentTab){
+          project.files[currentTab.name].content = editor.getValue();
+          saveProject();
+          updateStatusBar();
+          if(livePreview) updatePreview();
+        }
       });
 
       // Keyboard shortcuts
@@ -642,58 +236,226 @@ h1 {
       });
 
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_B, () => {
-        $('.sidebar').style.display = 
-          $('.sidebar').style.display === 'none' ? 'flex' : 'none';
+        $('.sidebar').classList.toggle('open');
+      });
+
+      editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_P, () => {
+        toggleCommandPalette();
       });
 
       updateStatusBar();
     });
   }
 
-  // Update status bar
-  function updateStatusBar() {
-    if (!editor || !currentFile) return;
-
-    const position = editor.getPosition();
-    $('#cursorPosition').textContent = `Ln ${position.lineNumber}, Col ${position.column}`;
-
-    const language = project.files[currentFile].language;
-    $('#fileLanguage').textContent = language.toUpperCase();
+  // ------------------------
+  // Status Bar
+  // ------------------------
+  function updateStatusBar(){
+    if(!editor || !currentTab) return;
+    const pos = editor.getPosition();
+    $('#cursorPosition').textContent = `Ln ${pos.lineNumber}, Col ${pos.column}`;
+    $('#fileLanguage').textContent = project.files[currentTab.name].language.toUpperCase();
   }
 
-  // Format document
-  function formatDocument() {
-    if (editor) {
-      editor.getAction('editor.action.formatDocument').run();
-      addTerminalLine('Document formatted');
-    }
+  // ------------------------
+  // Live Preview
+  // ------------------------
+  function setupExtensions(){
+    // Live Preview toggle
+    $('#livePreviewToggle').addEventListener('click', () => {
+      livePreview = !livePreview;
+      const frame = $('#livePreviewFrame');
+      const editorDiv = $('#editorContainer');
+      if(livePreview){
+        frame.classList.remove('hidden');
+        editorDiv.classList.add('half-width');
+        updatePreview();
+      } else {
+        frame.classList.add('hidden');
+        editorDiv.classList.remove('half-width');
+        editorDiv.classList.add('full-width');
+      }
+    });
+
+    // Prettier
+    $('#prettierBtn').addEventListener('click', () => {
+      if(currentTab){
+        try{
+          const lang = project.files[currentTab.name].language;
+          if(['javascript','js'].includes(lang)){
+            const formatted = prettier.format(editor.getValue(), { parser:'babel', plugins: prettierPlugins });
+            editor.setValue(formatted);
+            addTerminalLine(`Prettier formatted ${currentTab.name}`);
+          } else if(lang==='css'){
+            const formatted = prettier.format(editor.getValue(), { parser:'css', plugins: prettierPlugins });
+            editor.setValue(formatted);
+            addTerminalLine(`Prettier formatted ${currentTab.name}`);
+          } else if(lang==='html'){
+            const formatted = prettier.format(editor.getValue(), { parser:'html', plugins: prettierPlugins });
+            editor.setValue(formatted);
+            addTerminalLine(`Prettier formatted ${currentTab.name}`);
+          } else {
+            addTerminalLine(`Prettier: unsupported file type for ${currentTab.name}`);
+          }
+        } catch(e){
+          addTerminalLine(`Prettier error: ${e.message}`);
+        }
+      }
+    });
+
+    // ESLint
+    $('#eslintBtn').addEventListener('click', () => {
+      if(currentTab && ['javascript','js'].includes(project.files[currentTab.name].language)){
+        try{
+          const linter = new eslint.Linter();
+          const messages = linter.verify(editor.getValue(), { env: { browser:true, es6:true }, rules:{ semi:2, 'no-unused-vars':1 }});
+          if(messages.length===0){
+            addTerminalLine(`ESLint: No issues found in ${currentTab.name}`);
+          } else {
+            messages.forEach(msg=>{
+              addTerminalLine(`ESLint: ${msg.line}:${msg.column} ${msg.message} (${msg.ruleId})`);
+            });
+          }
+        } catch(e){
+          addTerminalLine(`ESLint error: ${e.message}`);
+        }
+      } else {
+        addTerminalLine('ESLint: Only JS files supported');
+      }
+    });
   }
 
-  // Export project
-  function exportProject() {
-    // Create a simple HTML export
+  function updatePreview(){
+    if(!currentTab) return;
+    const frame = $('#livePreviewFrame');
     const html = project.files['index.html']?.content || '';
     const css = project.files['style.css']?.content || '';
     const js = project.files['script.js']?.content || '';
-
-    const fullHTML = html.replace('</head>', `<style>${css}</style></head>`)
-                         .replace('</body>', `<script>${js}</script></body>`);
-
-    const blob = new Blob([fullHTML], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${project.name}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    addTerminalLine(`Exported ${project.name}.html`);
+    frame.srcdoc = html.replace('</head>', `<style>${css}</style></head>`).replace('</body>', `<script>${js}</script></body>`);
   }
 
-  // Start the IDE
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
+  // ------------------------
+  // Terminal
+  // ------------------------
+  function setupTerminal(){
+    const input = $('#terminalInput');
+    addTerminalLine('NovaDev IDE Terminal v1.0.0');
+    addTerminalLine('Type "help" for commands');
+    addTerminalLine('');
+
+    input.addEventListener('keydown',(e)=>{
+      if(e.key==='Enter'){
+        const cmd=input.value.trim();
+        if(cmd){ addTerminalLine(`$ ${cmd}`); executeCommand(cmd); input.value=''; }
+      }
+    });
   }
-})();
+
+  function addTerminalLine(text){
+    const out=$('#terminalOutput');
+    const line=document.createElement('div');
+    line.className='terminal-line';
+    line.textContent=text;
+    out.appendChild(line);
+    out.scrollTop=out.scrollHeight;
+  }
+
+  function executeCommand(cmd){
+    const parts=cmd.split(' ');
+    switch(parts[0]){
+      case 'help':
+        addTerminalLine('Commands: help, clear, ls, cat, pwd, echo');
+        break;
+      case 'clear':
+        $('#terminalOutput').innerHTML=''; break;
+      case 'ls':
+        Object.keys(project.files).forEach(f=>addTerminalLine(f)); break;
+      case 'cat':
+        if(parts[1] && project.files[parts[1]]) addTerminalLine(project.files[parts[1]].content);
+        else addTerminalLine(`cat: ${parts[1]}: No such file`);
+        break;
+      case 'pwd':
+        addTerminalLine(`/${project.name}`); break;
+      case 'echo':
+        addTerminalLine(parts.slice(1).join(' ')); break;
+      default:
+        addTerminalLine(`${parts[0]}: command not found`);
+    }
+  }
+
+  // ------------------------
+  // Command Palette
+  // ------------------------
+  function setupCommandPalette(){
+    const palette=$('#commandPalette'), input=$('#commandInput'), results=$('#commandResults');
+    const commands=[
+      {name:'File: New File', action:()=>$('#newFileBtn').click()},
+      {name:'File: Save', action:()=>saveProject()},
+      {name:'View: Toggle Terminal', action:()=>$('.panel').classList.toggle('hidden')},
+      {name:'Preferences: Open Settings', action:()=>$('#settingsPanel').classList.remove('hidden')},
+      {name:'Extensions: Run Prettier', action:()=>$('#prettierBtn').click()},
+      {name:'Extensions: Run ESLint', action:()=>$('#eslintBtn').click()},
+      {name:'Extensions: Toggle Live Preview', action:()=>$('#livePreviewToggle').click()}
+    ];
+
+    function filterCommands(query){ return commands.filter(c=>c.name.toLowerCase().includes(query.toLowerCase())); }
+
+    input.addEventListener('input',()=>{ 
+      results.innerHTML='';
+      const filtered = filterCommands(input.value);
+      filtered.forEach((cmd,i)=>{
+        const item=document.createElement('div'); item.className='command-item'; if(i===0) item.classList.add('selected');
+        item.textContent=cmd.name;
+        item.addEventListener('click',()=>{ cmd.action(); toggleCommandPalette(false); input.value=''; });
+        results.appendChild(item);
+      });
+    });
+
+    document.addEventListener('keydown',(e)=>{
+      if((e.ctrlKey||e.metaKey) && e.shiftKey && e.key==='P'){
+        e.preventDefault(); toggleCommandPalette(true); input.focus();
+      }
+      if(e.key==='Escape') toggleCommandPalette(false);
+    });
+  }
+
+  function toggleCommandPalette(show){
+    const palette=$('#commandPalette');
+    if(show===undefined) palette.classList.toggle('hidden');
+    else palette.classList.toggle('hidden', !show);
+  }
+
+  // ------------------------
+  // Panel Tabs
+  // ------------------------
+  function setupPanelTabs(){
+    $$('.panel-tab').forEach(tab=>{
+      tab.addEventListener('click',()=>{
+        const panel=tab.dataset.panel;
+        $$('.panel-tab').forEach(t=>t.classList.remove('active'));
+        tab.classList.add('active');
+        $$('.panel-view').forEach(v=>v.classList.remove('active'));
+        $(`#${panel}Panel`).classList.add('active');
+      });
+    });
+  }
+
+  // ------------------------
+  // Settings
+  // ------------------------
+  function setupSettings(){
+    $('#closeSettings').addEventListener('click',()=>$('#settingsPanel').classList.add('hidden'));
+    $('#themeSelect').addEventListener('change',(e)=>{ settings.theme=e.target.value; if(editor) monaco.editor.setTheme(settings.theme); saveSettings(); });
+    $('#fontSizeInput').addEventListener('change',(e)=>{ settings.fontSize=parseInt(e.target.value); if(editor) editor.updateOptions({fontSize:settings.fontSize}); saveSettings(); });
+    $('#tabSizeInput').addEventListener('change',(e)=>{ settings.tabSize=parseInt(e.target.value); if(editor) editor.updateOptions({tabSize:settings.tabSize}); saveSettings(); });
+    $('#wordWrapSelect').addEventListener('change',(e)=>{ settings.wordWrap=e.target.value; if(editor) editor.updateOptions({wordWrap:settings.wordWrap}); saveSettings(); });
+    $('#minimapToggle').addEventListener('change',(e)=>{ settings.minimap=e.target.checked; if(editor) editor.updateOptions({minimap:{enabled:settings.minimap}}); saveSettings(); });
+    $('#lineNumbersToggle').addEventListener('change',(e)=>{ settings.lineNumbers=e.target.checked; if(editor) editor.updateOptions({lineNumbers:settings.lineNumbers?'on':'off'}); saveSettings(); });
+  }
+
+  // ------------------------
+  // Start IDE
+  // ------------------------
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();                                                 
