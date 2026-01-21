@@ -180,4 +180,51 @@
     switchProfile,
     getState: () => state
   };
+
+  /* ------------------ UI BINDINGS ------------------ */
+
+function bindUI() {
+  // Sidebar toggle
+  const sidebar = document.querySelector('.sidebar');
+  const toggleBtn = document.querySelector('.sidebar-toggle');
+
+  toggleBtn?.addEventListener('click', () => {
+    sidebar.classList.toggle('collapsed');
+  });
+
+  // Activity bar switching
+  document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document
+        .querySelectorAll('.sidebar-view')
+        .forEach(v => v.classList.remove('active'));
+
+      document
+        .querySelectorAll('.activity-btn')
+        .forEach(b => b.classList.remove('active'));
+
+      const view = btn.dataset.view;
+      document.getElementById(view + 'View')?.classList.add('active');
+      btn.classList.add('active');
+    });
+  });
+
+  // New file
+  document.getElementById('newFileBtn')?.addEventListener('click', () => {
+    const name = prompt('File name');
+    if (name) createFile(name);
+  });
+
+  // Live preview toggle
+  document.getElementById('livePreviewToggle')?.addEventListener('click', () => {
+    const frame = document.getElementById('livePreviewFrame');
+    frame.classList.toggle('hidden');
+
+    if (!frame.classList.contains('hidden')) {
+      frame.srcdoc = state.editor.getValue();
+    }
+  });
+
+  console.log('[NovaIDE] UI bound');
+}
 })();
