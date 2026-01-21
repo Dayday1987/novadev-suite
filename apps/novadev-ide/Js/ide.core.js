@@ -173,7 +173,7 @@
   initEditor();
   bindUI();
   console.log('[NovaIDE] Core initialized');
-}
+},
     openFile,
     closeFile,
     createFile,
