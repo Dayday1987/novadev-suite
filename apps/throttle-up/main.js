@@ -492,9 +492,8 @@ function update(now) {
         // Speed and acceleration
         if (game.throttle) {                   // If throttle is pressed
             game.speed += CONFIG.acceleration * deltaTime;    // Increase speed
-            // Apply torque that decreases as wheelie angle increases (prevents runaway rotation)
-            const wheelieAngle = Math.max(0, -game.bikeAngle); // How far back we're tilted
-            const torqueMultiplier = Math.max(0.1, 1 - (wheelieAngle * 2)); // Reduces as angle increases
+            // Apply torque that decreases as wheelie angle increases, but allows control at high angles
+            const torqueMultiplier = Math.max(0.2, 1 - (wheelieAngle * 1.5)); // Slower decrease, minimum 0.2
             game.bikeAngularVelocity -= CONFIG.torque * torqueMultiplier * deltaTime;
         } else {                               // If throttle not pressed
             game.speed *= Math.pow(CONFIG.friction, deltaTime); // Apply friction
@@ -503,10 +502,12 @@ function update(now) {
         
         game.speed = Math.max(0, Math.min(game.speed, CONFIG.maxSpeed)); // Clamp speed to valid range
         
-        // Physics - gravity pulls towards balance (zero angle)
-        const gravityForce = CONFIG.gravity * game.bikeAngle; // Calculate gravity force
+        // Physics - gravity pulls towards balance, but decreases at high wheelie angles (balance point)
+        const wheelieAngle = Math.max(0, -game.bikeAngle); // How far back we're tilted
+        const gravityMultiplier = Math.max(0.3, 1 - Math.max(0, wheelieAngle - 0.8) * 0.4); // Gravity decreases after 46°
+        const gravityForce = CONFIG.gravity * gravityMultiplier * game.bikeAngle; // Calculate gravity force
         game.bikeAngularVelocity -= gravityForce * deltaTime;  // Apply gravity to angular velocity
-        game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime); // Apply damping
+        game.bikeAngularVelocity = Math.max(-0.1, Math.min(0.1, game.bikeAngularVelocity)); // Cap angular velocity
         game.bikeAngle += game.bikeAngularVelocity * deltaTime; // Update bike angle
         
         // Only clamp when front wheel is touching ground (bike angle is positive/level)
@@ -515,8 +516,8 @@ function update(now) {
             game.bikeAngularVelocity *= 1.0;                  // Reduce bounce
         }
         
-        // Crash if bike loops too far backward (120 degrees = ~2.094 radians)
-        if (game.bikeAngle < -2.094) {         // If bike rotated back 120 degrees
+        // Crash if bike loops too far backward (150 degrees = ~2.618 radians)
+        if (game.bikeAngle < -2.618) {         // If bike rotated back 150 degrees
             crash();                           // Trigger crash
         }
         
