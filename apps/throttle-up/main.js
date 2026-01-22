@@ -488,74 +488,81 @@ function update(now) {
     
     // RACING PHASE - game is active
     if (game.phase === "RACING") {
-        // Speed and acceleration
-        // Speed and acceleration
-        if (game.throttle) {                   // If throttle is pressed
-            game.speed += CONFIG.acceleration * deltaTime;    // Increase speed
-            // Apply torque that decreases as wheelie angle increases, but allows control at high angles
-            const torqueMultiplier = Math.max(0.2, 1 - (wheelieAngle * 1.5)); // Slower decrease, minimum 0.2
-            game.bikeAngularVelocity -= CONFIG.torque * torqueMultiplier * deltaTime;
-        } else {                               // If throttle not pressed
-            game.speed *= Math.pow(CONFIG.friction, deltaTime); // Apply friction
-            if (game.speed < 0.05) game.speed = 0;             // Stop if very slow
-        }
-        
-        game.speed = Math.max(0, Math.min(game.speed, CONFIG.maxSpeed)); // Clamp speed to valid range
-        
-        // Physics - gravity pulls towards balance, but decreases at high wheelie angles (balance point)
-        const wheelieAngle = Math.max(0, -game.bikeAngle); // How far back we're tilted
-        const gravityMultiplier = Math.max(0.3, 1 - Math.max(0, wheelieAngle - 0.8) * 0.4); // Gravity decreases after 46°
-        const gravityForce = CONFIG.gravity * gravityMultiplier * game.bikeAngle; // Calculate gravity force
-        game.bikeAngularVelocity -= gravityForce * deltaTime;  // Apply gravity to angular velocity
-        game.bikeAngularVelocity = Math.max(-0.1, Math.min(0.1, game.bikeAngularVelocity)); // Cap angular velocity
-        game.bikeAngle += game.bikeAngularVelocity * deltaTime; // Update bike angle
-        
-        // Only clamp when front wheel is touching ground (bike angle is positive/level)
-        if (game.bikeAngle > CONFIG.GROUND_CONTACT_ANGLE) {   // If front wheel on ground
-            game.bikeAngle = CONFIG.GROUND_CONTACT_ANGLE;     // Clamp to ground level
-            game.bikeAngularVelocity *= 1.0;                  // Reduce bounce
-        }
-        
-        // Crash if bike loops too far backward (150 degrees = ~2.618 radians)
-        if (game.bikeAngle < -2.618) {         // If bike rotated back 150 degrees
-            crash();                           // Trigger crash
-        }
-        
-        // Movement - move forward with speed
-        if (game.speed > 0) {                  // If bike is moving
-            game.scroll -= game.speed * deltaTime;  // Move scroll (visual reference)
-            game.wheelRotation -= game.speed * 0.02 * deltaTime; // Rotate wheels
-            game.distance += game.speed * 0.1 * deltaTime;       // Increase distance
-            
-            // Update dash offset - let it decrease (go negative) without wrapping
-            game.dashOffset -= game.speed * deltaTime; // Decrease dash offset for forward motion
-        }
-        
-        // Update audio
-        audio.updateEngineSound();             // Update engine pitch based on speed
-        
-        // Dust particles
-        if (Math.random() < 0.1 && game.speed > 20) { // 10% chance if moving fast
-            const bikeX = width * CONFIG.BIKE_X_PERCENT;      // Calculate bike X position
-            particles.createDust(bikeX - 30, game.currentY + 10); // Create dust behind bike
-        }
-        
-        // Wheelie detection
-        if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) { // If bike angled back enough
-            if (!game.inWheelie) {             // If not already in wheelie
-                game.inWheelie = true;         // Start wheelie
-                game.score = 0;                // Reset score
-            }
-            game.score += 1 * deltaTime;       // Increase score while in wheelie
-        } else {                               // If bike not angled back enough
-            if (game.inWheelie) {              // If was in wheelie
-                endWheelie();                  // End wheelie
-            }
-        }
-        
-        updateUI();                            // Update UI display
+    // Wheelie angle and degrees for intuitive tuning
+    const wheelieAngle = Math.max(0, -game.bikeAngle);
+    const angleDeg = Math.abs(game.bikeAngle * 180 / Math.PI);
+
+    // ===== SPEED =====
+    if (game.throttle) {
+        game.speed += CONFIG.acceleration * deltaTime;
+    } else {
+        game.speed *= Math.pow(CONFIG.friction, deltaTime);
+        if (game.speed < 0.05) game.speed = 0;
     }
+    game.speed = Math.min(game.speed, CONFIG.maxSpeed);
+
+    // ===== TORQUE APPLICATION =====
+    // Torque effectiveness reduces gradually near balance point (70–80°)
+    let torqueEffect = 1;
+    if (angleDeg > 70) torqueEffect = Math.max(0.3, 1 - (angleDeg - 70) / 20);
+    const throttleTorque = CONFIG.torque * torqueEffect;
+
+    if (game.throttle) {
+        game.bikeAngularVelocity -= throttleTorque * deltaTime;
+    }
+
+    // ===== GRAVITY EFFECT =====
+    // Gravity loses leverage as the bike approaches 80°
+    let gravityScale = 1;
+    if (angleDeg > 70) gravityScale = Math.max(0.1, 1 - (angleDeg - 70) / 10);
+    const gravityTorque = CONFIG.gravity * gravityScale * game.bikeAngle;
+
+    game.bikeAngularVelocity -= gravityTorque * deltaTime;
+
+    // ===== DAMPING =====
+    game.bikeAngularVelocity *= CONFIG.damping;
+
+    // ===== ANGLE INTEGRATION =====
+    game.bikeAngle += game.bikeAngularVelocity * deltaTime;
+
+    // ===== FRONT WHEEL CLAMP =====
+    if (game.bikeAngle > CONFIG.GROUND_CONTACT_ANGLE) {
+        game.bikeAngle = CONFIG.GROUND_CONTACT_ANGLE;
+        game.bikeAngularVelocity = 0;
+    }
+
+    // ===== BACKWARD CRASH =====
+    if (angleDeg > 150) crash();
+
+    // ===== MOVEMENT =====
+    if (game.speed > 0) {
+        game.scroll -= game.speed * deltaTime;
+        game.wheelRotation -= game.speed * 0.02 * deltaTime;
+        game.distance += game.speed * 0.1 * deltaTime;
+        game.dashOffset -= game.speed * deltaTime;
+    }
+
+    // ===== AUDIO & FX =====
+    audio.updateEngineSound();
+    if (Math.random() < 0.1 && game.speed > 20) {
+        const bikeX = width * CONFIG.BIKE_X_PERCENT;
+        particles.createDust(bikeX - 30, game.currentY + 10);
+    }
+
+    // ===== SCORING =====
+    if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
+        if (!game.inWheelie) {
+            game.inWheelie = true;
+            game.score = 0;
+        }
+        game.score += 1 * deltaTime;
+    } else if (game.inWheelie) {
+        endWheelie();
+    }
+
+    updateUI();
 }
+
 
 // ==========================================
 // RENDERING
