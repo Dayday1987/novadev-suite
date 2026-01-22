@@ -15,7 +15,7 @@ const ctx = canvas.getContext("2d");
 const assets = {
     bike: { img: new Image(), loaded: false },    // Motorcycle image
     tire: { img: new Image(), loaded: false },    // Wheel/tire image
-    rider: { img: new Image(), loaded: false }    // Rider image
+    rider: { img: new Image(), loaded: false },    // Rider image
 };
 
 let assetsLoaded = 0;        // Counter for loaded assets
