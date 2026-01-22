@@ -65,14 +65,14 @@ const CONFIG = {
     
     // Physics
     maxSpeed: 170,            // Maximum speed in game units
-    acceleration: .05,        // Acceleration rate when throttle is applied
+    acceleration: 0.08,        // Acceleration rate when throttle is applied (increased for better feedback)
     friction: 0.995,          // Friction multiplier (closer to 1 = less friction)
     
     // Wheelie mechanics
-    torque: 0.0004,           // INCREASED: Rotational force applied during wheelie (was 0.001)
+    torque: 0.001,           // Rotational force applied during wheelie (increased for better control)
     torqueSpeedMult: 0.0001,  // Speed-dependent torque multiplier
-    gravity: 0.015,           // Gravity force pulling bike nose down
-    damping: 0.96,            // Angular velocity damping (rotation slowdown)
+    gravity: 0.01,           // Gravity force pulling bike nose down (reduced for balance)
+    damping: 0.98,           // Angular velocity damping (increased for more stability)
     
     // Wheelie detection thresholds
     WHEELIE_START_ANGLE: -0.02,      // Angle at which wheelie is considered started
@@ -515,8 +515,8 @@ function update(now) {
             game.bikeAngularVelocity *= 1.0;                  // Reduce bounce
         }
         
-        // Crash if bike loops too far backward (100 degrees = ~1.745 radians)
-        if (game.bikeAngle < -1.745) {         // If bike rotated back 100 degrees
+        // Crash if bike loops too far backward (120 degrees = ~2.094 radians)
+        if (game.bikeAngle < -2.094) {         // If bike rotated back 120 degrees
             crash();                           // Trigger crash
         }
         
