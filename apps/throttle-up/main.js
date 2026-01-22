@@ -69,10 +69,10 @@ const CONFIG = {
     friction: 0.995,          // Friction multiplier (closer to 1 = less friction)
     
     // Wheelie mechanics
-    torque: 0.00005,         // Rotational force applied during wheelie (further reduced for tap control)
+    torque: 0.0002,          // Rotational force applied during wheelie (balanced)
     torqueSpeedMult: 0.0001,  // Speed-dependent torque multiplier
-    gravity: 0.02,           // Gravity force pulling bike nose down (increased for quick recovery)
-    damping: 0.9,            // Angular velocity damping (increased for rapid stabilization)
+    gravity: 0.015,          // Gravity force pulling towards balance
+    damping: 0.96,           // Angular velocity damping
     
     // Wheelie detection thresholds
     WHEELIE_START_ANGLE: -0.02,      // Angle at which wheelie is considered started
@@ -503,9 +503,9 @@ function update(now) {
         
         game.speed = Math.max(0, Math.min(game.speed, CONFIG.maxSpeed)); // Clamp speed to valid range
         
-        // Physics - gravity pulls nose down (positive direction)
+        // Physics - gravity pulls towards balance (zero angle)
         const gravityForce = CONFIG.gravity * game.bikeAngle; // Calculate gravity force
-        game.bikeAngularVelocity += gravityForce * deltaTime;  // Apply gravity to angular velocity
+        game.bikeAngularVelocity -= gravityForce * deltaTime;  // Apply gravity to angular velocity
         game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime); // Apply damping
         game.bikeAngle += game.bikeAngularVelocity * deltaTime; // Update bike angle
         
