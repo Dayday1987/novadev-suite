@@ -69,10 +69,10 @@ const CONFIG = {
     friction: 0.995,          // Friction multiplier (closer to 1 = less friction)
     
     // Wheelie mechanics
-    torque: 0.001,           // Rotational force applied during wheelie (increased for better control)
+    torque: 0.0002,          // Rotational force applied during wheelie (reduced for control)
     torqueSpeedMult: 0.0001,  // Speed-dependent torque multiplier
-    gravity: 0.01,           // Gravity force pulling bike nose down (reduced for balance)
-    damping: 0.98,           // Angular velocity damping (increased for more stability)
+    gravity: 0.012,          // Gravity force pulling bike nose down (increased for balance)
+    damping: 0.94,           // Angular velocity damping (increased for stability)
     
     // Wheelie detection thresholds
     WHEELIE_START_ANGLE: -0.02,      // Angle at which wheelie is considered started
