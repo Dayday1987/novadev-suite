@@ -69,9 +69,9 @@ const CONFIG = {
     friction: 0.995,          // Friction multiplier (closer to 1 = less friction)
     
     // Wheelie mechanics
-    torque: 0.01,          // added 3 Rotational force applied during wheelie (stronger for sustained wheelies)
-    torqueSpeedMult: 0.0001,  // Speed-dependent torque multiplier
-    gravity: 0.01,          // added 5 Gravity force pulling towards balance (weaker for longer wheelies)
+    torque: 0.1,          // added 13 Rotational force applied during wheelie (stronger for sustained wheelies)
+    torqueSpeedMult: 0.001,  // added 10 Speed-dependent torque multiplier
+    gravity: 0.1,          // added 15 Gravity force pulling towards balance (weaker for longer wheelies)
     damping: 0.080,           // added 5 Angular velocity damping
     
     // Wheelie detection thresholds
