@@ -65,7 +65,7 @@ const CONFIG = {
     
     // Physics
     maxSpeed: 170,            // Maximum speed in game units
-    acceleration: 0.005,        // from 08 Acceleration rate when throttle is applied (increased for better feedback)
+    acceleration: 0.010,        // from 08 Acceleration rate when throttle is applied (increased for better feedback)
     friction: 0.995,          // Friction multiplier (closer to 1 = less friction)
     
     // Wheelie mechanics
