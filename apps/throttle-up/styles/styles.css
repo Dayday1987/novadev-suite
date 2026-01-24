@@ -69,7 +69,6 @@ body {
   flex-direction: column;
 }
 
-/* Canvas */
 #gameCanvas {
   display: block;
   width: 100%;
@@ -78,6 +77,7 @@ body {
   flex: 1;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
+  pointer-events: auto;
 }
 
 /* ==========================================
