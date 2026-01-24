@@ -1,5 +1,5 @@
 // ==========================================
-// THROTTLE UP - STABLE PHYSICS VERSION
+// THROTTLE UP – STABLE WHEELIE BUILD
 // ==========================================
 
 const canvas = document.getElementById("gameCanvas");
@@ -53,7 +53,7 @@ const CONFIG = {
     maxSpeed: 170,
     acceleration: 0.35,
 
-    // Wheelie physics (arcade stable)
+    // Wheelie physics
     wheelieBalanceAngle: -0.45,
     throttleTorque: 0.035,
     brakeTorque: 0.045,
@@ -83,6 +83,7 @@ const game = {
     speed: 0,
     scroll: 0,
     lane: 1,
+
     throttle: false,
     brake: false,
 
@@ -98,10 +99,13 @@ const game = {
     bestScore: parseInt(localStorage.getItem("throttleUpBest")) || 0,
 
     currentY: 0,
+
+    countdownIndex: 0,
+    countdownTimer: 0,
 };
 
 // ==========================================
-// AUDIO (unchanged)
+// AUDIO
 // ==========================================
 const audio = {
     enabled: true,
@@ -115,16 +119,16 @@ const audio = {
             this.enabled = false;
         }
     },
-    play(n) {
-        if (this.enabled && this.sounds[n]) {
-            this.sounds[n].currentTime = 0;
-            this.sounds[n].play();
+    play(name) {
+        if (this.enabled && this.sounds[name]) {
+            this.sounds[name].currentTime = 0;
+            this.sounds[name].play();
         }
     },
-    stop(n) {
-        if (this.enabled && this.sounds[n]) {
-            this.sounds[n].pause();
-            this.sounds[n].currentTime = 0;
+    stop(name) {
+        if (this.enabled && this.sounds[name]) {
+            this.sounds[name].pause();
+            this.sounds[name].currentTime = 0;
         }
     },
     updateEngineSound() {
@@ -137,13 +141,45 @@ const audio = {
 // ==========================================
 // INPUT
 // ==========================================
+function startThrottle() {
+    if (!gameReady) return;
+
+    if (game.phase === "IDLE") {
+        game.phase = "COUNTDOWN";
+        game.countdownIndex = 0;
+        game.countdownTimer = performance.now();
+    }
+
+    game.throttle = true;
+}
+
+function stopThrottle() {
+    game.throttle = false;
+}
+
+canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    startThrottle();
+}, { passive: false });
+
+canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    stopThrottle();
+}, { passive: false });
+
 window.addEventListener("keydown", (e) => {
-    if (e.code === "Space") game.throttle = true;
+    if (e.code === "Space") {
+        e.preventDefault();
+        startThrottle();
+    }
     if (e.code === "ArrowLeft") game.brake = true;
 });
 
 window.addEventListener("keyup", (e) => {
-    if (e.code === "Space") game.throttle = false;
+    if (e.code === "Space") {
+        e.preventDefault();
+        stopThrottle();
+    }
     if (e.code === "ArrowLeft") game.brake = false;
 });
 
@@ -161,7 +197,7 @@ window.addEventListener("resize", resize);
 resize();
 
 // ==========================================
-// PHYSICS UPDATE
+// UPDATE LOOP
 // ==========================================
 let lastTime = performance.now();
 
@@ -169,11 +205,23 @@ function update(now) {
     const deltaTime = Math.min((now - lastTime) / 16.67, 2);
     lastTime = now;
 
-    if (game.phase === "IDLE") return;
+    // COUNTDOWN
+    if (game.phase === "COUNTDOWN") {
+        if (now - game.countdownTimer > 800) {
+            game.countdownIndex++;
+            game.countdownTimer = now;
 
-    // =========================
+            if (game.countdownIndex >= 3) {
+                game.phase = "RACING";
+                audio.play("engine");
+            }
+        }
+        return;
+    }
+
+    if (game.phase !== "RACING") return;
+
     // LINEAR SPEED
-    // =========================
     if (game.throttle) {
         game.speed += CONFIG.acceleration * deltaTime;
     } else {
@@ -182,24 +230,17 @@ function update(now) {
 
     game.speed = Math.max(0, Math.min(game.speed, CONFIG.maxSpeed));
 
-    // =========================
     // WHEELIE PHYSICS
-    // =========================
     let torque = 0;
 
     if (game.throttle) torque -= CONFIG.throttleTorque;
     if (game.brake) torque += CONFIG.brakeTorque;
 
-    const gravity = Math.sin(
-        game.bikeAngle - CONFIG.wheelieBalanceAngle
-    );
-    torque += gravity * CONFIG.gravityTorque;
+    torque += Math.sin(game.bikeAngle - CONFIG.wheelieBalanceAngle)
+        * CONFIG.gravityTorque;
 
     game.bikeAngularVelocity += torque * deltaTime;
-    game.bikeAngularVelocity *= Math.pow(
-        CONFIG.angularDamping,
-        deltaTime
-    );
+    game.bikeAngularVelocity *= Math.pow(CONFIG.angularDamping, deltaTime);
 
     game.bikeAngularVelocity = Math.max(
         -CONFIG.maxAngularVelocity,
@@ -218,19 +259,16 @@ function update(now) {
     if (game.bikeAngle < -Math.PI * 0.75) {
         audio.play("crash");
         game.phase = "IDLE";
+        return;
     }
 
-    // =========================
     // WORLD SCROLL
-    // =========================
     game.scroll -= game.speed * deltaTime;
     game.wheelRotation -= game.speed * 0.02 * deltaTime;
     game.distance += game.speed * 0.1 * deltaTime;
     game.dashOffset -= game.speed * deltaTime;
 
-    // =========================
     // SCORING
-    // =========================
     if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
         game.inWheelie = true;
         game.score += deltaTime;
@@ -245,15 +283,9 @@ function update(now) {
 }
 
 // ==========================================
-// DRAW (unchanged visuals, minimal)
+// DRAW
 // ==========================================
 function draw() {
-    if (!gameReady) {
-        ctx.clearRect(0, 0, width, height);
-        requestAnimationFrame(draw);
-        return;
-    }
-
     ctx.fillStyle = "#2e7d32";
     ctx.fillRect(0, 0, width, height);
 
@@ -269,26 +301,65 @@ function draw() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    ctx.save();
-    ctx.translate(
-        width * CONFIG.BIKE_X_PERCENT,
-        roadYPos + CONFIG.roadStripHeight - 40
-    );
-    ctx.rotate(game.bikeAngle);
+    if (assets.bike.loaded && assets.tire.loaded) {
+        const bW = assets.bike.img.width * CONFIG.bikeScale;
+        const bH = assets.bike.img.height * CONFIG.bikeScale;
+        const tS = bH * CONFIG.tireSizeMult;
 
-    const bW = assets.bike.img.width * CONFIG.bikeScale;
-    const bH = assets.bike.img.height * CONFIG.bikeScale;
-    const tS = bH * CONFIG.tireSizeMult;
+        const pivotX = width * CONFIG.BIKE_X_PERCENT;
+        const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount;
+        const laneTopY = roadYPos + (game.lane * laneHeight);
+        const laneSurfaceY = laneTopY + laneHeight;
+        const targetY = laneSurfaceY - (tS / 2);
 
-    ctx.drawImage(
-        assets.bike.img,
-        -bW / 2,
-        -bH / 2,
-        bW,
-        bH
-    );
+        game.currentY += (targetY - game.currentY) * CONFIG.LANE_SWITCH_SMOOTHING;
 
-    ctx.restore();
+        ctx.save();
+        ctx.translate(pivotX + CONFIG.rearTireXShift, game.currentY);
+        ctx.rotate(game.bikeAngle);
+
+        ctx.save();
+        ctx.rotate(game.wheelRotation);
+        ctx.drawImage(assets.tire.img, -tS/2, -tS/2, tS, tS);
+        ctx.restore();
+
+        ctx.save();
+        ctx.rotate(CONFIG.noseDownAngle);
+        ctx.drawImage(
+            assets.bike.img,
+            -CONFIG.rearWheelOffsetX - CONFIG.rearTireXShift,
+            -bH/2 + CONFIG.frameYShift,
+            bW,
+            bH
+        );
+        ctx.restore();
+
+        if (assets.rider.loaded) {
+            ctx.save();
+            const lean = game.bikeAngle < CONFIG.WHEELIE_START_ANGLE
+                ? CONFIG.RIDER_LEAN_BACK
+                : CONFIG.RIDER_LEAN_FORWARD;
+
+            ctx.translate(bW * 0.25, -bH * 0.7);
+            ctx.rotate(lean);
+            ctx.drawImage(
+                assets.rider.img,
+                -bW * 0.25,
+                -bH * 0.4,
+                bW * 0.5,
+                bH * 0.8
+            );
+            ctx.restore();
+        }
+
+        ctx.save();
+        ctx.translate(bW * CONFIG.frontTireX - CONFIG.rearTireXShift, 0);
+        ctx.rotate(game.wheelRotation);
+        ctx.drawImage(assets.tire.img, -tS/2, -tS/2, tS, tS);
+        ctx.restore();
+
+        ctx.restore();
+    }
 
     update(performance.now());
     requestAnimationFrame(draw);
@@ -298,6 +369,4 @@ function draw() {
 // START
 // ==========================================
 loadAssets();
-game.phase = "RACING";
-audio.play("engine");
 draw();
