@@ -62,6 +62,10 @@
     saveProject();
     openFile(name);
     renderFileTree();
+    const tree = document.getElementById('fileTree');
+tree.style.display = 'none';
+tree.offsetHeight; // force reflow
+tree.style.display = '';
   }
 
   function openFile(name) {
@@ -224,6 +228,10 @@ function bindUI() {
     item.addEventListener('click', () => {
       openFile(name);
       renderFileTree();
+      const tree = document.getElementById('fileTree');
+tree.style.display = 'none';
+tree.offsetHeight; // force reflow
+tree.style.display = '';
     });
 
     tree.appendChild(item);
@@ -272,7 +280,7 @@ function bindUI() {
       loadStorage();
       initEditor();
       bindUI();
-      renderFileTree();
+      
       console.log('[NovaIDE] Core ready');
     }
   };
