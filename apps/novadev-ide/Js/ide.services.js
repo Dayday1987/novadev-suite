@@ -1,30 +1,44 @@
-function runBasicChecks() {
-  const file = NovaIDE.state.currentTab;
-  if (!file) return;
+/* ide.services.js */
+(() => {
+  'use strict';
 
-  const model = NovaIDE.state.editor.getModel();
-  const text = model.getValue();
-  const problems = [];
+  function runBasicChecks() {
+    const state = NovaIDE.state;
+    const file = state.currentTab;
+    if (!file || !state.editor) return;
 
-  text.split('\n').forEach((line, i) => {
-    if (line.includes('console.log')) {
-      problems.push({
-        file,
-        line: i + 1,
-        message: 'Avoid console.log in production',
-        severity: 'warning'
-      });
-    }
+    const model = state.editor.getModel();
+    if (!model) return;
 
-    if (line.trim().endsWith('{') && !line.includes('function')) {
-      problems.push({
-        file,
-        line: i + 1,
-        message: 'Possible missing closing brace',
-        severity: 'info'
-      });
-    }
-  });
+    const text = model.getValue();
+    const problems = [];
 
-  NovaIDE.core.setProblems(problems);
-}
+    text.split('\n').forEach((line, i) => {
+      if (line.includes('console.log')) {
+        problems.push({
+          file,
+          line: i + 1,
+          column: 1,
+          message: 'Avoid console.log in production',
+          severity: 'warning'
+        });
+      }
+
+      if (line.trim().endsWith('{') && !line.includes('function')) {
+        problems.push({
+          file,
+          line: i + 1,
+          column: 1,
+          message: 'Possible missing closing brace',
+          severity: 'info'
+        });
+      }
+    });
+
+    NovaIDE.core.setProblems(problems);
+  }
+
+  NovaIDE.services = {
+    runBasicChecks
+  };
+})();
