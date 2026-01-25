@@ -238,3 +238,40 @@ body {
 .hidden {
   display: none !important;
 }
+
+/* =========================
+   FIX EDITOR TAB LAYOUT
+   ========================= */
+
+/* Main vertical layout */
+.main-area {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* CRITICAL for flex children */
+}
+
+/* Tabs bar */
+.editor-tabs {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 35px;
+  flex-shrink: 0; /* DO NOT let editor eat it */
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 5;
+}
+
+/* Editor + preview area */
+.editor-wrapper {
+  flex: 1;
+  min-height: 0; /* REQUIRED so Monaco doesn’t overflow */
+  display: flex;
+  overflow: hidden;
+}
+
+/* Monaco container */
+.editor-container {
+  flex: 1;
+  min-height: 0;
+}
