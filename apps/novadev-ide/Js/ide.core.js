@@ -60,8 +60,8 @@
       content: ''
     };
     saveProject();
-    renderFileTree();
     openFile(name);
+    renderFileTree();
   }
 
   function openFile(name) {
