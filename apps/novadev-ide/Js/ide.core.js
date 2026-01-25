@@ -109,7 +109,35 @@ tree.style.display = '';
   }
 
   /* ------------------ RENDER: EXPLORER ------------------ */
+function renderFileTree() {
+  const tree = document.getElementById('fileTree');
+  if (!tree) return;
 
+  tree.innerHTML = '';
+
+  Object.keys(state.project.files).forEach(name => {
+    const item = document.createElement('div');
+    item.className = 'file-item';
+
+    if (state.currentTab === name) {
+      item.classList.add('active');
+    }
+
+    item.textContent = name;
+
+    item.addEventListener('click', () => {
+      openFile(name);
+      renderFileTree();
+
+      // Mobile Safari repaint fix
+      tree.style.display = 'none';
+      tree.offsetHeight;
+      tree.style.display = '';
+    });
+
+    tree.appendChild(item);
+  });
+}
   
 
   /* ------------------ RENDER: TABS ------------------ */
@@ -197,32 +225,6 @@ function bindUI() {
       if (name) createFile(name);
     });
 
-  function renderFileTree() {
-  const tree = document.getElementById('fileTree');
-  if (!tree) return;
-
-  tree.innerHTML = '';
-
-  Object.keys(state.project.files).forEach(name => {
-    const item = document.createElement('div');
-    item.className = 'file-item';
-    if (state.currentTab === name) item.classList.add('active');
-
-    item.textContent = name;
-
-    item.addEventListener('click', () => {
-      openFile(name);
-      renderFileTree();
-      const tree = document.getElementById('fileTree');
-tree.style.display = 'none';
-tree.offsetHeight; // force reflow
-tree.style.display = '';
-    });
-
-    tree.appendChild(item);
-  });
-}
-
   /* ---------- Settings ---------- */
   document.querySelector('[data-view="settings"]')
     ?.addEventListener('click', () => {
@@ -265,10 +267,8 @@ tree.style.display = '';
       loadStorage();
       initEditor();
       bindUI();
-      
+      renderFileTree();
       console.log('[NovaIDE] Core ready');
     }
   };
-
-  renderFileTree();
 })();
