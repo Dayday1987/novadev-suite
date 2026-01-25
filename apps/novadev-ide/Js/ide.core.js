@@ -110,22 +110,7 @@ tree.style.display = '';
 
   /* ------------------ RENDER: EXPLORER ------------------ */
 
-  function renderFileTree() {
-    const tree = document.getElementById('fileTree');
-    if (!tree) return;
-
-    tree.innerHTML = '';
-
-    Object.keys(state.project.files).forEach(name => {
-      const item = document.createElement('div');
-      item.className = 'file-item';
-      item.textContent = name;
-
-      item.addEventListener('click', () => openFile(name));
-
-      tree.appendChild(item);
-    });
-  }
+  
 
   /* ------------------ RENDER: TABS ------------------ */
 
