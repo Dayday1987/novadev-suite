@@ -41,6 +41,47 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.project));
   }
 
+  const commands = [
+  {
+    id: 'file.new',
+    label: 'New File',
+    run: () => {
+      const name = prompt('File name');
+      if (name) createFile(name);
+    }
+  },
+  {
+    id: 'file.save',
+    label: 'Save File',
+    run: saveProject
+  },
+  {
+    id: 'view.explorer',
+    label: 'Show Explorer',
+    run: () => activateSidebar('explorer')
+  },
+  {
+    id: 'view.search',
+    label: 'Show Search',
+    run: () => activateSidebar('search')
+  },
+  {
+    id: 'view.settings',
+    label: 'Open Settings',
+    run: () => {
+      document.getElementById('settingsPanel')
+        ?.classList.remove('hidden');
+    }
+  },
+  {
+    id: 'editor.togglePreview',
+    label: 'Toggle Live Preview',
+    run: () => {
+      document.getElementById('livePreviewToggle')?.click();
+    }
+  }
+];
+
   /* ------------------ FILES ------------------ */
 
   function guessLang(name) {
