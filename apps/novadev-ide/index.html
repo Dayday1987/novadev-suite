@@ -9,14 +9,6 @@
   <script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
   <script src="https://unpkg.com/prettier@2.8.8/parser-babel.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/eslint@8.46.0/dist/eslint.min.js"></script>
-  <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
-<script>
-  require.config({
-    paths: {
-      vs: 'https://unpkg.com/monaco-editor@0.44.0/min/vs'
-    }
-  });
-</script>
 </head>
 <body>
   <!-- Command Palette -->
@@ -202,6 +194,17 @@
       <span id="fileEncoding" class="status-item">UTF-8</span>
     </div>
   </div>
+
+<!-- NovaIDE files (ORDER MATTERS) -->
+<!-- Monaco (LOAD ONCE, AFTER DOM) -->
+<script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
+<script>
+  require.config({
+    paths: {
+      vs: 'https://unpkg.com/monaco-editor@0.44.0/min/vs'
+    }
+  });
+</script>
 
 <!-- NovaIDE files (ORDER MATTERS) -->
 <script src="js/ide.bootstrap.js"></script>
