@@ -385,6 +385,7 @@ function bindUI() {
       loadStorage();
       initEditor();
       bindUI();
+      initCommandPalette();
       renderFileTree();
       console.log('[NovaIDE] Core ready');
     }
