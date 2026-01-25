@@ -275,3 +275,74 @@ body {
   flex: 1;
   min-height: 0;
 }
+
+/* =========================
+   EDITOR TAB VISUAL POLISH
+   ========================= */
+
+/* Individual tabs */
+.editor-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* Hover state */
+.editor-tab:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Active tab */
+.editor-tab.active {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--accent-blue);
+}
+
+/* Active tab top accent (VS Code–like) */
+.editor-tab.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--accent-blue);
+}
+
+/* Tab name */
+.editor-tab .tab-name {
+  white-space: nowrap;
+}
+
+/* Close button */
+.editor-tab .tab-close {
+  opacity: 0;
+  margin-left: 6px;
+  font-size: 14px;
+  color: var(--text-muted);
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.editor-tab:hover .tab-close {
+  opacity: 1;
+}
+
+.editor-tab .tab-close:hover {
+  color: var(--text-primary);
+}
+
+/* First tab left border */
+.editor-tab:first-child {
+  border-left: 1px solid var(--border-color);
+}
