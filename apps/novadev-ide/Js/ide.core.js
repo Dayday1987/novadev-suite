@@ -276,4 +276,6 @@ function bindUI() {
       console.log('[NovaIDE] Core ready');
     }
   };
+
+  renderFileTree();
 })();
