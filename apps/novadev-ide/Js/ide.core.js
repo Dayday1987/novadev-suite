@@ -62,10 +62,6 @@
     saveProject();
     openFile(name);
     renderFileTree();
-    const tree = document.getElementById('fileTree');
-tree.style.display = 'none';
-tree.offsetHeight; // force reflow
-tree.style.display = '';
   }
 
   function openFile(name) {
