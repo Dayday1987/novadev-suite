@@ -17,6 +17,7 @@
       if (NovaIDE.core?.init) {
         NovaIDE.core.init();
         NovaIDE.ready = true;
+        NovaIDE.panels.init();
         console.log('[NovaIDE] Bootstrap complete');
       } else {
         console.error('[NovaIDE] core.init not found');
