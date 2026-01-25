@@ -234,6 +234,23 @@ function renderFileTree() {
 function bindUI() {
   console.log('[NovaIDE] UI binding started');
 
+  /* ---------- Panel Tabs ---------- */
+document.querySelectorAll('.panel-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const panel = tab.dataset.panel;
+
+    document.querySelectorAll('.panel-tab')
+      .forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    document.querySelectorAll('.panel-view')
+      .forEach(v => v.classList.remove('active'));
+
+    document.getElementById(panel + 'Panel')
+      ?.classList.add('active');
+  });
+});
+
   /* ---------- Activity Bar ---------- */
   document.querySelector('.sidebar')?.classList.add('open');
   document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
