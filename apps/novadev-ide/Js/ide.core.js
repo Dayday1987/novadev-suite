@@ -255,6 +255,23 @@ function bindUI() {
         ?.classList.toggle('open');
     });
 
+  function activateSidebar(view) {
+  document.querySelectorAll('.sidebar-view')
+    .forEach(v => v.classList.remove('active'));
+
+  document.querySelectorAll('.activity-btn')
+    .forEach(b => b.classList.remove('active'));
+
+  document.getElementById(view + 'View')
+    ?.classList.add('active');
+
+  document.querySelector(`[data-view="${view}"]`)
+    ?.classList.add('active');
+
+  document.querySelector('.sidebar')
+    ?.classList.add('open');
+}
+
   /* ---------- New File ---------- */
   document.getElementById('newFileBtn')
     ?.addEventListener('click', () => {
@@ -298,7 +315,71 @@ function bindUI() {
   console.log('[NovaIDE] UI binding complete');
 }
   /* ------------------ INIT ------------------ */
+  function initCommandPalette() {
+  const palette = document.getElementById('commandPalette');
+  const input = document.getElementById('commandInput');
+  const results = document.getElementById('commandResults');
 
+  if (!palette || !input || !results) return;
+
+  function openPalette() {
+    palette.classList.remove('hidden');
+    input.value = '';
+    input.focus();
+    render('');
+  }
+
+  function closePalette() {
+    palette.classList.add('hidden');
+  }
+
+  function render(query) {
+    results.innerHTML = '';
+
+    const filtered = commands.filter(c =>
+      c.label.toLowerCase().includes(query.toLowerCase())
+    );
+
+    filtered.forEach(cmd => {
+      const item = document.createElement('div');
+      item.className = 'command-item';
+      item.textContent = cmd.label;
+
+      item.addEventListener('click', () => {
+        closePalette();
+        cmd.run();
+      });
+
+      results.appendChild(item);
+    });
+  }
+
+  input.addEventListener('input', e => {
+    render(e.target.value);
+  });
+
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closePalette();
+    if (e.key === 'Enter') {
+      const first = results.firstChild;
+      first?.click();
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+      e.preventDefault();
+      openPalette();
+    }
+  });
+
+  // Mobile-friendly open (long press or future button)
+  document.addEventListener('dblclick', e => {
+    if (e.target.closest('.editor-container')) {
+      openPalette();
+    }
+  });
+}
   NovaIDE.core = {
     init() {
       loadStorage();
