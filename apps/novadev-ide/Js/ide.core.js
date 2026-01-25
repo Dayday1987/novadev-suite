@@ -21,6 +21,7 @@
   state.tabs = [];
   state.currentTab = null;
   state.editor = null;
+  state.problems = [];
 
   /* ------------------ STORAGE ------------------ */
 
@@ -314,7 +315,19 @@ function bindUI() {
 
   console.log('[NovaIDE] UI binding complete');
 }
+
+  function setProblems(list) {
+  state.problems = list;
+  NovaIDE.panels?.renderProblems?.();
+}
+
+function clearProblems() {
+  state.problems = [];
+  NovaIDE.panels?.renderProblems?.();
+}
+  
   /* ------------------ INIT ------------------ */
+  
   function initCommandPalette() {
   const palette = document.getElementById('commandPalette');
   const input = document.getElementById('commandInput');
@@ -380,14 +393,17 @@ function bindUI() {
     }
   });
 }
+  
   NovaIDE.core = {
-    init() {
-      loadStorage();
-      initEditor();
-      bindUI();
-      initCommandPalette();
-      renderFileTree();
-      console.log('[NovaIDE] Core ready');
-    }
-  };
+  init() {
+    loadStorage();
+    initEditor();
+    bindUI();
+    renderFileTree();
+    console.log('[NovaIDE] Core ready');
+  },
+  setProblems,
+  clearProblems,
+  getProblems: () => state.problems
+};
 })();
