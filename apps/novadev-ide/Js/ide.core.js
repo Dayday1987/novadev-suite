@@ -224,7 +224,10 @@ function renderFileTree() {
     const first = Object.keys(state.project.files)[0];
     if (first) openFile(first);
 
-    state.editor.onDidChangeModelContent(saveProject);
+    state.editor.onDidChangeModelContent(() => {
+  saveProject();
+  NovaIDE.services.runBasicChecks();
+});
   }
 
   /* ------------------ UI BINDINGS ------------------ */
