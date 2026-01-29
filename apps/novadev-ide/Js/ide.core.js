@@ -413,16 +413,21 @@ function clearProblems() {
   });
 }
   
-  NovaIDE.core = {
-  init() {
-    loadStorage();
-    initEditor();
-    bindUI();
-    renderFileTree();
-    console.log('[NovaIDE] Core ready');
-  },
-  setProblems,
-  clearProblems,
-  getProblems: () => state.problems
-};
+    NovaIDE.core = {
+    init() {
+      loadStorage();
+      initEditor();
+
+      // Delay UI binding until DOM + Monaco are stable
+      requestAnimationFrame(() => {
+        bindUI();
+        renderFileTree();
+        console.log('[NovaIDE] UI fully bound');
+      });
+    },
+
+    setProblems,
+    clearProblems,
+    getProblems: () => state.problems
+  };
 })();
