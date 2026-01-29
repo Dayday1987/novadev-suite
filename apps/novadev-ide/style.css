@@ -362,3 +362,8 @@ body {
 .panel-tab {
   touch-action: manipulation;
 }
+/* TEMP DEBUG — FORCE SIDEBAR TO TOP */
+.sidebar {
+  z-index: 999999 !important;
+  position: relative !important;
+}
