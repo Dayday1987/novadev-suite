@@ -121,15 +121,18 @@ body {
    MOBILE SIDEBAR BEHAVIOR
    ========================= */
 
-@media (max-width: 768px) {
-  .sidebar {
-    pointer-events: none;
-  }
+/* =========================
+   MOBILE SIDEBAR BEHAVIOR (FIXED)
+   ========================= */
 
-  .sidebar.open {
-    pointer-events: auto;
+@media (max-width: 768px) {
+  .activity-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 3000;
   }
-}
 
   .sidebar {
     position: fixed;
@@ -139,10 +142,14 @@ body {
     transform: translateX(-100%);
     z-index: 2500;
     box-shadow: 4px 0 16px rgba(0,0,0,0.6);
+
+    /* IMPORTANT */
+    pointer-events: none;
   }
 
   .sidebar.open {
     transform: translateX(0);
+    pointer-events: auto;
   }
 
   .main-area {
