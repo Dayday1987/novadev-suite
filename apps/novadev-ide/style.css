@@ -122,13 +122,14 @@ body {
    ========================= */
 
 @media (max-width: 768px) {
-  .activity-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    z-index: 3000;
+  .sidebar {
+    pointer-events: none;
   }
+
+  .sidebar.open {
+    pointer-events: auto;
+  }
+}
 
   .sidebar {
     position: fixed;
