@@ -356,30 +356,3 @@ body {
   }
 }
 
-/* =========================
-   MOBILE SIDEBAR TOUCH FIX
-   ========================= */
-
-@media (max-width: 768px) {
-
-  /* Sidebar overlay behavior */
-  .sidebar {
-    pointer-events: auto;
-  }
-
-  /* Disable editor when sidebar is open */
-  .sidebar.open ~ .main-area {
-    pointer-events: none;
-  }
-
-  /* Re-enable editor when sidebar is closed */
-  .sidebar:not(.open) ~ .main-area {
-    pointer-events: auto;
-  }
-
-  /* Activity bar must always work */
-  .activity-bar,
-  .activity-bar * {
-    pointer-events: auto;
-  }
-}
