@@ -260,8 +260,9 @@ document.querySelectorAll('.panel-tab').forEach(tab => {
 
   /* ---------- Activity Bar ---------- */
   document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const view = btn.dataset.view;
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault(); // IMPORTANT
+    const view = btn.dataset.view;
 
       document.querySelectorAll('.activity-btn')
         .forEach(b => b.classList.remove('active'));
