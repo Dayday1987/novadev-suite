@@ -231,6 +231,13 @@ function renderFileTree() {
   }
 
   /* ------------------ UI BINDINGS ------------------ */
+  document.body.addEventListener(
+  'click',
+  e => {
+    console.log('BODY CLICK:', e.target);
+  },
+  true // <-- IMPORTANT (capture phase)
+);
 function bindUI() {
   console.log('[NovaIDE] UI binding started');
 
