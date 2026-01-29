@@ -252,7 +252,6 @@ document.querySelectorAll('.panel-tab').forEach(tab => {
 });
 
   /* ---------- Activity Bar ---------- */
-  document.querySelector('.sidebar')?.classList.add('open');
   document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
     btn.addEventListener('click', () => {
       const view = btn.dataset.view;
