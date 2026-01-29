@@ -118,21 +118,8 @@ body {
 }
 
 /* =========================
-   MOBILE SIDEBAR BEHAVIOR
-   ========================= */
-
-/* =========================
    MOBILE SIDEBAR BEHAVIOR (FIXED)
    ========================= */
-
-@media (max-width: 768px) {
-  .activity-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh;
-    z-index: 3000;
-  }
 
   .sidebar {
     position: fixed;
@@ -377,4 +364,32 @@ body {
 
 #commandInput {
   font-size: 16px; /* prevents iOS zoom */
+}
+
+/* =========================
+   MOBILE SIDEBAR TOUCH FIX
+   ========================= */
+
+@media (max-width: 768px) {
+
+  /* Sidebar overlay behavior */
+  .sidebar {
+    pointer-events: auto;
+  }
+
+  /* Disable editor when sidebar is open */
+  .sidebar.open ~ .main-area {
+    pointer-events: none;
+  }
+
+  /* Re-enable editor when sidebar is closed */
+  .sidebar:not(.open) ~ .main-area {
+    pointer-events: auto;
+  }
+
+  /* Activity bar must always work */
+  .activity-bar,
+  .activity-bar * {
+    pointer-events: auto;
+  }
 }
