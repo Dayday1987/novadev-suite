@@ -99,25 +99,6 @@ body {
 }
 
 /* =========================
-   DESKTOP SIDEBAR COLLAPSE
-   ========================= */
-
-@media (min-width: 769px) {
-  .sidebar {
-    transform: translateX(0);
-  }
-
-  .sidebar:not(.open) {
-    width: var(--activity-bar-width);
-  }
-
-  .sidebar:not(.open) .sidebar-header,
-  .sidebar:not(.open) .sidebar-content {
-    display: none;
-  }
-}
-
-/* =========================
    MAIN AREA
    ========================= */
 
