@@ -362,8 +362,12 @@ body {
 .panel-tab {
   touch-action: manipulation;
 }
-/* TEMP DEBUG — FORCE SIDEBAR TO TOP */
-.sidebar {
-  z-index: 999999 !important;
-  position: relative !important;
+
+/* FINAL FIX — STOP MONACO FROM EATING TOUCHES */
+.editor-wrapper {
+  pointer-events: auto;
+}
+
+.editor-container {
+  pointer-events: auto;
 }
