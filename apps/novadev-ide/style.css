@@ -118,33 +118,6 @@ body {
 }
 
 /* =========================
-   MOBILE SIDEBAR BEHAVIOR (FIXED)
-   ========================= */
-
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: var(--activity-bar-width);
-    height: 100vh;
-    transform: translateX(-100%);
-    z-index: 2500;
-    box-shadow: 4px 0 16px rgba(0,0,0,0.6);
-
-    /* IMPORTANT */
-    pointer-events: none;
-  }
-
-  .sidebar.open {
-    transform: translateX(0);
-    pointer-events: auto;
-  }
-
-  .main-area {
-    margin-left: var(--activity-bar-width);
-  }
-}
-
-/* =========================
    MAIN AREA
    ========================= */
 
@@ -364,6 +337,42 @@ body {
 
 #commandInput {
   font-size: 16px; /* prevents iOS zoom */
+}
+
+/* =========================
+   MOBILE SIDEBAR BEHAVIOR
+   ========================= */
+
+@media (max-width: 768px) {
+
+  .activity-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 3000;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: var(--activity-bar-width);
+    height: 100vh;
+    transform: translateX(-100%);
+    z-index: 2500;
+    box-shadow: 4px 0 16px rgba(0,0,0,0.6);
+
+    /* IMPORTANT: never disable pointer-events here */
+    pointer-events: auto;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .main-area {
+    margin-left: var(--activity-bar-width);
+  }
 }
 
 /* =========================
