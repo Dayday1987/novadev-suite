@@ -356,3 +356,9 @@ body {
   }
 }
 
+/* MOBILE TAP FIX — REQUIRED */
+.activity-btn,
+.sidebar button,
+.panel-tab {
+  touch-action: manipulation;
+}
