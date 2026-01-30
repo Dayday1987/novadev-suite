@@ -253,6 +253,13 @@
       onTap(btn, () => activateSidebar(btn.dataset.view));
     });
 
+    const testBtn = document.querySelector('.activity-btn');
+if (testBtn) {
+  testBtn.addEventListener('pointerup', () => {
+    alert('Pointer reached activity button');
+  }, { once: true });
+}
+
     onTap(
       document.querySelector('.sidebar-toggle'),
       () => document.querySelector('.sidebar')?.classList.toggle('open')
