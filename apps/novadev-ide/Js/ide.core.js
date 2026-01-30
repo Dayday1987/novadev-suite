@@ -259,21 +259,22 @@ document.querySelectorAll('.panel-tab').forEach(tab => {
 });
 
   /* ---------- Activity Bar ---------- */
-  document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
-  btn.addEventListener('click', e => {
-  const view = btn.dataset.view;
+document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const view = btn.dataset.view;
 
-  document.querySelectorAll('.activity-btn')
-    .forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+    document.querySelectorAll('.activity-btn')
+      .forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
 
-  document.querySelectorAll('.sidebar-view')
-    .forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.sidebar-view')
+      .forEach(v => v.classList.remove('active'));
 
-  document.getElementById(view + 'View')
-    ?.classList.add('active');
+    document.getElementById(view + 'View')
+      ?.classList.add('active');
+  });
 });
-
+  
   /* ---------- Sidebar Toggle ---------- */
   document.querySelector('.sidebar-toggle')
     ?.addEventListener('click', () => {
