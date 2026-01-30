@@ -305,11 +305,16 @@ document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
     });
 
   /* ---------- Settings ---------- */
-  document.querySelector('[data-view="settings"]')
-    ?.addEventListener('click', () => {
-      document.getElementById('settingsPanel')
-        ?.classList.remove('hidden');
-    });
+  document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const view = btn.dataset.view;
+
+    // 👇 Settings is NOT a sidebar view
+    if (view === 'settings') return;
+
+    activateSidebar(view);
+  });
+});
 
   document.getElementById('closeSettings')
     ?.addEventListener('click', () => {
