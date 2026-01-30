@@ -249,6 +249,7 @@
   }
 
   function bindUI() {
+    alert('bindUI ran');
     document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
       onTap(btn, () => activateSidebar(btn.dataset.view));
     });
