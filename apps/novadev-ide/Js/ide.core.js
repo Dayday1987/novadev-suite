@@ -314,4 +314,7 @@
     clearProblems,
     getProblems: () => state.problems
   };
+  document.addEventListener('pointerup', () => {
+  alert('Pointer events are reaching JS');
+}, { once: true });
 })();
