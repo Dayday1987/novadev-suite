@@ -246,6 +246,10 @@ body {
   min-height: 0; /* CRITICAL for flex children */
 }
 
+.main-area {
+  background: rgba(255,0,0,0.05);
+}
+
 /* Tabs bar */
 .editor-tabs {
   display: flex;
@@ -365,4 +369,8 @@ body {
 
 #commandInput {
   font-size: 16px; /* prevents iOS zoom */
+}
+
+.sidebar {
+  pointer-events: auto !important;
 }
