@@ -36,7 +36,7 @@ body {
 
 .ide-container {
   display: flex;
-  height: calc(100vh - var(--status-bar-height));
+  height: calc(100dvh - var(--status-bar-height));
   width: 100dvh;
 }
 
@@ -369,8 +369,4 @@ body {
 
 #commandInput {
   font-size: 16px; /* prevents iOS zoom */
-}
-
-.sidebar {
-  pointer-events: auto !important;
 }
