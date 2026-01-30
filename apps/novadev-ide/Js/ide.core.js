@@ -3,8 +3,14 @@
   'use strict';
 
   const STORAGE_KEY = 'novadev_project_v2';
-
   const state = NovaIDE.state;
+
+  /* ------------------ TAP HELPER (iOS SAFE) ------------------ */
+  function onTap(el, handler) {
+    if (!el) return;
+    el.addEventListener('pointerup', handler, { passive: true });
+    el.addEventListener('click', handler);
+  }
 
   /* ------------------ DEFAULT STATE ------------------ */
 
@@ -13,7 +19,8 @@
     files: {
       'index.html': {
         language: 'html',
-        content: '<!DOCTYPE html>\n<html>\n<body>\n<h1>Hello NovaDev</h1>\n</body>\n</html>'
+        content:
+          '<!DOCTYPE html>\n<html>\n<body>\n<h1>Hello NovaDev</h1>\n</body>\n</html>'
       }
     }
   };
@@ -42,46 +49,56 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.project));
   }
 
-  const commands = [
-  {
-    id: 'file.new',
-    label: 'New File',
-    run: () => {
-      const name = prompt('File name');
-      if (name) createFile(name);
-    }
-  },
-  {
-    id: 'file.save',
-    label: 'Save File',
-    run: saveProject
-  },
-  {
-    id: 'view.explorer',
-    label: 'Show Explorer',
-    run: () => activateSidebar('explorer')
-  },
-  {
-    id: 'view.search',
-    label: 'Show Search',
-    run: () => activateSidebar('search')
-  },
-  {
-    id: 'view.settings',
-    label: 'Open Settings',
-    run: () => {
-      document.getElementById('settingsPanel')
-        ?.classList.remove('hidden');
-    }
-  },
-  {
-    id: 'editor.togglePreview',
-    label: 'Toggle Live Preview',
-    run: () => {
-      document.getElementById('livePreviewToggle')?.click();
+  /* ------------------ COMMANDS ------------------ */
+
+  function toggleLivePreview() {
+    const frame = document.getElementById('livePreviewFrame');
+    if (!frame || !state.editor) return;
+
+    frame.classList.toggle('hidden');
+    if (!frame.classList.contains('hidden')) {
+      frame.srcdoc = state.editor.getValue();
     }
   }
-];
+
+  const commands = [
+    {
+      id: 'file.new',
+      label: 'New File',
+      run: () => {
+        const name = prompt('File name');
+        if (name) createFile(name);
+      }
+    },
+    {
+      id: 'file.save',
+      label: 'Save File',
+      run: saveProject
+    },
+    {
+      id: 'view.explorer',
+      label: 'Show Explorer',
+      run: () => activateSidebar('explorer')
+    },
+    {
+      id: 'view.search',
+      label: 'Show Search',
+      run: () => activateSidebar('search')
+    },
+    {
+      id: 'view.settings',
+      label: 'Open Settings',
+      run: () => {
+        document.getElementById('settingsPanel')
+          ?.classList.remove('hidden');
+      }
+    },
+    {
+      id: 'editor.togglePreview',
+      label: 'Toggle Live Preview',
+      run: toggleLivePreview
+    }
+  ];
 
   /* ------------------ FILES ------------------ */
 
@@ -123,7 +140,6 @@
 
     state.currentTab = name;
     state.editor.setModel(tab.model);
-
     renderTabs();
   }
 
@@ -134,51 +150,38 @@
     state.tabs[idx].model.dispose();
     state.tabs.splice(idx, 1);
 
-    if (state.currentTab === name) {
-      state.currentTab = state.tabs[0]?.name || null;
-      state.editor.setModel(
-        state.currentTab
-          ? state.tabs[0].model
-          : null
-      );
-    }
+    state.currentTab = state.tabs[0]?.name || null;
+    state.editor.setModel(
+      state.currentTab ? state.tabs[0].model : null
+    );
 
     renderTabs();
   }
 
-  /* ------------------ RENDER: EXPLORER ------------------ */
-function renderFileTree() {
-  const tree = document.getElementById('fileTree');
-  if (!tree) return;
+  /* ------------------ EXPLORER ------------------ */
 
-  tree.innerHTML = '';
+  function renderFileTree() {
+    const tree = document.getElementById('fileTree');
+    if (!tree) return;
 
-  Object.keys(state.project.files).forEach(name => {
-    const item = document.createElement('div');
-    item.className = 'file-item';
+    tree.innerHTML = '';
 
-    if (state.currentTab === name) {
-      item.classList.add('active');
-    }
+    Object.keys(state.project.files).forEach(name => {
+      const item = document.createElement('div');
+      item.className = 'file-item';
+      if (state.currentTab === name) item.classList.add('active');
+      item.textContent = name;
 
-    item.textContent = name;
+      onTap(item, () => {
+        openFile(name);
+        renderFileTree();
+      });
 
-    item.addEventListener('click', () => {
-      openFile(name);
-      renderFileTree();
-
-      // Mobile Safari repaint fix
-      tree.style.display = 'none';
-      tree.offsetHeight;
-      tree.style.display = '';
+      tree.appendChild(item);
     });
+  }
 
-    tree.appendChild(item);
-  });
-}
-  
-
-  /* ------------------ RENDER: TABS ------------------ */
+  /* ------------------ TABS ------------------ */
 
   function renderTabs() {
     const tabsEl = document.getElementById('editorTabs');
@@ -189,22 +192,21 @@ function renderFileTree() {
     state.tabs.forEach(tab => {
       const el = document.createElement('div');
       el.className = 'editor-tab';
-      if (tab.name === state.currentTab) {
-        el.classList.add('active');
-      }
+      if (tab.name === state.currentTab) el.classList.add('active');
 
       el.innerHTML = `
         <span class="tab-name">${tab.name}</span>
         <span class="tab-close">×</span>
       `;
 
-      el.querySelector('.tab-name').onclick = () =>
-        openFile(tab.name);
+      onTap(el.querySelector('.tab-name'), () =>
+        openFile(tab.name)
+      );
 
-      el.querySelector('.tab-close').onclick = e => {
+      onTap(el.querySelector('.tab-close'), e => {
         e.stopPropagation();
         closeFile(tab.name);
-      };
+      });
 
       tabsEl.appendChild(el);
     });
@@ -225,189 +227,91 @@ function renderFileTree() {
     if (first) openFile(first);
 
     state.editor.onDidChangeModelContent(() => {
-  saveProject();
-  NovaIDE.services.runBasicChecks();
-});
+      saveProject();
+      NovaIDE.services.runBasicChecks();
+    });
   }
 
-  /* ------------------ UI BINDINGS ------------------ */
-function bindUI() {
-  console.log('[NovaIDE] UI binding started');
-
-  /* ---------- Activity Bar ---------- */
-  document.querySelector('.sidebar')?.classList.add('open');
-  document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const view = btn.dataset.view;
-
-      document.querySelectorAll('.activity-btn')
-        .forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      document.querySelectorAll('.sidebar-view')
-        .forEach(v => v.classList.remove('active'));
-
-      document.getElementById(view + 'View')
-        ?.classList.add('active');
-    });
-  });
-
-  /* ---------- Sidebar Toggle ---------- */
-  document.querySelector('.sidebar-toggle')
-    ?.addEventListener('click', () => {
-      document.querySelector('.sidebar')
-        ?.classList.toggle('open');
-    });
+  /* ------------------ UI ------------------ */
 
   function activateSidebar(view) {
-  document.querySelectorAll('.sidebar-view')
-    .forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.sidebar-view')
+      .forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.activity-btn')
+      .forEach(b => b.classList.remove('active'));
 
-  document.querySelectorAll('.activity-btn')
-    .forEach(b => b.classList.remove('active'));
-
-  document.getElementById(view + 'View')
-    ?.classList.add('active');
-
-  document.querySelector(`[data-view="${view}"]`)
-    ?.classList.add('active');
-
-  document.querySelector('.sidebar')
-    ?.classList.add('open');
-}
-
-  /* ---------- New File ---------- */
-  document.getElementById('newFileBtn')
-    ?.addEventListener('click', () => {
-      const name = prompt('File name');
-      if (name) createFile(name);
-    });
-
-  /* ---------- Settings ---------- */
-  document.querySelector('[data-view="settings"]')
-    ?.addEventListener('click', () => {
-      document.getElementById('settingsPanel')
-        ?.classList.remove('hidden');
-    });
-
-  document.getElementById('closeSettings')
-    ?.addEventListener('click', () => {
-      document.getElementById('settingsPanel')
-        ?.classList.add('hidden');
-    });
-
-  /* ---------- Live Preview ---------- */
-  document.getElementById('livePreviewToggle')
-    ?.addEventListener('click', () => {
-      const frame = document.getElementById('livePreviewFrame');
-      frame.classList.toggle('hidden');
-      if (!frame.classList.contains('hidden') && state.editor) {
-        frame.srcdoc = state.editor.getValue();
-      }
-    });
-
-  /* ---------- Terminal ---------- */
-  const terminalInput = document.getElementById('terminalInput');
-  terminalInput?.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
-      const cmd = terminalInput.value.trim();
-      terminalInput.value = '';
-      addTerminalLine(`$ ${cmd}`);
-    }
-  });
-
-  console.log('[NovaIDE] UI binding complete');
-}
-
-  function setProblems(list) {
-  state.problems = list;
-  NovaIDE.panels?.renderProblems?.();
-}
-
-function clearProblems() {
-  state.problems = [];
-  NovaIDE.panels?.renderProblems?.();
-}
-  
-  /* ------------------ INIT ------------------ */
-  
-  function initCommandPalette() {
-  const palette = document.getElementById('commandPalette');
-  const input = document.getElementById('commandInput');
-  const results = document.getElementById('commandResults');
-
-  if (!palette || !input || !results) return;
-
-  function openPalette() {
-    palette.classList.remove('hidden');
-    input.value = '';
-    input.focus();
-    render('');
+    document.getElementById(view + 'View')
+      ?.classList.add('active');
+    document.querySelector(`[data-view="${view}"]`)
+      ?.classList.add('active');
+    document.querySelector('.sidebar')
+      ?.classList.add('open');
   }
 
-  function closePalette() {
-    palette.classList.add('hidden');
-  }
+  function bindUI() {
+    document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
+      onTap(btn, () => activateSidebar(btn.dataset.view));
+    });
 
-  function render(query) {
-    results.innerHTML = '';
-
-    const filtered = commands.filter(c =>
-      c.label.toLowerCase().includes(query.toLowerCase())
+    onTap(
+      document.querySelector('.sidebar-toggle'),
+      () => document.querySelector('.sidebar')?.classList.toggle('open')
     );
 
-    filtered.forEach(cmd => {
-      const item = document.createElement('div');
-      item.className = 'command-item';
-      item.textContent = cmd.label;
+    onTap(
+      document.getElementById('newFileBtn'),
+      () => {
+        const name = prompt('File name');
+        if (name) createFile(name);
+      }
+    );
 
-      item.addEventListener('click', () => {
-        closePalette();
-        cmd.run();
-      });
+    onTap(
+      document.querySelector('[data-view="settings"]'),
+      () =>
+        document.getElementById('settingsPanel')
+          ?.classList.remove('hidden')
+    );
 
-      results.appendChild(item);
-    });
+    onTap(
+      document.getElementById('closeSettings'),
+      () =>
+        document.getElementById('settingsPanel')
+          ?.classList.add('hidden')
+    );
+
+    onTap(
+      document.getElementById('livePreviewToggle'),
+      toggleLivePreview
+    );
   }
 
-  input.addEventListener('input', e => {
-    render(e.target.value);
-  });
+  /* ------------------ PROBLEMS ------------------ */
 
-  input.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closePalette();
-    if (e.key === 'Enter') {
-      const first = results.firstChild;
-      first?.click();
-    }
-  });
+  function setProblems(list) {
+    state.problems = list;
+    NovaIDE.panels?.renderProblems?.();
+  }
 
-  document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
-      e.preventDefault();
-      openPalette();
-    }
-  });
+  function clearProblems() {
+    state.problems = [];
+    NovaIDE.panels?.renderProblems?.();
+  }
 
-  // Mobile-friendly open (long press or future button)
-  document.addEventListener('dblclick', e => {
-    if (e.target.closest('.editor-container')) {
-      openPalette();
-    }
-  });
-}
-  
+  /* ------------------ INIT ------------------ */
+
   NovaIDE.core = {
-  init() {
-    loadStorage();
-    initEditor();
-    bindUI();
-    renderFileTree();
-    console.log('[NovaIDE] Core ready');
-  },
-  setProblems,
-  clearProblems,
-  getProblems: () => state.problems
-};
+    init() {
+      loadStorage();
+      initEditor();
+      bindUI();
+      renderFileTree();
+      console.log('[NovaIDE] Core ready');
+    },
+    openFile,
+    closeFile,
+    setProblems,
+    clearProblems,
+    getProblems: () => state.problems
+  };
 })();
-
