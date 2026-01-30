@@ -37,7 +37,8 @@ body {
 .ide-container {
   display: flex;
   height: calc(100dvh - var(--status-bar-height));
-  width: 100dvh;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* =========================
