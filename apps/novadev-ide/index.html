@@ -2,14 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>NovaDev IDE - Professional Web Development Environment</title>
   <link rel="stylesheet" href="style.css" />
   <!-- Prettier & ESLint CDN -->
   <script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
   <script src="https://unpkg.com/prettier@2.8.8/parser-babel.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/eslint@8.46.0/dist/eslint.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
+<script>
+  require.config({
+    paths: {
+      vs: 'https://unpkg.com/monaco-editor@0.44.0/min/vs'
+    }
+  });
+</script>
 </head>
 <body>
   <!-- Command Palette -->
@@ -196,21 +203,10 @@
     </div>
   </div>
 
-<!-- NovaIDE files (ORDER MATTERS) -->
-<!-- Monaco (LOAD ONCE, AFTER DOM) -->
-<script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
-<script>
-  window.require = {
-    paths: {
-      vs: 'https://unpkg.com/monaco-editor@0.44.0/min/vs'
-    }
-  };
-</script>
-
-<!-- NovaIDE files (ORDER MATTERS) -->
-<script src="Js/ide.core.js"></script>
-<script src="Js/ide.services.js"></script>
-<script src="Js/ide.panels.js"></script>
-<script src="Js/ide.bootstrap.js"></script>
+  <!-- Monaco Editor -->
+  <script src="js/ide.bootstrap.js"></script>
+<script src="js/ide.core.js"></script>
+<script src="js/ide.services.js"></script>
+<script src="js/ide.panels.js"></script>
 </body>
 </html>
