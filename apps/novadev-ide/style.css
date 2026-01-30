@@ -366,3 +366,19 @@ body {
 #commandInput {
   font-size: 16px; /* prevents iOS zoom */
 }
+
+/* === TEMP DEBUG: allow touches to pass through editor === */
+.editor-wrapper,
+.editor-container,
+.monaco-editor,
+.monaco-editor * {
+  pointer-events: none !important;
+}
+
+.activity-bar,
+.activity-btn,
+.sidebar,
+.panel,
+.panel-tab {
+  pointer-events: auto !important;
+}
