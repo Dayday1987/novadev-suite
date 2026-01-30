@@ -14,14 +14,18 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     require(['vs/editor/editor.main'], () => {
-      if (NovaIDE.core?.init) {
-        NovaIDE.core.init();
-        NovaIDE.ready = true;
-        NovaIDE.panels.init();
-        console.log('[NovaIDE] Bootstrap complete');
-      } else {
-        console.error('[NovaIDE] core.init not found');
-      }
-    });
+  const waitForCore = () => {
+    if (NovaIDE.core && typeof NovaIDE.core.init === 'function') {
+      NovaIDE.core.init();
+      NovaIDE.ready = true;
+      NovaIDE.panels?.init();
+      console.log('[NovaIDE] Bootstrap complete');
+    } else {
+      requestAnimationFrame(waitForCore);
+    }
+  };
+
+  waitForCore();
+});
   });
 })();
