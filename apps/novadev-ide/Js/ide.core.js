@@ -254,6 +254,7 @@ document.querySelectorAll('.panel-tab').forEach(tab => {
   /* ---------- Activity Bar ---------- */
 document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
   btn.addEventListener('click', () => {
+    console.log('[ACTIVITY CLICK]', btn.dataset.view);
     const view = btn.dataset.view;
 
     document.querySelectorAll('.activity-btn')
