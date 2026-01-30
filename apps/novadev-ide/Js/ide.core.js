@@ -424,20 +424,19 @@ function clearProblems() {
 }
   
     NovaIDE.core = {
-    init() {
-      loadStorage();
-      initEditor();
+  init() {
+    loadStorage();
+    initEditor();
+    initCommandPalette(); // ✅ ADD THIS LINE
 
-      // Delay UI binding until DOM + Monaco are stable
-      requestAnimationFrame(() => {
-        bindUI();
-        renderFileTree();
-        console.log('[NovaIDE] UI fully bound');
-      });
-    },
+    requestAnimationFrame(() => {
+      bindUI();
+      renderFileTree();
+      console.log('[NovaIDE] UI fully bound');
+    });
+  },
 
-    setProblems,
-    clearProblems,
-    getProblems: () => state.problems
-  };
-})();
+  setProblems,
+  clearProblems,
+  getProblems: () => state.problems
+};
