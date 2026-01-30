@@ -234,45 +234,24 @@ function renderFileTree() {
 function bindUI() {
   console.log('[NovaIDE] UI binding started');
 
-  /* ---------- Panel Tabs ---------- */
-document.querySelectorAll('.panel-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    const panel = tab.dataset.panel;
-
-    document.querySelectorAll('.panel-tab')
-      .forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-
-    document.querySelectorAll('.panel-view')
-      .forEach(v => v.classList.remove('active'));
-
-    document.getElementById(panel + 'Panel')
-      ?.classList.add('active');
-  });
-});
-
   /* ---------- Activity Bar ---------- */
-document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    console.log('[ACTIVITY CLICK]', btn.dataset.view);
-    const view = btn.dataset.view;
+  document.querySelector('.sidebar')?.classList.add('open');
+  document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = btn.dataset.view;
 
-    document.querySelectorAll('.activity-btn')
-      .forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+      document.querySelectorAll('.activity-btn')
+        .forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
 
-    document.querySelectorAll('.sidebar-view')
-      .forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.sidebar-view')
+        .forEach(v => v.classList.remove('active'));
 
-    document.getElementById(view + 'View')
-      ?.classList.add('active');
-
-    // ✅ THIS IS THE MISSING LINE
-    document.querySelector('.sidebar')
-      ?.classList.add('open');
+      document.getElementById(view + 'View')
+        ?.classList.add('active');
+    });
   });
-});
-  
+
   /* ---------- Sidebar Toggle ---------- */
   document.querySelector('.sidebar-toggle')
     ?.addEventListener('click', () => {
@@ -305,16 +284,11 @@ document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
     });
 
   /* ---------- Settings ---------- */
-  document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const view = btn.dataset.view;
-
-    // 👇 Settings is NOT a sidebar view
-    if (view === 'settings') return;
-
-    activateSidebar(view);
-  });
-});
+  document.querySelector('[data-view="settings"]')
+    ?.addEventListener('click', () => {
+      document.getElementById('settingsPanel')
+        ?.classList.remove('hidden');
+    });
 
   document.getElementById('closeSettings')
     ?.addEventListener('click', () => {
@@ -423,20 +397,17 @@ function clearProblems() {
   });
 }
   
-    NovaIDE.core = {
+  NovaIDE.core = {
   init() {
     loadStorage();
     initEditor();
-    initCommandPalette(); // ✅ ADD THIS LINE
-
-    requestAnimationFrame(() => {
-      bindUI();
-      renderFileTree();
-      console.log('[NovaIDE] UI fully bound');
-    });
+    bindUI();
+    renderFileTree();
+    console.log('[NovaIDE] Core ready');
   },
-
   setProblems,
   clearProblems,
   getProblems: () => state.problems
 };
+})();
+
