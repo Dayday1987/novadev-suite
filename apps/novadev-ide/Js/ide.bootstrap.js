@@ -6,22 +6,28 @@
 
   window.NovaIDE = {
     state: {},
-    core: {},
+    core: null,
     services: {},
     panels: {},
     ready: false
   };
 
-  document.addEventListener('DOMContentLoaded', () => {
-    require(['vs/editor/editor.main'], () => {
-      if (NovaIDE.core?.init) {
-        NovaIDE.core.init();
-        NovaIDE.ready = true;
-        NovaIDE.panels.init();
-        console.log('[NovaIDE] Bootstrap complete');
-      } else {
-        console.error('[NovaIDE] core.init not found');
-      }
-    });
-  });
+  function boot() {
+    if (!window.monaco || !NovaIDE.core?.init) {
+      requestAnimationFrame(boot);
+      return;
+    }
+
+    NovaIDE.core.init();
+    NovaIDE.panels?.init?.();
+    NovaIDE.ready = true;
+
+    console.log('[NovaIDE] Bootstrap complete');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();
