@@ -290,4 +290,7 @@
     clearProblems,
     getProblems: () => state.problems
   };
+  document.addEventListener('pointerdown', () => {
+  alert('POINTER DOWN HIT DOCUMENT');
+});
 })();
