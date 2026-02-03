@@ -1,4 +1,5 @@
 /* ide.core.js */
+console.log('🔥 ide.core.js loaded');
 (() => {
   'use strict';
 
