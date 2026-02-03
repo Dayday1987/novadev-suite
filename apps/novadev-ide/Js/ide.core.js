@@ -2,6 +2,8 @@
 (() => {
   'use strict';
 
+  console.log('[ide.core] loaded');
+
   const STORAGE_KEY = 'novadev_project_v2';
   const state = NovaIDE.state;
 
