@@ -7,11 +7,14 @@
 
   /* ------------------ TAP HELPER (iOS SAFE) ------------------ */
   function onTap(el, handler) {
-    if (!el) return;
-    el.addEventListener('pointerup', handler, { passive: true });
-    el.addEventListener('click', handler);
-  }
+  if (!el) return;
 
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    handler(e);
+  });
+}
   /* ------------------ DEFAULT STATE ------------------ */
 
   state.project = {
