@@ -15,7 +15,11 @@
   --status-bar-height: 22px;
 }
 
-{
+/* -------------------------
+   GLOBAL RESET (FIXED)
+   ------------------------- */
+
+* {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -39,6 +43,7 @@ body {
   height: calc(100dvh - var(--status-bar-height));
   width: 100%;
   max-width: 100%;
+  position: relative; /* REQUIRED for stacking context */
 }
 
 /* =========================
@@ -52,7 +57,8 @@ body {
   flex-direction: column;
   align-items: center;
   border-right: 1px solid var(--border-color);
-  z-index: 2000;
+  position: relative;
+  z-index: 100; /* FIX: ensure touch priority */
 }
 
 .activity-btn {
@@ -83,6 +89,8 @@ body {
   display: flex;
   flex-direction: column;
   transition: transform 0.25s ease, width 0.25s ease;
+  position: relative;
+  z-index: 100; /* FIX: ensure touch priority */
 }
 
 .sidebar-view {
@@ -124,7 +132,7 @@ body {
     top: 0;
     left: 0;
     height: 100vh;
-    z-index: 3000;
+    z-index: 300;
   }
 
   .sidebar {
@@ -133,7 +141,7 @@ body {
     left: var(--activity-bar-width);
     height: 100vh;
     transform: translateX(-100%);
-    z-index: 2500;
+    z-index: 250;
     box-shadow: 4px 0 16px rgba(0,0,0,0.6);
   }
 
@@ -155,6 +163,9 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
+  min-height: 0;
 }
 
 /* =========================
@@ -165,18 +176,24 @@ body {
   flex: 1;
   display: flex;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
+  min-height: 0;
 }
 
 .editor-container {
   flex: 1;
   height: 100%;
+  min-height: 0;
+  position: relative;
+  z-index: 1;
+  touch-action: pan-y; /* LIMIT touch-action to editor only */
 }
 
-/* PREVENT MOBILE SWIPE HIJACKING */
-.editor-container,
-.editor-wrapper,
+/* Monaco itself */
 .monaco-editor {
-  touch-action: pan-y;
+  position: relative;
+  z-index: 1;
 }
 
 /* =========================
@@ -237,51 +254,19 @@ body {
 }
 
 /* =========================
-   FIX EDITOR TAB LAYOUT
+   EDITOR TABS
    ========================= */
 
-/* Main vertical layout */
-.main-area {
-  display: flex;
-  flex-direction: column;
-  min-height: 0; /* CRITICAL for flex children */
-}
-
-/* .main-area {
-  background: rgba(255,0,0,0.05);
-} */
-
-/* Tabs bar */
 .editor-tabs {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  height: 35px;
-  flex-shrink: 0; /* DO NOT let editor eat it */
+  height: 40px; /* slightly taller for mobile */
+  flex-shrink: 0;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
   z-index: 5;
 }
 
-/* Editor + preview area */
-.editor-wrapper {
-  flex: 1;
-  min-height: 0; /* REQUIRED so Monaco doesn’t overflow */
-  display: flex;
-  overflow: hidden;
-}
-
-/* Monaco container */
-.editor-container {
-  flex: 1;
-  min-height: 0;
-}
-
-/* =========================
-   EDITOR TAB VISUAL POLISH
-   ========================= */
-
-/* Individual tabs */
 .editor-tab {
   position: relative;
   display: flex;
@@ -294,69 +279,28 @@ body {
   border-right: 1px solid var(--border-color);
   cursor: pointer;
   user-select: none;
-  transition: background 0.15s ease, color 0.15s ease;
 }
 
-/* Hover state */
-.editor-tab:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-/* Active tab */
 .editor-tab.active {
   background: var(--bg-primary);
   color: var(--text-primary);
   border-bottom: 2px solid var(--accent-blue);
 }
 
-/* Active tab top accent (VS Code–like) */
-.editor-tab.active::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--accent-blue);
-}
-
-/* Tab name */
 .editor-tab .tab-name {
   white-space: nowrap;
 }
 
-/* Close button */
 .editor-tab .tab-close {
-  opacity: 0;
+  opacity: 1; /* ALWAYS visible on mobile */
   margin-left: 6px;
   font-size: 14px;
   color: var(--text-muted);
-  transition: opacity 0.15s ease, color 0.15s ease;
 }
 
-.editor-tab:hover .tab-close {
-  opacity: 1;
-}
-
-.editor-tab .tab-close:hover {
-  color: var(--text-primary);
-}
-
-/* First tab left border */
-.editor-tab:first-child {
-  border-left: 1px solid var(--border-color);
-}
-
-.editor-tab {
-  box-shadow: inset 0 -1px 0 var(--border-color);
-}
-
-.editor-tab.active {
-  box-shadow:
-    inset 0 -2px 0 var(--accent-blue),
-    inset 0 1px 0 rgba(255,255,255,0.05);
-}
+/* =========================
+   COMMAND PALETTE ITEMS
+   ========================= */
 
 .command-item {
   padding: 12px 16px;
