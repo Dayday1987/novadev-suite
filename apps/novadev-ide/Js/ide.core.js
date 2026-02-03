@@ -181,8 +181,11 @@
   }
 
   /* ------------------ MONACO ------------------ */
-
   function initEditor() {
+  console.log('[TEST] Monaco disabled');
+}
+
+/*  function initEditor() {
     const el = document.getElementById('editorContainer');
     if (!el) return;
 
@@ -200,7 +203,7 @@
       saveProject();
       NovaIDE.services?.runBasicChecks?.();
     });
-  }
+  }*/
 
   /* ------------------ UI ------------------ */
 
