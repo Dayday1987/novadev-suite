@@ -31,3 +31,15 @@
     boot();
   }
 })();
+(function fixIOSViewport() {
+  if (!window.visualViewport) return;
+
+  const apply = () => {
+    const w = window.visualViewport.width;
+    document.documentElement.style.width = w + 'px';
+    document.body.style.width = w + 'px';
+  };
+
+  apply();
+  window.visualViewport.addEventListener('resize', apply);
+})();
