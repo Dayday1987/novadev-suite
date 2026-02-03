@@ -230,6 +230,9 @@
   }
 
   function bindUI() {
+  console.log('[ide.core] bindUI running');
+  ...
+}
     document.querySelectorAll('.activity-btn[data-view]')
       .forEach(btn => {
         onTap(btn, () => activateSidebar(btn.dataset.view));
