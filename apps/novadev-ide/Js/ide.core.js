@@ -5,16 +5,19 @@
   const STORAGE_KEY = 'novadev_project_v2';
   const state = NovaIDE.state;
 
-  /* ------------------ TAP HELPER (iOS SAFE) ------------------ */
+  /* ------------------ TAP HELPER (MOBILE-FIRST) ------------------ */
   function onTap(el, handler) {
-  if (!el) return;
+    if (!el) return;
 
-  el.addEventListener('pointerdown', e => {
-    e.preventDefault();
-    e.stopPropagation();
-    handler(e);
-  });
-}
+    el.addEventListener('pointerdown', e => {
+      // left-click / primary touch only
+      if (e.button !== undefined && e.button !== 0) return;
+
+      e.preventDefault();
+      handler(e);
+    });
+  }
+
   /* ------------------ DEFAULT STATE ------------------ */
 
   state.project = {
@@ -64,45 +67,6 @@
     }
   }
 
-  const commands = [
-    {
-      id: 'file.new',
-      label: 'New File',
-      run: () => {
-        const name = prompt('File name');
-        if (name) createFile(name);
-      }
-    },
-    {
-      id: 'file.save',
-      label: 'Save File',
-      run: saveProject
-    },
-    {
-      id: 'view.explorer',
-      label: 'Show Explorer',
-      run: () => activateSidebar('explorer')
-    },
-    {
-      id: 'view.search',
-      label: 'Show Search',
-      run: () => activateSidebar('search')
-    },
-    {
-      id: 'view.settings',
-      label: 'Open Settings',
-      run: () => {
-        document.getElementById('settingsPanel')
-          ?.classList.remove('hidden');
-      }
-    },
-    {
-      id: 'editor.togglePreview',
-      label: 'Toggle Live Preview',
-      run: toggleLivePreview
-    }
-  ];
-
   /* ------------------ FILES ------------------ */
 
   function guessLang(name) {
@@ -117,10 +81,12 @@
 
   function createFile(name) {
     if (state.project.files[name]) return;
+
     state.project.files[name] = {
       language: guessLang(name),
       content: ''
     };
+
     saveProject();
     openFile(name);
     renderFileTree();
@@ -128,7 +94,7 @@
 
   function openFile(name) {
     const file = state.project.files[name];
-    if (!file) return;
+    if (!file || !state.editor) return;
 
     let tab = state.tabs.find(t => t.name === name);
 
@@ -144,6 +110,7 @@
     state.currentTab = name;
     state.editor.setModel(tab.model);
     renderTabs();
+    renderFileTree();
   }
 
   function closeFile(name) {
@@ -159,6 +126,7 @@
     );
 
     renderTabs();
+    renderFileTree();
   }
 
   /* ------------------ EXPLORER ------------------ */
@@ -175,10 +143,7 @@
       if (state.currentTab === name) item.classList.add('active');
       item.textContent = name;
 
-      onTap(item, () => {
-        openFile(name);
-        renderFileTree();
-      });
+      onTap(item, () => openFile(name));
 
       tree.appendChild(item);
     });
@@ -207,7 +172,7 @@
       );
 
       onTap(el.querySelector('.tab-close'), e => {
-        e.stopPropagation();
+        e.stopPropagation(); // REQUIRED here
         closeFile(tab.name);
       });
 
@@ -223,7 +188,9 @@
 
     state.editor = monaco.editor.create(el, {
       theme: 'vs-dark',
-      automaticLayout: true
+      automaticLayout: true,
+      minimap: { enabled: false },
+      scrollBeyondLastLine: false
     });
 
     const first = Object.keys(state.project.files)[0];
@@ -231,33 +198,41 @@
 
     state.editor.onDidChangeModelContent(() => {
       saveProject();
-      NovaIDE.services.runBasicChecks();
+      NovaIDE.services?.runBasicChecks?.();
     });
   }
 
   /* ------------------ UI ------------------ */
 
   function activateSidebar(view) {
+    if (view === 'settings') {
+      document.getElementById('settingsPanel')
+        ?.classList.remove('hidden');
+      return;
+    }
+
     document.querySelectorAll('.sidebar-view')
       .forEach(v => v.classList.remove('active'));
+
     document.querySelectorAll('.activity-btn')
       .forEach(b => b.classList.remove('active'));
 
     document.getElementById(view + 'View')
       ?.classList.add('active');
+
     document.querySelector(`[data-view="${view}"]`)
       ?.classList.add('active');
+
     document.querySelector('.sidebar')
       ?.classList.add('open');
   }
 
   function bindUI() {
-    alert('bindUI ran');
-    document.querySelectorAll('.activity-btn[data-view]').forEach(btn => {
-      onTap(btn, () => activateSidebar(btn.dataset.view));
-    });
+    document.querySelectorAll('.activity-btn[data-view]')
+      .forEach(btn => {
+        onTap(btn, () => activateSidebar(btn.dataset.view));
+      });
 
-    
     onTap(
       document.querySelector('.sidebar-toggle'),
       () => document.querySelector('.sidebar')?.classList.toggle('open')
@@ -269,13 +244,6 @@
         const name = prompt('File name');
         if (name) createFile(name);
       }
-    );
-
-    onTap(
-      document.querySelector('[data-view="settings"]'),
-      () =>
-        document.getElementById('settingsPanel')
-          ?.classList.remove('hidden')
     );
 
     onTap(
