@@ -2,211 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
- <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>NovaDev IDE - Professional Web Development Environment</title>
-  <link rel="stylesheet" href="style.css"/>
-  <!-- Prettier & ESLint CDN -->
-  <script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
-  <script src="https://unpkg.com/prettier@2.8.8/parser-babel.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/eslint@8.46.0/dist/eslint.min.js"></script>
+
+  <!-- CRITICAL: correct viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+  <title>Mobile IDE Baseline</title>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Monaco -->
   <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
-<script>
-  require.config({
-    paths: {
-      vs: 'https://unpkg.com/monaco-editor@0.44.0/min/vs'
-    }
-  });
-</script>
 </head>
 <body>
-  <!-- Command Palette -->
-  <div id="commandPalette" class="command-palette hidden">
-    <input type="text" id="commandInput" placeholder="Type a command..."/>
-    <div id="commandResults" class="command-results"></div>
+
+  <div id="app">
+    <div id="activityBar">
+      <button id="toggleSidebar">☰</button>
+    </div>
+
+    <div id="sidebar">
+      <button id="testBtn">Test Button</button>
+    </div>
+
+    <div id="editor"></div>
   </div>
 
-  <!-- Settings Panel -->
-  <div id="settingsPanel" class="settings-panel hidden">
-    <div class="settings-header">
-      <h2>Settings</h2>
-      <button id="closeSettings" class="close-btn">×</button>
-    </div>
-    <div class="settings-content">
-      <div class="setting-group">
-        <label>Theme</label>
-        <select id="themeSelect">
-          <option value="vs-dark">Dark (Default)</option>
-          <option value="vs">Light</option>
-          <option value="hc-black">High Contrast</option>
-        </select>
-      </div>
-      <div class="setting-group">
-        <label>Font Size</label>
-        <input type="number" id="fontSizeInput" value="14" min="10" max="24"/>
-      </div>
-      <div class="setting-group">
-        <label>Tab Size</label>
-        <input type="number" id="tabSizeInput" value="2" min="2" max="8"/>
-      </div>
-      <div class="setting-group">
-        <label>Word Wrap</label>
-        <select id="wordWrapSelect">
-          <option value="off">Off</option>
-          <option value="on">On</option>
-        </select>
-      </div>
-      <div class="setting-group">
-        <label>Minimap</label>
-        <input type="checkbox" id="minimapToggle" checked />
-      </div>
-      <div class="setting-group">
-        <label>Line Numbers</label>
-        <input type="checkbox" id="lineNumbersToggle" checked />
-      </div>
-    </div>
-  </div>
-
-  <!-- Main IDE Container -->
-  <div class="ide-container">
-    <!-- Activity Bar -->
-    <div class="activity-bar">
-      <button class="activity-btn sidebar-toggle" title="Toggle Sidebar">☰</button>
-      <button class="activity-btn active" data-view="explorer" title="Explorer">📂</button>
-      <button class="activity-btn" data-view="search" title="Search">🔍</button>
-      <button class="activity-btn" data-view="git" title="Source Control">🛠️</button>
-      <button class="activity-btn" data-view="extensions" title="Extensions">🧩</button>
-      <div class="activity-spacer"></div>
-      <button class="activity-btn" data-view="settings" title="Settings">⚙️</button>
-    </div>
-
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <!-- Explorer -->
-      <div id="explorerView" class="sidebar-view active">
-        <div class="sidebar-header">
-          <h3>EXPLORER</h3>
-          <div class="sidebar-actions">
-            <button id="newFileBtn" title="New File">+</button>
-            <button id="newFolderBtn" title="New Folder">📁</button>
-          </div>
-        </div>
-        <div class="sidebar-content">
-          <div class="project-name">
-            <input type="text" id="projectNameInput" value="my-project"/>
-          </div>
-          <div id="fileTree" class="file-tree"></div>
-        </div>
-      </div>
-
-      <!-- Search -->
-      <div id="searchView" class="sidebar-view">
-        <div class="sidebar-header">
-          <h3>SEARCH</h3>
-        </div>
-        <div class="sidebar-content">
-          <input type="text" id="searchInput" placeholder="Search in files..."/>
-          <div id="searchResults" class="search-results"></div>
-        </div>
-      </div>
-
-      <!-- Git -->
-      <div id="gitView" class="sidebar-view">
-        <div class="sidebar-header">
-          <h3>SOURCE CONTROL</h3>
-        </div>
-        <div class="sidebar-content">
-          <div class="git-status">
-            <p class="muted">Initialize repository to use Git features</p>
-            <button id="gitInitBtn" class="btn primary">Initialize Repository</button>
-            <div id="gitPanel" class="git-panel hidden">
-              <input type="text" id="commitMessage" placeholder="Commit message..."/>
-              <button id="commitBtn" class="btn">Commit</button>
-              <div id="changedFiles" class="changed-files"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Extensions -->
-      <div id="extensionsView" class="sidebar-view">
-        <div class="sidebar-header">
-          <h3>EXTENSIONS</h3>
-        </div>
-        <div class="sidebar-content">
-          <div class="extension-item">
-            <div class="ext-info"><strong>Prettier</strong><p>Code formatter</p></div>
-            <button id="prettierBtn" class="btn ghost">Run</button>
-          </div>
-          <div class="extension-item">
-            <div class="ext-info"><strong>ESLint</strong><p>JavaScript linter</p></div>
-            <button id="eslintBtn" class="btn ghost">Run</button>
-          </div>
-          <div class="extension-item">
-            <div class="ext-info"><strong>Live Preview</strong><p>Preview HTML/CSS/JS</p></div>
-            <button id="livePreviewToggle" class="btn ghost">Toggle</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Main Area -->
-    <div class="main-area">
-      <!-- Tabs -->
-      <div class="editor-tabs" id="editorTabs"></div>
-
-      <!-- Editor Container -->
-      <div class="editor-wrapper">
-        <div id="editorContainer" class="editor-container"></div>
-        <iframe id="livePreviewFrame" class="live-preview hidden"></iframe>
-      </div>
-
-      <!-- Panel -->
-      <div class="panel">
-        <div class="panel-tabs">
-          <button class="panel-tab active" data-panel="terminal">TERMINAL</button>
-          <button class="panel-tab" data-panel="output">OUTPUT</button>
-          <button class="panel-tab" data-panel="problems">PROBLEMS</button>
-          <button class="panel-tab" data-panel="debug">DEBUG</button>
-        </div>
-        <div class="panel-content">
-          <div id="terminalPanel" class="panel-view active">
-            <div id="terminalOutput" class="terminal-output"></div>
-            <div class="terminal-input-wrapper">
-              <span class="terminal-prompt">$</span>
-              <input type="text" id="terminalInput" class="terminal-input" placeholder="Type command..."/>
-            </div>
-          </div>
-          <div id="outputPanel" class="panel-view">
-            <div id="outputContent" class="output-content"></div>
-          </div>
-          <div id="problemsPanel" class="panel-view">
-            <div id="problemsContent" class="problems-content">No problems detected</div>
-          </div>
-          <div id="debugPanel" class="panel-view">
-            <div id="debugContent" class="debug-content"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Status Bar -->
-  <div class="status-bar">
-    <div class="status-left">
-      <span id="gitBranch" class="status-item">main</span>
-      <span id="fileInfo" class="status-item">UTF-8</span>
-    </div>
-    <div class="status-right">
-      <span id="cursorPosition" class="status-item">Ln 1, Col 1</span>
-      <span id="fileLanguage" class="status-item">JavaScript</span>
-      <span id="fileEncoding" class="status-item">UTF-8</span>
-    </div>
-  </div>
-
-  <!-- Monaco Editor -->
-  <script src="js/ide.bootstrap.js"></script>
-<script src="js/ide.core.js"></script>
-<script src="js/ide.services.js"></script>
-<script src="js/ide.panels.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
