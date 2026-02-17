@@ -1,3 +1,7 @@
+/* ==============================
+   NovaDev IDE - Mobile Optimized
+============================== */
+
 const STORAGE_KEY = "novadev_ide_project_v1";
 const SETTINGS_KEY = "novadev_ide_settings_v1";
 
@@ -7,25 +11,43 @@ let currentFile = null;
 let gitInitialized = false;
 let gitHistory = [];
 
-require.config({ paths: { vs: "https://unpkg.com/monaco-editor@0.44.0/min/vs" } });
+/* ==============================
+   MONACO LOAD
+============================== */
+
+require.config({
+  paths: { vs: "https://unpkg.com/monaco-editor@0.44.0/min/vs" }
+});
 
 require(["vs/editor/editor.main"], function () {
 
   loadProject();
-  loadSettings();
 
   editor = monaco.editor.create(document.getElementById("editor"), {
     value: "",
     language: "javascript",
     theme: "vs-dark",
-    automaticLayout: true
+    automaticLayout: true,
+    minimap: { enabled: window.innerWidth > 768 },
+    fontSize: window.innerWidth < 768 ? 14 : 16
   });
+
+  loadSettings();
 
   editor.onDidChangeCursorPosition(updateStatusBar);
   editor.onDidChangeModelContent(saveCurrentFile);
 
   if (Object.keys(files).length === 0) {
-    createFile("index.html", "<!DOCTYPE html>\n<html>\n<head></head>\n<body>\n</body>\n</html>");
+    createFile("index.html",
+`<!DOCTYPE html>
+<html>
+<head>
+  <title>NovaDev Project</title>
+</head>
+<body>
+  <h1>Hello NovaDev 🚀</h1>
+</body>
+</html>`);
   }
 
   renderFileList();
@@ -35,9 +57,12 @@ require(["vs/editor/editor.main"], function () {
   setupShortcuts();
 });
 
-/* ---------------- FILE SYSTEM ---------------- */
+/* ==============================
+   FILE SYSTEM
+============================== */
 
 function createFile(name, content = "") {
+  if (!name) return;
   files[name] = content;
   saveProject();
   renderFileList();
@@ -45,15 +70,22 @@ function createFile(name, content = "") {
 
 function deleteFile(name) {
   if (!confirm("Delete file?")) return;
+
   delete files[name];
+
   if (currentFile === name) {
     currentFile = null;
+    const remaining = Object.keys(files);
+    if (remaining.length) openFile(remaining[0]);
   }
+
   saveProject();
   renderFileList();
 }
 
 function openFile(name) {
+  if (!files[name]) return;
+
   currentFile = name;
   editor.setValue(files[name]);
   setLanguage(name);
@@ -69,21 +101,29 @@ function saveCurrentFile() {
 function renderFileList() {
   const list = document.getElementById("fileList");
   list.innerHTML = "";
+
   Object.keys(files).forEach(name => {
     const li = document.createElement("li");
     li.textContent = name;
-    if (name === currentFile) li.classList.add("active");
+
+    if (name === currentFile) {
+      li.classList.add("active");
+    }
+
     li.onclick = () => openFile(name);
+
     li.oncontextmenu = (e) => {
       e.preventDefault();
       deleteFile(name);
     };
+
     list.appendChild(li);
   });
 }
 
 function setLanguage(name) {
-  const ext = name.split(".").pop();
+  const ext = name.split(".").pop().toLowerCase();
+
   const map = {
     js: "javascript",
     html: "html",
@@ -91,11 +131,16 @@ function setLanguage(name) {
     json: "json",
     md: "markdown"
   };
-  monaco.editor.setModelLanguage(editor.getModel(), map[ext] || "plaintext");
-  document.getElementById("statusLanguage").textContent = map[ext] || "plaintext";
+
+  const language = map[ext] || "plaintext";
+
+  monaco.editor.setModelLanguage(editor.getModel(), language);
+  document.getElementById("statusLanguage").textContent = language;
 }
 
-/* ---------------- STORAGE ---------------- */
+/* ==============================
+   STORAGE
+============================== */
 
 function saveProject() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
@@ -113,24 +158,60 @@ function saveSettings(settings) {
 function loadSettings() {
   const data = localStorage.getItem(SETTINGS_KEY);
   if (!data) return;
+
   const settings = JSON.parse(data);
-  setEditorSettings(settings);
+  applySettings(settings);
 }
 
-/* ---------------- SETTINGS ---------------- */
+/* ==============================
+   SETTINGS
+============================== */
 
-function setEditorSettings(settings) {
-  monaco.editor.setTheme(settings.theme);
+function applySettings(settings) {
+  if (!editor) return;
+
+  monaco.editor.setTheme(settings.theme || "vs-dark");
+
   editor.updateOptions({
-    fontSize: settings.fontSize,
-    tabSize: settings.tabSize,
+    fontSize: settings.fontSize || 14,
+    tabSize: settings.tabSize || 2,
     wordWrap: settings.wordWrap ? "on" : "off",
     minimap: { enabled: settings.minimap },
     lineNumbers: settings.lineNumbers ? "on" : "off"
   });
 }
 
-/* ---------------- TERMINAL ---------------- */
+/* ==============================
+   SEARCH
+============================== */
+
+function searchFiles(query) {
+  const resultsContainer = document.getElementById("searchResults");
+  resultsContainer.innerHTML = "";
+
+  if (!query) return;
+
+  Object.keys(files).forEach(file => {
+    const lines = files[file].split("\n");
+
+    lines.forEach((line, index) => {
+      if (line.toLowerCase().includes(query.toLowerCase())) {
+        const div = document.createElement("div");
+        div.textContent = `${file} (Ln ${index + 1})`;
+        div.onclick = () => {
+          openFile(file);
+          editor.setPosition({ lineNumber: index + 1, column: 1 });
+          editor.focus();
+        };
+        resultsContainer.appendChild(div);
+      }
+    });
+  });
+}
+
+/* ==============================
+   TERMINAL
+============================== */
 
 function runCommand(cmd) {
   const output = document.getElementById("terminalOutput");
@@ -141,21 +222,27 @@ function runCommand(cmd) {
     case "help":
       output.innerHTML += "help, ls, cat <file>, pwd, clear, echo <text><br>";
       break;
+
     case "ls":
       output.innerHTML += Object.keys(files).join("<br>") + "<br>";
       break;
+
     case "cat":
       output.innerHTML += (files[args[0]] || "File not found") + "<br>";
       break;
+
     case "pwd":
       output.innerHTML += "/project<br>";
       break;
+
     case "clear":
       output.innerHTML = "";
       break;
+
     case "echo":
       output.innerHTML += args.join(" ") + "<br>";
       break;
+
     default:
       output.innerHTML += "Command not found<br>";
   }
@@ -163,31 +250,55 @@ function runCommand(cmd) {
   output.scrollTop = output.scrollHeight;
 }
 
-/* ---------------- EXPORT ---------------- */
+/* ==============================
+   EXPORT
+============================== */
 
 function exportProject() {
   const html = files["index.html"] || "";
   const css = `<style>${files["style.css"] || ""}</style>`;
   const js = `<script>${files["main.js"] || ""}<\/script>`;
 
-  const blob = new Blob([html.replace("</head>", css + "</head>").replace("</body>", js + "</body>")], { type: "text/html" });
+  const final = html
+    .replace("</head>", css + "</head>")
+    .replace("</body>", js + "</body>");
+
+  const blob = new Blob([final], { type: "text/html" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "novadev_export.html";
   a.click();
 }
 
-/* ---------------- UI ---------------- */
+/* ==============================
+   UI
+============================== */
+
+function showPanel(panelId) {
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+  document.getElementById(panelId).classList.add("active");
+  document.getElementById("sidebar").classList.add("open");
+}
 
 function setupUI() {
 
-  document.getElementById("toggleSidebar").onclick = () =>
-    document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("toggleSidebar").onclick = () => showPanel("explorerPanel");
+  document.getElementById("openSearch").onclick = () => showPanel("searchPanel");
+  document.getElementById("openGit").onclick = () => showPanel("gitPanel");
+  document.getElementById("openSettings").onclick = () => showPanel("settingsPanel");
+
+  document.getElementById("openTerminal").onclick = () => {
+    document.getElementById("terminal").classList.toggle("open");
+  };
 
   document.getElementById("newFileBtn").onclick = () => {
     const name = prompt("File name?");
     if (name) createFile(name);
   };
+
+  document.getElementById("searchInput").addEventListener("input", e => {
+    searchFiles(e.target.value);
+  });
 
   document.getElementById("terminalInput").addEventListener("keydown", e => {
     if (e.key === "Enter") {
@@ -196,23 +307,14 @@ function setupUI() {
     }
   });
 
-  document.getElementById("openTerminal").onclick = () =>
-    document.getElementById("terminal").classList.toggle("hidden");
-
-  document.getElementById("initRepo").onclick = () => {
-    gitInitialized = true;
-    document.getElementById("gitLog").innerHTML += "Repo initialized<br>";
-  };
-
-  document.getElementById("commitBtn").onclick = () => {
-    if (!gitInitialized) return alert("Initialize repo first");
-    const msg = document.getElementById("commitMessage").value;
-    gitHistory.push(msg);
-    document.getElementById("gitLog").innerHTML += `Commit: ${msg}<br>`;
-  };
+  window.addEventListener("resize", () => {
+    if (editor) editor.layout();
+  });
 }
 
-/* ---------------- STATUS ---------------- */
+/* ==============================
+   STATUS BAR
+============================== */
 
 function updateStatusBar() {
   const pos = editor.getPosition();
@@ -220,21 +322,26 @@ function updateStatusBar() {
     `Ln ${pos.lineNumber}, Col ${pos.column}`;
 }
 
-/* ---------------- SHORTCUTS ---------------- */
+/* ==============================
+   SHORTCUTS
+============================== */
 
 function setupShortcuts() {
   window.addEventListener("keydown", e => {
+
     if ((e.ctrlKey || e.metaKey) && e.key === "s") {
       e.preventDefault();
       saveProject();
     }
+
     if ((e.ctrlKey || e.metaKey) && e.key === "b") {
       e.preventDefault();
       document.getElementById("sidebar").classList.toggle("open");
     }
+
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "p") {
       e.preventDefault();
-      const cmd = prompt("Command:");
+      const cmd = prompt("Command (type 'export'):");
       if (cmd === "export") exportProject();
     }
   });
