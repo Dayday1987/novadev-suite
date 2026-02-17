@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <title>NovaDev IDE</title>
 
   <link rel="stylesheet" href="style.css" />
@@ -14,16 +15,7 @@
 
 <div id="app">
 
-  <!-- Activity Bar -->
-  <div id="activityBar">
-    <button id="toggleSidebar" title="Explorer">📁</button>
-    <button id="openSearch" title="Search">🔍</button>
-    <button id="openGit" title="Git">🌿</button>
-    <button id="openTerminal" title="Terminal">🖥</button>
-    <button id="openSettings" title="Settings">⚙</button>
-  </div>
-
-  <!-- Sidebar -->
+  <!-- Sidebar Drawer -->
   <div id="sidebar">
     <div id="explorerPanel" class="panel active">
       <div class="panelHeader">
@@ -83,18 +75,30 @@
     </div>
   </div>
 
-  <!-- Main Editor Area -->
+  <!-- Main Area -->
   <div id="mainArea">
     <div id="editor"></div>
-    <div id="terminal" class="hidden">
+
+    <!-- Terminal Slide Panel -->
+    <div id="terminal">
       <div id="terminalOutput"></div>
       <input id="terminalInput" placeholder="Type command..." />
     </div>
+
     <div id="statusBar">
       <span id="statusPosition">Ln 1, Col 1</span>
       <span id="statusLanguage">plaintext</span>
       <span>UTF-8</span>
     </div>
+  </div>
+
+  <!-- Bottom Activity Bar (Mobile First) -->
+  <div id="activityBar">
+    <button id="toggleSidebar">📁</button>
+    <button id="openSearch">🔍</button>
+    <button id="openGit">🌿</button>
+    <button id="openTerminal">🖥</button>
+    <button id="openSettings">⚙</button>
   </div>
 
 </div>
