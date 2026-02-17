@@ -6,8 +6,13 @@ export async function bootstrapApp() {
 
   document.addEventListener("DOMContentLoaded", async () => {
 
-    initPanels();   // Always initialize UI first
+    // 1️⃣ Load project into shared state FIRST
+    loadProject();
 
+    // 2️⃣ Initialize UI panels (they depend on state.files)
+    initPanels();
+
+    // 3️⃣ Initialize Monaco editor
     try {
       await initEditor();
     } catch (err) {
