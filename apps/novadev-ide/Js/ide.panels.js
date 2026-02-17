@@ -1,6 +1,19 @@
+/* ide.panels.js */
+
+import { state } from './ide.state.js';
+import { openFile, createFile } from './ide.core.js';
+import { saveProject } from './ide.services.js';
+
 export function initPanels() {
 
   const sidebar = document.getElementById("sidebar");
+  const fileList = document.getElementById("fileList");
+  const searchInput = document.getElementById("searchInput");
+  const searchResults = document.getElementById("searchResults");
+
+  /* ==============================
+     Panel Controls
+  ============================== */
 
   function showPanel(panelId) {
     document.querySelectorAll(".panel").forEach(p =>
@@ -17,7 +30,6 @@ export function initPanels() {
     sidebar.classList.remove("open");
   }
 
-  // Main navigation buttons
   document.getElementById("toggleSidebar")
     ?.addEventListener("click", () => showPanel("explorerPanel"));
 
@@ -36,12 +48,116 @@ export function initPanels() {
         ?.classList.toggle("open");
     });
 
-  // Close button
   document.getElementById("closeSidebar")
     ?.addEventListener("click", closeSidebar);
 
-  // Tap outside to close
+  /* ==============================
+     File Explorer
+  ============================== */
+
+  function renderFileList() {
+
+    if (!fileList) return;
+
+    fileList.innerHTML = "";
+
+    Object.keys(state.files).forEach(name => {
+
+      const li = document.createElement("li");
+      li.textContent = name;
+
+      if (name === state.currentFile) {
+        li.classList.add("active");
+      }
+
+      li.addEventListener("click", () => {
+        openFile(name);
+        renderFileList();
+
+        // Auto close on mobile
+        if (window.innerWidth < 768) {
+          closeSidebar();
+        }
+      });
+
+      fileList.appendChild(li);
+
+    });
+  }
+
+  // Create new file button (must exist in HTML)
+  document.getElementById("newFileBtn")
+    ?.addEventListener("click", () => {
+
+      const name = prompt("Enter file name (example: app.js)");
+
+      if (!name) return;
+
+      if (state.files[name]) {
+        alert("File already exists.");
+        return;
+      }
+
+      createFile(name, "");
+      renderFileList();
+      saveProject();
+    });
+
+  renderFileList();
+
+  /* ==============================
+     Search
+  ============================== */
+
+  searchInput?.addEventListener("input", () => {
+
+    const query = searchInput.value.toLowerCase();
+    searchResults.innerHTML = "";
+
+    if (!query) return;
+
+    Object.keys(state.files).forEach(file => {
+
+      const lines = state.files[file].split("\n");
+
+      lines.forEach((line, index) => {
+
+        if (line.toLowerCase().includes(query)) {
+
+          const div = document.createElement("div");
+          div.textContent = `${file} (Ln ${index + 1})`;
+
+          div.addEventListener("click", () => {
+            openFile(file);
+
+            if (state.editor) {
+              state.editor.setPosition({
+                lineNumber: index + 1,
+                column: 1
+              });
+              state.editor.focus();
+            }
+
+            if (window.innerWidth < 768) {
+              closeSidebar();
+            }
+          });
+
+          searchResults.appendChild(div);
+        }
+
+      });
+
+    });
+
+  });
+
+  /* ==============================
+     Close Sidebar (Outside Click)
+  ============================== */
+
   document.addEventListener("click", (e) => {
+
     if (
       sidebar.classList.contains("open") &&
       !sidebar.contains(e.target) &&
@@ -52,9 +168,13 @@ export function initPanels() {
     ) {
       closeSidebar();
     }
+
   });
 
-  // Swipe to close (mobile)
+  /* ==============================
+     Swipe To Close (Mobile)
+  ============================== */
+
   let touchStartX = 0;
 
   sidebar.addEventListener("touchstart", (e) => {
@@ -62,11 +182,13 @@ export function initPanels() {
   });
 
   sidebar.addEventListener("touchmove", (e) => {
+
     const deltaX = e.touches[0].clientX - touchStartX;
 
     if (deltaX < -50) {
       closeSidebar();
     }
+
   });
 
 }
