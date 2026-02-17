@@ -2,7 +2,17 @@ let editor = null;
 
 export async function initEditor() {
 
-  await loadMonacoESM();
+  if (!window.require) {
+    console.error("Monaco loader not found.");
+    return;
+  }
+
+  await loadMonacoAMD();
+
+  if (!window.monaco) {
+    console.error("Monaco failed to initialize.");
+    return;
+  }
 
   editor = monaco.editor.create(document.getElementById("editor"), {
     value: "",
@@ -17,10 +27,26 @@ export async function initEditor() {
   });
 }
 
-async function loadMonacoESM() {
+function loadMonacoAMD() {
+  return new Promise((resolve, reject) => {
 
-  if (window.monaco) return;
+    try {
 
-  await import("https://unpkg.com/monaco-editor@0.44.0/min/vs/editor/editor.main.js");
+      require.config({
+        paths: { vs: "https://unpkg.com/monaco-editor@0.44.0/min/vs" }
+      });
 
+      require(["vs/editor/editor.main"], function () {
+        resolve();
+      }, function (err) {
+        console.error("AMD load error:", err);
+        reject(err);
+      });
+
+    } catch (err) {
+      console.error("Monaco require crash:", err);
+      reject(err);
+    }
+
+  });
 }
