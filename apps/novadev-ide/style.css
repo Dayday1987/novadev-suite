@@ -1,36 +1,45 @@
-/* ---- Base Reset ---- */
+/* ---------------------------
+   iOS Safe Reset
+---------------------------- */
 
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  width: 100%;
   overflow: hidden;
-  font-family: system-ui, -apple-system, sans-serif;
   background: #1e1e1e;
+  font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* ---- App Layout ---- */
-
+/* Use dynamic viewport height (fixes Safari toolbar issue) */
 #app {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: 100dvh; /* Critical fix */
+  width: 100vw;
+  overflow: hidden;
 }
 
-/* ---- Main Area ---- */
+/* ---------------------------
+   Main Area
+---------------------------- */
 
 #mainArea {
   flex: 1;
   display: flex;
   flex-direction: column;
-  position: relative;
+  min-height: 0; /* Critical flex fix */
 }
 
 #editor {
   flex: 1;
+  min-height: 0; /* Prevent overflow bug */
 }
 
-/* ---- Status Bar ---- */
+/* ---------------------------
+   Status Bar
+---------------------------- */
 
 #statusBar {
   height: 28px;
@@ -41,9 +50,13 @@ html, body {
   justify-content: space-between;
   align-items: center;
   padding: 0 10px;
+  flex-shrink: 0;
+  z-index: 5;
 }
 
-/* ---- Bottom Activity Bar (Mobile First) ---- */
+/* ---------------------------
+   Bottom Activity Bar
+---------------------------- */
 
 #activityBar {
   height: 56px;
@@ -51,25 +64,29 @@ html, body {
   display: flex;
   justify-content: space-around;
   align-items: center;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
 #activityBar button {
   background: none;
   border: none;
   color: white;
-  font-size: 20px;
+  font-size: 22px;
   width: 48px;
   height: 48px;
 }
 
-/* ---- Sidebar Drawer ---- */
+/* ---------------------------
+   Sidebar Drawer
+---------------------------- */
 
 #sidebar {
   position: fixed;
   top: 0;
   left: -280px;
   width: 260px;
-  height: 100%;
+  height: 100dvh;
   background: #252526;
   color: white;
   transition: left 0.3s ease;
@@ -82,7 +99,9 @@ html, body {
   left: 0;
 }
 
-/* ---- Panels ---- */
+/* ---------------------------
+   Panels
+---------------------------- */
 
 .panel {
   display: none;
@@ -97,25 +116,13 @@ html, body {
   margin-bottom: 10px;
 }
 
-#fileList {
-  list-style: none;
-  padding: 0;
-}
-
-#fileList li {
-  padding: 8px;
-  border-radius: 6px;
-}
-
-#fileList li.active {
-  background: #37373d;
-}
-
-/* ---- Terminal (Slide Up) ---- */
+/* ---------------------------
+   Terminal
+---------------------------- */
 
 #terminal {
-  position: absolute;
-  bottom: -250px;
+  position: fixed;
+  bottom: -260px;
   left: 0;
   right: 0;
   height: 250px;
@@ -124,10 +131,11 @@ html, body {
   display: flex;
   flex-direction: column;
   transition: bottom 0.3s ease;
+  z-index: 999;
 }
 
 #terminal.open {
-  bottom: 56px;
+  bottom: 56px; /* Above activity bar */
 }
 
 #terminalOutput {
@@ -143,27 +151,4 @@ html, body {
   font-family: monospace;
   font-size: 16px;
   outline: none;
-}
-
-/* ---- Desktop Enhancement ---- */
-
-@media (min-width: 768px) {
-
-  #app {
-    flex-direction: row;
-  }
-
-  #activityBar {
-    flex-direction: column;
-    width: 48px;
-    height: 100%;
-  }
-
-  #mainArea {
-    flex: 1;
-  }
-
-  #terminal.open {
-    bottom: 0;
-  }
 }
