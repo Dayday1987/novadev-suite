@@ -1,9 +1,8 @@
-/* ide.core.js */
 let editor = null;
 
 export async function initEditor() {
 
-  await loadMonaco();
+  await loadMonacoESM();
 
   editor = monaco.editor.create(document.getElementById("editor"), {
     value: "",
@@ -18,16 +17,10 @@ export async function initEditor() {
   });
 }
 
-function loadMonaco() {
-  return new Promise((resolve, reject) => {
+async function loadMonacoESM() {
 
-    require.config({
-      paths: { vs: "https://unpkg.com/monaco-editor@0.44.0/min/vs" }
-    });
+  if (window.monaco) return;
 
-    require(["vs/editor/editor.main"], () => {
-      resolve();
-    }, reject);
+  await import("https://unpkg.com/monaco-editor@0.44.0/min/vs/editor/editor.main.js");
 
-  });
 }
