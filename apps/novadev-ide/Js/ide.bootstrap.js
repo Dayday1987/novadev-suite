@@ -6,14 +6,12 @@ export async function bootstrapApp() {
 
   document.addEventListener("DOMContentLoaded", async () => {
 
-    loadProject();
-    initPanels();
+    initPanels();   // Always initialize UI first
 
     try {
       await initEditor();
     } catch (err) {
-      console.error("Monaco failed to load:", err);
-      alert("Editor failed to load.");
+      console.error("Editor failed:", err);
     }
 
   });
