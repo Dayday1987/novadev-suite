@@ -1,18 +1,34 @@
 /* ==============================
-   NovaDev IDE - Mobile Optimized
+   NovaDev IDE - Stable Build
 ============================== */
 
 const STORAGE_KEY = "novadev_ide_project_v1";
 const SETTINGS_KEY = "novadev_ide_settings_v1";
 
-let editor;
+let editor = null;
 let files = {};
 let currentFile = null;
 let gitInitialized = false;
 let gitHistory = [];
 
 /* ==============================
-   MONACO LOAD
+   LOAD PROJECT DATA FIRST
+============================== */
+
+loadProject();
+
+/* ==============================
+   SETUP UI IMMEDIATELY
+   (Important Fix)
+============================== */
+
+document.addEventListener("DOMContentLoaded", () => {
+  setupUI();
+  setupShortcuts();
+});
+
+/* ==============================
+   MONACO LOAD (Async Safe)
 ============================== */
 
 require.config({
@@ -20,8 +36,6 @@ require.config({
 });
 
 require(["vs/editor/editor.main"], function () {
-
-  loadProject();
 
   editor = monaco.editor.create(document.getElementById("editor"), {
     value: "",
@@ -53,8 +67,6 @@ require(["vs/editor/editor.main"], function () {
   renderFileList();
   openFile(Object.keys(files)[0]);
 
-  setupUI();
-  setupShortcuts();
 });
 
 /* ==============================
@@ -70,22 +82,13 @@ function createFile(name, content = "") {
 
 function deleteFile(name) {
   if (!confirm("Delete file?")) return;
-
   delete files[name];
-
-  if (currentFile === name) {
-    currentFile = null;
-    const remaining = Object.keys(files);
-    if (remaining.length) openFile(remaining[0]);
-  }
-
   saveProject();
   renderFileList();
 }
 
 function openFile(name) {
-  if (!files[name]) return;
-
+  if (!editor || !files[name]) return;
   currentFile = name;
   editor.setValue(files[name]);
   setLanguage(name);
@@ -93,37 +96,34 @@ function openFile(name) {
 }
 
 function saveCurrentFile() {
-  if (!currentFile) return;
+  if (!editor || !currentFile) return;
   files[currentFile] = editor.getValue();
   saveProject();
 }
 
 function renderFileList() {
   const list = document.getElementById("fileList");
+  if (!list) return;
+
   list.innerHTML = "";
 
   Object.keys(files).forEach(name => {
     const li = document.createElement("li");
     li.textContent = name;
-
-    if (name === currentFile) {
-      li.classList.add("active");
-    }
-
+    if (name === currentFile) li.classList.add("active");
     li.onclick = () => openFile(name);
-
     li.oncontextmenu = (e) => {
       e.preventDefault();
       deleteFile(name);
     };
-
     list.appendChild(li);
   });
 }
 
 function setLanguage(name) {
-  const ext = name.split(".").pop().toLowerCase();
+  if (!editor) return;
 
+  const ext = name.split(".").pop().toLowerCase();
   const map = {
     js: "javascript",
     html: "html",
@@ -133,9 +133,10 @@ function setLanguage(name) {
   };
 
   const language = map[ext] || "plaintext";
-
   monaco.editor.setModelLanguage(editor.getModel(), language);
-  document.getElementById("statusLanguage").textContent = language;
+
+  const status = document.getElementById("statusLanguage");
+  if (status) status.textContent = language;
 }
 
 /* ==============================
@@ -158,9 +159,7 @@ function saveSettings(settings) {
 function loadSettings() {
   const data = localStorage.getItem(SETTINGS_KEY);
   if (!data) return;
-
-  const settings = JSON.parse(data);
-  applySettings(settings);
+  applySettings(JSON.parse(data));
 }
 
 /* ==============================
@@ -182,39 +181,12 @@ function applySettings(settings) {
 }
 
 /* ==============================
-   SEARCH
-============================== */
-
-function searchFiles(query) {
-  const resultsContainer = document.getElementById("searchResults");
-  resultsContainer.innerHTML = "";
-
-  if (!query) return;
-
-  Object.keys(files).forEach(file => {
-    const lines = files[file].split("\n");
-
-    lines.forEach((line, index) => {
-      if (line.toLowerCase().includes(query.toLowerCase())) {
-        const div = document.createElement("div");
-        div.textContent = `${file} (Ln ${index + 1})`;
-        div.onclick = () => {
-          openFile(file);
-          editor.setPosition({ lineNumber: index + 1, column: 1 });
-          editor.focus();
-        };
-        resultsContainer.appendChild(div);
-      }
-    });
-  });
-}
-
-/* ==============================
    TERMINAL
 ============================== */
 
 function runCommand(cmd) {
   const output = document.getElementById("terminalOutput");
+  if (!output) return;
 
   const [base, ...args] = cmd.split(" ");
 
@@ -222,27 +194,21 @@ function runCommand(cmd) {
     case "help":
       output.innerHTML += "help, ls, cat <file>, pwd, clear, echo <text><br>";
       break;
-
     case "ls":
       output.innerHTML += Object.keys(files).join("<br>") + "<br>";
       break;
-
     case "cat":
       output.innerHTML += (files[args[0]] || "File not found") + "<br>";
       break;
-
     case "pwd":
       output.innerHTML += "/project<br>";
       break;
-
     case "clear":
       output.innerHTML = "";
       break;
-
     case "echo":
       output.innerHTML += args.join(" ") + "<br>";
       break;
-
     default:
       output.innerHTML += "Command not found<br>";
   }
@@ -251,65 +217,44 @@ function runCommand(cmd) {
 }
 
 /* ==============================
-   EXPORT
-============================== */
-
-function exportProject() {
-  const html = files["index.html"] || "";
-  const css = `<style>${files["style.css"] || ""}</style>`;
-  const js = `<script>${files["main.js"] || ""}<\/script>`;
-
-  const final = html
-    .replace("</head>", css + "</head>")
-    .replace("</body>", js + "</body>");
-
-  const blob = new Blob([final], { type: "text/html" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "novadev_export.html";
-  a.click();
-}
-
-/* ==============================
-   UI
+   UI SETUP (Now Always Runs)
 ============================== */
 
 function showPanel(panelId) {
   document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
-  document.getElementById(panelId).classList.add("active");
+  const panel = document.getElementById(panelId);
+  if (panel) panel.classList.add("active");
   document.getElementById("sidebar").classList.add("open");
 }
 
 function setupUI() {
 
-  document.getElementById("toggleSidebar").onclick = () => showPanel("explorerPanel");
-  document.getElementById("openSearch").onclick = () => showPanel("searchPanel");
-  document.getElementById("openGit").onclick = () => showPanel("gitPanel");
-  document.getElementById("openSettings").onclick = () => showPanel("settingsPanel");
+  const explorerBtn = document.getElementById("toggleSidebar");
+  const searchBtn = document.getElementById("openSearch");
+  const gitBtn = document.getElementById("openGit");
+  const settingsBtn = document.getElementById("openSettings");
+  const terminalBtn = document.getElementById("openTerminal");
 
-  document.getElementById("openTerminal").onclick = () => {
-    document.getElementById("terminal").classList.toggle("open");
-  };
+  if (explorerBtn) explorerBtn.onclick = () => showPanel("explorerPanel");
+  if (searchBtn) searchBtn.onclick = () => showPanel("searchPanel");
+  if (gitBtn) gitBtn.onclick = () => showPanel("gitPanel");
+  if (settingsBtn) settingsBtn.onclick = () => showPanel("settingsPanel");
 
-  document.getElementById("newFileBtn").onclick = () => {
-    const name = prompt("File name?");
-    if (name) createFile(name);
-  };
+  if (terminalBtn) {
+    terminalBtn.onclick = () => {
+      document.getElementById("terminal").classList.toggle("open");
+    };
+  }
 
-  document.getElementById("searchInput").addEventListener("input", e => {
-    searchFiles(e.target.value);
-  });
-
-  document.getElementById("terminalInput").addEventListener("keydown", e => {
-    if (e.key === "Enter") {
-      runCommand(e.target.value);
-      e.target.value = "";
-    }
-  });
-
-  window.addEventListener("resize", () => {
-    if (editor) editor.layout();
-  });
+  const terminalInput = document.getElementById("terminalInput");
+  if (terminalInput) {
+    terminalInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        runCommand(e.target.value);
+        e.target.value = "";
+      }
+    });
+  }
 }
 
 /* ==============================
@@ -317,6 +262,7 @@ function setupUI() {
 ============================== */
 
 function updateStatusBar() {
+  if (!editor) return;
   const pos = editor.getPosition();
   document.getElementById("statusPosition").textContent =
     `Ln ${pos.lineNumber}, Col ${pos.column}`;
