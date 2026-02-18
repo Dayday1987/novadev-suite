@@ -7,10 +7,20 @@ export async function initEditor() {
   const container = document.getElementById("editor");
   if (!container) return;
 
+  // ✅ Create editor FIRST
+  state.editor = monaco.editor.create(container, {
+    theme: "vs-dark",
+    automaticLayout: true,
+    fontSize: 14,
+    minimap: { enabled: window.innerWidth > 768 },
+  });
+
+  // ✅ THEN attach change listener
   state.editor.onDidChangeModelContent(() => {
     if (!state.currentFile) return;
 
     state.files[state.currentFile] = state.editor.getValue();
+
     saveProject();
 
     if (
@@ -20,13 +30,6 @@ export async function initEditor() {
     ) {
       updatePreview();
     }
-  });
-
-  state.editor = monaco.editor.create(container, {
-    theme: "vs-dark",
-    automaticLayout: true,
-    fontSize: 14,
-    minimap: { enabled: window.innerWidth > 768 },
   });
 
   openInitialFile();
