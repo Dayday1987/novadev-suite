@@ -1,5 +1,4 @@
 import {
-  initFS,
   listProjects,
   createProject,
   writeFile
@@ -37,7 +36,6 @@ export async function bootstrapApp() {
     // Logged in
     showIDEContainer();
 
-    await initFS();
     await renderProjectLauncher();
   });
 }
