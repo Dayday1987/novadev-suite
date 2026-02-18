@@ -9,6 +9,8 @@ import { initEditor } from "./ide.core.js";
 import { initPanels } from "./ide.panels.js";
 import { state } from "./ide.state.js";
 
+let ideStarted = false;
+
 export async function bootstrapApp() {
 
   document.addEventListener("DOMContentLoaded", async () => {
@@ -28,10 +30,18 @@ export async function bootstrapApp() {
 async function renderProjectLauncher() {
 
   const launcher = document.getElementById("projectLauncher");
+  const ideContainer = document.getElementById("ideContainer");
   const projectList = document.getElementById("projectList");
   const newProjectBtn = document.getElementById("newProjectBtn");
 
+  if (!launcher || !projectList) return;
+
   launcher.classList.remove("hidden");
+
+  if (ideContainer) {
+    ideContainer.classList.add("hidden");
+  }
+
   projectList.innerHTML = "";
 
   const projects = await listProjects();
@@ -49,17 +59,19 @@ async function renderProjectLauncher() {
     projectList.appendChild(div);
   });
 
-  newProjectBtn.onclick = async () => {
+  if (newProjectBtn) {
+    newProjectBtn.onclick = async () => {
 
-    const name = prompt("Project name:");
-    if (!name) return;
+      const name = prompt("Project name:");
+      if (!name) return;
 
-    const id = await createProject(name);
+      const id = await createProject(name);
 
-    await createStarterProject(id);
+      await createStarterProject(id);
 
-    await openProject(id);
-  };
+      await openProject(id);
+    };
+  }
 }
 
 /* =====================================
@@ -71,7 +83,10 @@ async function openProject(projectId) {
   state.currentProjectId = projectId;
 
   const launcher = document.getElementById("projectLauncher");
-  launcher.classList.add("hidden");
+  const ideContainer = document.getElementById("ideContainer");
+
+  if (launcher) launcher.classList.add("hidden");
+  if (ideContainer) ideContainer.classList.remove("hidden");
 
   await startIDE();
 }
@@ -93,7 +108,10 @@ async function createStarterProject(projectId) {
 
 async function startIDE() {
 
-  // Initialize UI first
+  if (ideStarted) return;
+  ideStarted = true;
+
+  // Initialize UI first (buttons, explorer, etc.)
   initPanels();
 
   // Then load Monaco
