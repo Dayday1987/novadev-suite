@@ -1,15 +1,13 @@
-import { initFS, listProjects, createProject } from './ide.fs.js';
+import { initFS, listProjects, createProject, listEntries, writeFile } from './ide.fs.js';
 import { initEditor } from './ide.core.js';
 import { initPanels } from './ide.panels.js';
-
-let currentProjectId = null;
+import { state } from './ide.state.js';
 
 export async function bootstrapApp() {
 
   document.addEventListener("DOMContentLoaded", async () => {
 
     await initFS();
-
     renderProjectLauncher();
 
   });
@@ -23,7 +21,6 @@ async function renderProjectLauncher() {
   const ideContainer = document.getElementById("ideContainer");
 
   const projects = await listProjects();
-
   projectList.innerHTML = "";
 
   projects.forEach(project => {
@@ -33,10 +30,10 @@ async function renderProjectLauncher() {
     div.textContent = project.name;
 
     div.onclick = async () => {
-      currentProjectId = project.id;
+      state.currentProjectId = project.id;
       launcher.classList.add("hidden");
       ideContainer.classList.remove("hidden");
-      startIDE();
+      await startIDE();
     };
 
     projectList.appendChild(div);
@@ -49,13 +46,23 @@ async function renderProjectLauncher() {
     if (!name) return;
 
     const id = await createProject(name);
-    currentProjectId = id;
+    state.currentProjectId = id;
+
+    await createStarterProject(id);
 
     launcher.classList.add("hidden");
     ideContainer.classList.remove("hidden");
 
-    startIDE();
+    await startIDE();
   };
+
+}
+
+async function createStarterProject(projectId) {
+
+  await writeFile(projectId, "index.html", "<h1>Hello NovaDev 🚀</h1>");
+  await writeFile(projectId, "style.css", "body { font-family: sans-serif; }");
+  await writeFile(projectId, "script.js", "console.log('NovaDev ready');");
 
 }
 
