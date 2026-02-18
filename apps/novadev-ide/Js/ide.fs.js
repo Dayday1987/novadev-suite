@@ -1,219 +1,122 @@
 // ide.fs.js
-// Multi-project Virtual File System
+// Supabase Cloud File System
 
-const DB_NAME = "novadev_fs";
-const DB_VERSION = 3;
-
-const PROJECT_STORE = "projects";
-const ENTRY_STORE = "entries";
-
-let db = null;
+import { getSupabase } from "./ide.auth.js";
 
 /* ==============================
-   Init DB
+   Helpers
 ============================== */
 
-export function initFS() {
-  return new Promise((resolve, reject) => {
-
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-
-      if (!db.objectStoreNames.contains(PROJECT_STORE)) {
-        db.createObjectStore(PROJECT_STORE, { keyPath: "id" });
-      }
-
-      if (!db.objectStoreNames.contains(ENTRY_STORE)) {
-        db.createObjectStore(ENTRY_STORE, {
-          keyPath: ["projectId", "path"]
-        });
-      }
-    };
-
-    request.onsuccess = (event) => {
-      db = event.target.result;
-      resolve();
-    };
-
-    request.onerror = () => reject(request.error);
-  });
+function getClient() {
+  return getSupabase();
 }
 
 /* ==============================
-   Utilities
+   Projects
 ============================== */
 
-function normalize(path) {
-  return path.replace(/^\/+/, "").replace(/\/+$/, "");
+export async function createProject(name) {
+
+  const supabase = getClient();
+
+  const { data, error } = await supabase
+    .from("projects")
+    .insert([{ name }])
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data.id;
 }
 
-function uuid() {
-  return crypto.randomUUID();
+export async function listProjects() {
+
+  const supabase = getClient();
+
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  return data || [];
+}
+
+export async function deleteProject(projectId) {
+
+  const supabase = getClient();
+
+  const { error } = await supabase
+    .from("projects")
+    .delete()
+    .eq("id", projectId);
+
+  if (error) throw error;
 }
 
 /* ==============================
-   Project Management
+   Files
 ============================== */
 
-export function createProject(name) {
-  const id = uuid();
+export async function writeFile(projectId, path, content) {
 
-  return new Promise((resolve, reject) => {
+  const supabase = getClient();
 
-    const tx = db.transaction(PROJECT_STORE, "readwrite");
-    const store = tx.objectStore(PROJECT_STORE);
-
-    store.put({
-      id,
-      name,
-      createdAt: Date.now()
-    });
-
-    tx.oncomplete = () => resolve(id);
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-export function listProjects() {
-  return new Promise((resolve, reject) => {
-
-    const tx = db.transaction(PROJECT_STORE, "readonly");
-    const store = tx.objectStore(PROJECT_STORE);
-
-    const request = store.getAll();
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-export function deleteProject(projectId) {
-  return new Promise((resolve, reject) => {
-
-    const tx = db.transaction(
-      [PROJECT_STORE, ENTRY_STORE],
-      "readwrite"
-    );
-
-    tx.objectStore(PROJECT_STORE).delete(projectId);
-
-    const entryStore = tx.objectStore(ENTRY_STORE);
-    const request = entryStore.openCursor();
-
-    request.onsuccess = (event) => {
-      const cursor = event.target.result;
-      if (cursor) {
-        if (cursor.value.projectId === projectId) {
-          cursor.delete();
-        }
-        cursor.continue();
-      }
-    };
-
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
-
-/* ==============================
-   File / Folder Operations
-============================== */
-
-export function writeFile(projectId, path, content) {
-  path = normalize(path);
-
-  return new Promise((resolve, reject) => {
-
-    const tx = db.transaction(ENTRY_STORE, "readwrite");
-    const store = tx.objectStore(ENTRY_STORE);
-
-    store.put({
-      projectId,
+  const { error } = await supabase
+    .from("files")
+    .upsert({
+      project_id: projectId,
       path,
-      type: "file",
-      content
+      content,
+      type: "file"
     });
 
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
+  if (error) throw error;
 }
 
-export function mkdir(projectId, path) {
-  path = normalize(path);
+export async function readFile(projectId, path) {
 
-  return new Promise((resolve, reject) => {
+  const supabase = getClient();
 
-    const tx = db.transaction(ENTRY_STORE, "readwrite");
-    const store = tx.objectStore(ENTRY_STORE);
+  const { data, error } = await supabase
+    .from("files")
+    .select("content")
+    .eq("project_id", projectId)
+    .eq("path", path)
+    .single();
 
-    store.put({
-      projectId,
-      path,
-      type: "folder",
-      content: null
-    });
+  if (error) return "";
 
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
+  return data?.content || "";
 }
 
-export function readFile(projectId, path) {
-  path = normalize(path);
+export async function listEntries(projectId) {
 
-  return new Promise((resolve, reject) => {
+  const supabase = getClient();
 
-    const tx = db.transaction(ENTRY_STORE, "readonly");
-    const store = tx.objectStore(ENTRY_STORE);
+  const { data, error } = await supabase
+    .from("files")
+    .select("*")
+    .eq("project_id", projectId);
 
-    const request = store.get([projectId, path]);
+  if (error) throw error;
 
-    request.onsuccess = () => {
-      resolve(request.result ? request.result.content : null);
-    };
-
-    request.onerror = () => reject(request.error);
-  });
+  return data || [];
 }
 
-export function listEntries(projectId) {
-  return new Promise((resolve, reject) => {
+export async function deleteFile(projectId, path) {
 
-    const tx = db.transaction(ENTRY_STORE, "readonly");
-    const store = tx.objectStore(ENTRY_STORE);
+  const supabase = getClient();
 
-    const request = store.getAll();
+  const { error } = await supabase
+    .from("files")
+    .delete()
+    .eq("project_id", projectId)
+    .eq("path", path);
 
-    request.onsuccess = () => {
-      resolve(
-        request.result.filter(e => e.projectId === projectId)
-      );
-    };
-
-    request.onerror = () => reject(request.error);
-  });
-}
-
-/* ==============================
-   Delete File
-============================== */
-
-export function deleteFile(projectId, path) {
-  path = normalize(path);
-
-  return new Promise((resolve, reject) => {
-
-    const tx = db.transaction(ENTRY_STORE, "readwrite");
-    const store = tx.objectStore(ENTRY_STORE);
-
-    store.delete([projectId, path]);
-
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
+  if (error) throw error;
 }
 
 /* ==============================
@@ -222,16 +125,21 @@ export function deleteFile(projectId, path) {
 
 export async function deleteFolder(projectId, folderPath) {
 
-  folderPath = normalize(folderPath);
+  const supabase = getClient();
 
-  const entries = await listEntries(projectId);
+  const { data, error } = await supabase
+    .from("files")
+    .select("path")
+    .eq("project_id", projectId);
 
-  const targets = entries.filter(e =>
-    e.path === folderPath ||
-    e.path.startsWith(folderPath + "/")
+  if (error) throw error;
+
+  const targets = data.filter(file =>
+    file.path === folderPath ||
+    file.path.startsWith(folderPath + "/")
   );
 
-  for (const entry of targets) {
-    await deleteFile(projectId, entry.path);
+  for (const file of targets) {
+    await deleteFile(projectId, file.path);
   }
 }
