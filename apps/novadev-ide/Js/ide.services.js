@@ -1,64 +1,43 @@
 /* ide.services.js */
-
-import { state } from './ide.state.js';
+import { state } from "./ide.state.js";
 
 const STORAGE_KEY = "novadev_ide_project_v1";
+const SETTINGS_KEY = "novadev_ide_settings_v1";
 
 /* ==============================
    Project Storage
 ============================== */
 
 export function loadProject() {
-
   try {
     const data = localStorage.getItem(STORAGE_KEY);
 
     if (data) {
       state.files = JSON.parse(data);
     } else {
-      // Default starter file if none exists
       state.files = {
-        "index.html": "<h1>Hello NovaDev 🚀</h1>"
+        "index.html": "<h1>Hello NovaDev 🚀</h1>",
       };
     }
-
   } catch (err) {
     console.error("Failed to load project:", err);
     state.files = {};
   }
-
 }
 
 export function saveProject() {
-
-  try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(state.files)
-    );
-  } catch (err) {
-    console.error("Failed to save project:", err);
-  }
-
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.files));
 }
 
 /* ==============================
-   File Management Helpers
+   Settings
 ============================== */
 
-export function deleteFile(name) {
-
-  if (!state.files[name]) return;
-
-  delete state.files[name];
-
-  if (state.currentFile === name) {
-    state.currentFile = null;
-  }
-
-  saveProject();
+export function saveSettings(settings) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 }
 
-export function fileExists(name) {
-  return !!state.files[name];
+export function loadSettings() {
+  const data = localStorage.getItem(SETTINGS_KEY);
+  return data ? JSON.parse(data) : null;
 }

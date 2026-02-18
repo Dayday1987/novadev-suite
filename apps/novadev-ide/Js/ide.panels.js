@@ -1,8 +1,7 @@
 /* ide.panels.js */
-
 import { state } from "./ide.state.js";
-import { openFile, createFile } from "./ide.core.js";
-import { saveProject } from "./ide.services.js";
+import { openFile, createFile, applyEditorSettings } from "./ide.core.js";
+import { saveProject, saveSettings } from "./ide.services.js";
 
 export function initPanels() {
   const sidebar = document.getElementById("sidebar");
@@ -11,18 +10,20 @@ export function initPanels() {
   const searchResults = document.getElementById("searchResults");
 
   /* ==============================
-     Panel Controls
+     Sidebar Controls
   ============================== */
 
-  function showPanel(panelId) {
+  function showPanel(id) {
     document
       .querySelectorAll(".panel")
       .forEach((p) => p.classList.remove("active"));
 
-    const panel = document.getElementById(panelId);
-    if (panel) panel.classList.add("active");
-
+    document.getElementById(id)?.classList.add("active");
     sidebar.classList.add("open");
+
+    if (id === "searchPanel") {
+      setTimeout(() => searchInput?.focus(), 150);
+    }
   }
 
   function closeSidebar() {
@@ -45,9 +46,11 @@ export function initPanels() {
     .getElementById("openSettings")
     ?.addEventListener("click", () => showPanel("settingsPanel"));
 
-  document.getElementById("openTerminal")?.addEventListener("click", () => {
-    document.getElementById("terminal")?.classList.toggle("open");
-  });
+  document
+    .getElementById("openTerminal")
+    ?.addEventListener("click", () =>
+      document.getElementById("terminal")?.classList.toggle("open"),
+    );
 
   document
     .getElementById("closeSidebar")
@@ -57,60 +60,40 @@ export function initPanels() {
      File Explorer
   ============================== */
 
-  function renderFileList() {
-    if (!fileList) return;
-
+  function renderFiles() {
     fileList.innerHTML = "";
 
     Object.keys(state.files).forEach((name) => {
       const li = document.createElement("li");
       li.textContent = name;
 
-      if (name === state.currentFile) {
-        li.classList.add("active");
-      }
+      if (name === state.currentFile) li.classList.add("active");
 
-      li.addEventListener("click", () => {
+      li.onclick = () => {
         openFile(name);
-        renderFileList();
-
-        // Auto close on mobile
-        if (window.innerWidth < 768) {
-          closeSidebar();
-        }
-      });
+        renderFiles();
+        if (window.innerWidth < 768) closeSidebar();
+      };
 
       fileList.appendChild(li);
     });
   }
 
-  // Create new file button (must exist in HTML)
   document.getElementById("newFileBtn")?.addEventListener("click", () => {
-    const name = prompt("Enter file name (example: app.js)");
-
+    const name = prompt("File name:");
     if (!name) return;
-
-    if (state.files[name]) {
-      alert("File already exists.");
-      return;
-    }
-
-    createFile(name, "");
-    renderFileList();
-    saveProject();
+    createFile(name);
+    renderFiles();
   });
 
-  renderFileList();
+  renderFiles();
 
   /* ==============================
-   Search (Fully Working)
-============================== */
+     Search (Mobile Optimized)
+  ============================== */
 
-  searchInput?.addEventListener("input", (e) => {
-    if (e.key !== "Enter") return;
-
-    const query = searchInput.value.trim().toLowerCase();
-
+  searchInput?.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase();
     searchResults.innerHTML = "";
 
     if (!query) return;
@@ -118,72 +101,65 @@ export function initPanels() {
     Object.keys(state.files).forEach((file) => {
       const lines = state.files[file].split("\n");
 
-      lines.forEach((line, index) => {
+      lines.forEach((line, i) => {
         if (line.toLowerCase().includes(query)) {
-          const result = document.createElement("div");
-          result.textContent = `${file} (Ln ${index + 1})`;
-          result.classList.add("search-result");
+          const div = document.createElement("div");
+          div.className = "search-result";
+          div.textContent = `${file} (Ln ${i + 1})`;
 
-          result.addEventListener("click", () => {
+          div.onclick = () => {
             openFile(file);
+            state.editor.setPosition({ lineNumber: i + 1, column: 1 });
+            state.editor.revealLineInCenter(i + 1);
+            state.editor.focus();
+            if (window.innerWidth < 768) closeSidebar();
+          };
 
-            if (state.editor) {
-              state.editor.setPosition({
-                lineNumber: index + 1,
-                column: 1,
-              });
-
-              state.editor.revealLineInCenter(index + 1);
-              state.editor.focus();
-            }
-
-            if (window.innerWidth < 768) {
-              sidebar.classList.remove("open");
-            }
-          });
-
-          searchResults.appendChild(result);
+          searchResults.appendChild(div);
         }
       });
     });
-
-    if (!searchResults.innerHTML) {
-      searchResults.innerHTML = "<div>No results found</div>";
-    }
   });
 
   /* ==============================
-     Close Sidebar (Outside Click)
+     Settings Panel
   ============================== */
 
-  document.addEventListener("click", (e) => {
-    if (
-      sidebar.classList.contains("open") &&
-      !sidebar.contains(e.target) &&
-      !e.target.closest("#toggleSidebar") &&
-      !e.target.closest("#openSearch") &&
-      !e.target.closest("#openGit") &&
-      !e.target.closest("#openSettings")
-    ) {
-      closeSidebar();
-    }
-  });
+  document
+    .getElementById("themeSelect")
+    ?.addEventListener("change", applySettingsFromUI);
 
-  /* ==============================
-     Swipe To Close (Mobile)
-  ============================== */
+  document
+    .getElementById("fontSizeInput")
+    ?.addEventListener("input", applySettingsFromUI);
 
-  let touchStartX = 0;
+  document
+    .getElementById("tabSizeInput")
+    ?.addEventListener("input", applySettingsFromUI);
 
-  sidebar.addEventListener("touchstart", (e) => {
-    touchStartX = e.touches[0].clientX;
-  });
+  document
+    .getElementById("wordWrapToggle")
+    ?.addEventListener("change", applySettingsFromUI);
 
-  sidebar.addEventListener("touchmove", (e) => {
-    const deltaX = e.touches[0].clientX - touchStartX;
+  document
+    .getElementById("minimapToggle")
+    ?.addEventListener("change", applySettingsFromUI);
 
-    if (deltaX < -50) {
-      closeSidebar();
-    }
-  });
+  document
+    .getElementById("lineNumbersToggle")
+    ?.addEventListener("change", applySettingsFromUI);
+
+  function applySettingsFromUI() {
+    const settings = {
+      theme: document.getElementById("themeSelect").value,
+      fontSize: parseInt(document.getElementById("fontSizeInput").value) || 14,
+      tabSize: parseInt(document.getElementById("tabSizeInput").value) || 2,
+      wordWrap: document.getElementById("wordWrapToggle").checked,
+      minimap: document.getElementById("minimapToggle").checked,
+      lineNumbers: document.getElementById("lineNumbersToggle").checked,
+    };
+
+    applyEditorSettings(settings);
+    saveSettings(settings);
+  }
 }

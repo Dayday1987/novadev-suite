@@ -1,140 +1,108 @@
 /* ide.core.js */
-
-import { state } from './ide.state.js';
-import { saveProject } from './ide.services.js';
+import { state } from "./ide.state.js";
+import { saveProject, loadSettings } from "./ide.services.js";
 
 export async function initEditor() {
+  await loadMonaco();
 
-  if (!window.require) {
-    console.error("Monaco loader not found.");
-    return;
-  }
-
-  try {
-    await loadMonacoAMD();
-  } catch (err) {
-    console.error("Monaco failed to load:", err);
-    return;
-  }
-
-  if (!window.monaco) {
-    console.error("Monaco not available after load.");
-    return;
-  }
-
-  const container = document.getElementById("editor");
-
-  if (!container) {
-    console.error("Editor container not found.");
-    return;
-  }
-
-  state.editor = monaco.editor.create(container, {
+  state.editor = monaco.editor.create(document.getElementById("editor"), {
     value: "",
-    language: "javascript",
+    language: "html",
     theme: "vs-dark",
     automaticLayout: true,
+    fontSize: 14,
     minimap: { enabled: window.innerWidth > 768 },
-    fontSize: window.innerWidth < 768 ? 14 : 16
   });
 
-  // Save on change
+  applySavedSettings();
+
   state.editor.onDidChangeModelContent(() => {
     if (!state.currentFile) return;
     state.files[state.currentFile] = state.editor.getValue();
     saveProject();
   });
 
-  // Resize safety
-  window.addEventListener("resize", () => {
-    if (state.editor) {
-      state.editor.layout();
-    }
-  });
+  state.editor.onDidChangeCursorPosition(updateStatusBar);
 
-  console.log("Monaco initialized successfully.");
+  openInitialFile();
 }
 
-/* ==============================
-   File Operations
-============================== */
+/* ============================== */
+
+function loadMonaco() {
+  return new Promise((resolve, reject) => {
+    require.config({
+      paths: { vs: "https://unpkg.com/monaco-editor@0.44.0/min/vs" },
+    });
+
+    require(["vs/editor/editor.main"], resolve, reject);
+  });
+}
+
+/* ============================== */
+
+function openInitialFile() {
+  const firstFile = Object.keys(state.files)[0];
+  if (firstFile) openFile(firstFile);
+}
+
+/* ============================== */
 
 export function openFile(name) {
-
-  if (!state.editor) return;
-  if (!state.files[name]) return;
+  if (!(name in state.files)) return;
 
   state.currentFile = name;
-  state.editor.setValue(state.files[name]);
+  state.editor.setValue(state.files[name] || "");
 
-  setLanguageFromFilename(name);
+  setLanguage(name);
 }
 
-export function createFile(name, content = "") {
-
-  if (!name) return;
-
-  state.files[name] = content;
+export function createFile(name) {
+  state.files[name] = "";
   state.currentFile = name;
-
-  if (state.editor) {
-    state.editor.setValue(content);
-    setLanguageFromFilename(name);
-  }
-
+  state.editor.setValue("");
   saveProject();
 }
 
-function setLanguageFromFilename(name) {
-
-  if (!state.editor) return;
-
-  const ext = name.split('.').pop().toLowerCase();
-
+function setLanguage(name) {
+  const ext = name.split(".").pop();
   const map = {
     js: "javascript",
     html: "html",
     css: "css",
     json: "json",
-    md: "markdown"
+    md: "markdown",
   };
-
-  const language = map[ext] || "plaintext";
-
   monaco.editor.setModelLanguage(
     state.editor.getModel(),
-    language
+    map[ext] || "plaintext",
   );
 }
 
-/* ==============================
-   Monaco Loader
-============================== */
+/* ============================== */
 
-function loadMonacoAMD() {
+export function applyEditorSettings(settings) {
+  monaco.editor.setTheme(settings.theme);
 
-  return new Promise((resolve, reject) => {
-
-    try {
-
-      require.config({
-        paths: { vs: "https://unpkg.com/monaco-editor@0.44.0/min/vs" }
-      });
-
-      require(
-        ["vs/editor/editor.main"],
-        () => resolve(),
-        (err) => {
-          console.error("AMD load error:", err);
-          reject(err);
-        }
-      );
-
-    } catch (err) {
-      console.error("Monaco require crash:", err);
-      reject(err);
-    }
-
+  state.editor.updateOptions({
+    fontSize: settings.fontSize,
+    tabSize: settings.tabSize,
+    wordWrap: settings.wordWrap ? "on" : "off",
+    minimap: { enabled: settings.minimap },
+    lineNumbers: settings.lineNumbers ? "on" : "off",
   });
+}
 
+function applySavedSettings() {
+  const settings = loadSettings();
+  if (!settings) return;
+  applyEditorSettings(settings);
+}
+
+/* ============================== */
+
+function updateStatusBar() {
+  const pos = state.editor.getPosition();
+  document.getElementById("statusPosition").textContent =
+    `Ln ${pos.lineNumber}, Col ${pos.column}`;
 }
