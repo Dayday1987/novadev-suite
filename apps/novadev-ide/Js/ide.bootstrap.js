@@ -11,26 +11,49 @@ import { state } from "./ide.state.js";
 
 import {
   initAuth,
-  login,
-  signup,
-  oauthLogin
+  getSession,
+  signUp,
+  signIn,
+  signOut,
+  signInWithProvider
 } from "./ide.auth.js";
 
 export async function bootstrapApp() {
 
   document.addEventListener("DOMContentLoaded", async () => {
 
-    await initFS();
+    // Initialize Supabase
+    initAuth();
 
-    const user = await initAuth();
+    // Check session
+    const session = await getSession();
 
-    if (!user) {
+    if (!session) {
+      showAuthScreen();
       wireAuthUI();
       return;
     }
 
+    // Logged in
+    showIDEContainer();
+
+    await initFS();
     await renderProjectLauncher();
   });
+}
+
+/* =====================================
+   Auth Screen Control
+===================================== */
+
+function showAuthScreen() {
+  document.getElementById("authScreen").classList.remove("hidden");
+  document.getElementById("ideContainer").classList.add("hidden");
+}
+
+function showIDEContainer() {
+  document.getElementById("authScreen").classList.add("hidden");
+  document.getElementById("ideContainer").classList.remove("hidden");
 }
 
 /* =====================================
@@ -44,7 +67,14 @@ function wireAuthUI() {
     const email = document.getElementById("emailInput").value;
     const password = document.getElementById("passwordInput").value;
 
-    await login(email, password);
+    const { error } = await signIn(email, password);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    location.reload();
   };
 
   document.getElementById("signupBtn").onclick = async () => {
@@ -52,14 +82,21 @@ function wireAuthUI() {
     const email = document.getElementById("emailInput").value;
     const password = document.getElementById("passwordInput").value;
 
-    await signup(email, password);
+    const { error } = await signUp(email, password);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert("Check your email to confirm your account.");
   };
 
   document.getElementById("googleLogin")
-    .onclick = () => oauthLogin("google");
+    .onclick = () => signInWithProvider("google");
 
   document.getElementById("githubLogin")
-    .onclick = () => oauthLogin("github");
+    .onclick = () => signInWithProvider("github");
 }
 
 /* =====================================
@@ -113,9 +150,6 @@ async function openProject(projectId) {
 
   document.getElementById("projectLauncher")
     .classList.add("hidden");
-
-  document.getElementById("ideContainer")
-    .classList.remove("hidden");
 
   await startIDE();
 }
