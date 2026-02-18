@@ -1,11 +1,20 @@
 // ide.fs.js
-// Virtual File System using IndexedDB
+// Hierarchical Virtual File System (IndexedDB)
 
 const DB_NAME = "novadev_fs";
-const DB_VERSION = 1;
-const STORE_NAME = "files";
+const DB_VERSION = 2;
+const STORE_NAME = "entries";
 
 let db = null;
+
+/*
+Entry structure:
+{
+  path: "src/app.js",
+  type: "file" | "folder",
+  content: string | null
+}
+*/
 
 /* ==============================
    Init Database
@@ -34,23 +43,66 @@ export function initFS() {
 }
 
 /* ==============================
-   File Operations
+   Helpers
 ============================== */
 
-export function writeFile(path, content) {
+function normalize(path) {
+  return path.replace(/^\/+/, "").replace(/\/+$/, "");
+}
+
+/* ==============================
+   Create Folder
+============================== */
+
+export function mkdir(path) {
+  path = normalize(path);
+
   return new Promise((resolve, reject) => {
 
     const tx = db.transaction(STORE_NAME, "readwrite");
     const store = tx.objectStore(STORE_NAME);
 
-    store.put({ path, content });
+    store.put({
+      path,
+      type: "folder",
+      content: null
+    });
 
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
 }
 
+/* ==============================
+   Write File
+============================== */
+
+export function writeFile(path, content) {
+  path = normalize(path);
+
+  return new Promise((resolve, reject) => {
+
+    const tx = db.transaction(STORE_NAME, "readwrite");
+    const store = tx.objectStore(STORE_NAME);
+
+    store.put({
+      path,
+      type: "file",
+      content
+    });
+
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+/* ==============================
+   Read File
+============================== */
+
 export function readFile(path) {
+  path = normalize(path);
+
   return new Promise((resolve, reject) => {
 
     const tx = db.transaction(STORE_NAME, "readonly");
@@ -59,14 +111,24 @@ export function readFile(path) {
     const request = store.get(path);
 
     request.onsuccess = () => {
-      resolve(request.result ? request.result.content : null);
+      if (!request.result) {
+        resolve(null);
+      } else {
+        resolve(request.result.content);
+      }
     };
 
     request.onerror = () => reject(request.error);
   });
 }
 
-export function deleteFile(path) {
+/* ==============================
+   Delete Entry
+============================== */
+
+export function remove(path) {
+  path = normalize(path);
+
   return new Promise((resolve, reject) => {
 
     const tx = db.transaction(STORE_NAME, "readwrite");
@@ -79,7 +141,11 @@ export function deleteFile(path) {
   });
 }
 
-export function listFiles() {
+/* ==============================
+   List All Entries
+============================== */
+
+export function listAll() {
   return new Promise((resolve, reject) => {
 
     const tx = db.transaction(STORE_NAME, "readonly");
@@ -88,9 +154,32 @@ export function listFiles() {
     const request = store.getAll();
 
     request.onsuccess = () => {
-      resolve(request.result.map(f => f.path));
+      resolve(request.result);
     };
 
     request.onerror = () => reject(request.error);
+  });
+}
+
+/* ==============================
+   List Directory
+============================== */
+
+export async function listDir(path = "") {
+
+  path = normalize(path);
+
+  const entries = await listAll();
+
+  const prefix = path ? path + "/" : "";
+
+  return entries.filter(entry => {
+
+    if (!entry.path.startsWith(prefix)) return false;
+
+    const remainder = entry.path.slice(prefix.length);
+
+    return !remainder.includes("/");
+
   });
 }
