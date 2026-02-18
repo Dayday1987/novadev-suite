@@ -9,7 +9,12 @@ import { initEditor } from "./ide.core.js";
 import { initPanels } from "./ide.panels.js";
 import { state } from "./ide.state.js";
 
-let ideStarted = false;
+import {
+  initAuth,
+  login,
+  signup,
+  oauthLogin
+} from "./ide.auth.js";
 
 export async function bootstrapApp() {
 
@@ -17,10 +22,44 @@ export async function bootstrapApp() {
 
     await initFS();
 
+    const user = await initAuth();
+
+    if (!user) {
+      wireAuthUI();
+      return;
+    }
+
     await renderProjectLauncher();
-
   });
+}
 
+/* =====================================
+   Wire Auth UI
+===================================== */
+
+function wireAuthUI() {
+
+  document.getElementById("loginBtn").onclick = async () => {
+
+    const email = document.getElementById("emailInput").value;
+    const password = document.getElementById("passwordInput").value;
+
+    await login(email, password);
+  };
+
+  document.getElementById("signupBtn").onclick = async () => {
+
+    const email = document.getElementById("emailInput").value;
+    const password = document.getElementById("passwordInput").value;
+
+    await signup(email, password);
+  };
+
+  document.getElementById("googleLogin")
+    .onclick = () => oauthLogin("google");
+
+  document.getElementById("githubLogin")
+    .onclick = () => oauthLogin("github");
 }
 
 /* =====================================
@@ -30,18 +69,10 @@ export async function bootstrapApp() {
 async function renderProjectLauncher() {
 
   const launcher = document.getElementById("projectLauncher");
-  const ideContainer = document.getElementById("ideContainer");
   const projectList = document.getElementById("projectList");
   const newProjectBtn = document.getElementById("newProjectBtn");
 
-  if (!launcher || !projectList) return;
-
   launcher.classList.remove("hidden");
-
-  if (ideContainer) {
-    ideContainer.classList.add("hidden");
-  }
-
   projectList.innerHTML = "";
 
   const projects = await listProjects();
@@ -59,19 +90,17 @@ async function renderProjectLauncher() {
     projectList.appendChild(div);
   });
 
-  if (newProjectBtn) {
-    newProjectBtn.onclick = async () => {
+  newProjectBtn.onclick = async () => {
 
-      const name = prompt("Project name:");
-      if (!name) return;
+    const name = prompt("Project name:");
+    if (!name) return;
 
-      const id = await createProject(name);
+    const id = await createProject(name);
 
-      await createStarterProject(id);
+    await createStarterProject(id);
 
-      await openProject(id);
-    };
-  }
+    await openProject(id);
+  };
 }
 
 /* =====================================
@@ -82,11 +111,11 @@ async function openProject(projectId) {
 
   state.currentProjectId = projectId;
 
-  const launcher = document.getElementById("projectLauncher");
-  const ideContainer = document.getElementById("ideContainer");
+  document.getElementById("projectLauncher")
+    .classList.add("hidden");
 
-  if (launcher) launcher.classList.add("hidden");
-  if (ideContainer) ideContainer.classList.remove("hidden");
+  document.getElementById("ideContainer")
+    .classList.remove("hidden");
 
   await startIDE();
 }
@@ -103,17 +132,11 @@ async function createStarterProject(projectId) {
 }
 
 /* =====================================
-   Start IDE Properly
+   Start IDE
 ===================================== */
 
 async function startIDE() {
 
-  if (ideStarted) return;
-  ideStarted = true;
-
-  // Initialize UI first (buttons, explorer, etc.)
   initPanels();
-
-  // Then load Monaco
   await initEditor();
 }
