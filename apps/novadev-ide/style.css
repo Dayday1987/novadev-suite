@@ -34,17 +34,17 @@ html {
 ---------------------------- */
 
 #mainArea {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* Critical flex fix */
+  min-height: 0; /* critical */
+  overflow: hidden; /* critical */
 }
 
 #editor {
-  flex: 1;
-  min-height: 0; /* Prevent overflow bug */
+  flex: 1 1 auto;
+  min-height: 0; /* critical */
 }
-
 /* ---------------------------
    Status Bar
 ---------------------------- */
@@ -209,10 +209,11 @@ html {
 }
 
 #editorContainer {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  min-height: 0; /* critical */
+  overflow: hidden; /* critical */
 }
 
 #previewPane {
