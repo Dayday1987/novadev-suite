@@ -143,3 +143,17 @@ function getLanguage(name) {
   };
   return map[ext] || "plaintext";
 }
+
+export function applyEditorSettings(settings) {
+  if (!state.editor) return;
+
+  monaco.editor.setTheme(settings.theme);
+
+  state.editor.updateOptions({
+    fontSize: settings.fontSize,
+    tabSize: settings.tabSize,
+    wordWrap: settings.wordWrap ? "on" : "off",
+    minimap: { enabled: settings.minimap },
+    lineNumbers: settings.lineNumbers ? "on" : "off",
+  });
+}
