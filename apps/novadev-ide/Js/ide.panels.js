@@ -1,6 +1,6 @@
 import { state } from "./ide.state.js";
 import { openFile, createFile, applyEditorSettings, updatePreview } from "./ide.core.js";
-import { listEntries } from "./ide.fs.js";
+import { listEntries, readFile } from "./ide.fs.js";
 import { saveSettings } from "./ide.services.js";
 
 export function initPanels() {
@@ -44,7 +44,7 @@ export function initPanels() {
     ?.addEventListener("click", closeSidebar);
 
   /* ==============================
-     Explorer (IndexedDB)
+     Explorer Tree (Folder Support)
   ============================== */
 
   async function renderFiles() {
@@ -54,25 +54,88 @@ export function initPanels() {
     fileList.innerHTML = "";
 
     const entries = await listEntries(state.currentProjectId);
-    const files = entries.filter(e => e.type === "file");
+    const tree = buildTree(entries);
 
-    files.forEach(entry => {
+    renderTree(tree, fileList);
+  }
 
-      const li = document.createElement("li");
-      li.textContent = entry.path;
+  function buildTree(entries) {
 
-      li.onclick = () => {
-        openFile(entry.path);
-        if (window.innerWidth < 768) closeSidebar();
-      };
+    const root = {};
 
-      fileList.appendChild(li);
+    entries.forEach(entry => {
+
+      const parts = entry.path.split("/");
+
+      let current = root;
+
+      parts.forEach((part, index) => {
+
+        if (!current[part]) {
+          current[part] = {
+            __meta: index === parts.length - 1 ? entry : null,
+            __children: {}
+          };
+        }
+
+        current = current[part].__children;
+      });
+    });
+
+    return root;
+  }
+
+  function renderTree(node, container, depth = 0) {
+
+    Object.keys(node).forEach(name => {
+
+      const item = node[name];
+      const meta = item.__meta;
+      const children = item.__children;
+
+      const div = document.createElement("div");
+      div.style.paddingLeft = (depth * 16) + "px";
+
+      if (meta && meta.type === "file") {
+
+        div.textContent = "📄 " + name;
+        div.className = "file-item";
+
+        div.onclick = () => {
+          openFile(meta.path);
+          if (window.innerWidth < 768) closeSidebar();
+        };
+
+        container.appendChild(div);
+
+      } else {
+
+        div.textContent = "📁 " + name;
+        div.className = "folder-item";
+
+        const childContainer = document.createElement("div");
+        childContainer.style.display = "none";
+
+        div.onclick = () => {
+          childContainer.style.display =
+            childContainer.style.display === "none"
+              ? "block"
+              : "none";
+        };
+
+        container.appendChild(div);
+        container.appendChild(childContainer);
+
+        renderTree(children, childContainer, depth + 1);
+      }
+
     });
   }
 
   document.getElementById("newFileBtn")
     ?.addEventListener("click", async () => {
-      const name = prompt("File name:");
+
+      const name = prompt("Enter file path (example: src/app.js)");
       if (!name) return;
 
       await createFile(name);
@@ -105,6 +168,7 @@ export function initPanels() {
       const lines = content.split("\n");
 
       lines.forEach((line, i) => {
+
         if (line.toLowerCase().includes(query)) {
 
           const div = document.createElement("div");
@@ -113,7 +177,12 @@ export function initPanels() {
 
           div.onclick = async () => {
             await openFile(file.path);
-            state.editor.setPosition({ lineNumber: i + 1, column: 1 });
+
+            state.editor.setPosition({
+              lineNumber: i + 1,
+              column: 1
+            });
+
             state.editor.revealLineInCenter(i + 1);
             state.editor.focus();
             closeSidebar();
@@ -123,6 +192,10 @@ export function initPanels() {
         }
       });
     }
+
+    if (!searchResults.innerHTML) {
+      searchResults.innerHTML = "<div>No results found</div>";
+    }
   });
 
   /* ==============================
@@ -130,6 +203,7 @@ export function initPanels() {
   ============================== */
 
   function applySettingsFromUI() {
+
     const settings = {
       theme: document.getElementById("themeSelect").value,
       fontSize: parseInt(document.getElementById("fontSizeInput").value) || 14,
