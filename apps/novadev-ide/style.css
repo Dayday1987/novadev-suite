@@ -303,3 +303,25 @@ html {
 .hidden {
   display: none;
 }
+
+.auth-screen {
+  position: fixed;
+  inset: 0;
+  background: #1e1e1e;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px;
+}
+
+.auth-screen input,
+.auth-screen button {
+  padding: 12px;
+  font-size: 16px;
+}
+
+.hidden {
+  display: none;
+}
