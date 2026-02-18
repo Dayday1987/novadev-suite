@@ -1,6 +1,19 @@
 import { state } from "./ide.state.js";
-import { openFile, createFile, applyEditorSettings, updatePreview } from "./ide.core.js";
-import { listEntries, readFile } from "./ide.fs.js";
+import {
+  openFile,
+  createFile,
+  applyEditorSettings,
+  updatePreview,
+  removeModel
+} from "./ide.core.js";
+
+import {
+  listEntries,
+  readFile,
+  deleteFile,
+  deleteFolder
+} from "./ide.fs.js";
+
 import { saveSettings } from "./ide.services.js";
 
 export function initPanels() {
@@ -22,51 +35,44 @@ export function initPanels() {
     });
 
   /* ==============================
-   Sidebar Controls
-============================== */
+     Sidebar Controls
+  ============================== */
 
-function showPanel(id) {
+  function showPanel(id) {
+    document.querySelectorAll(".panel")
+      .forEach(p => p.classList.remove("active"));
 
-  document.querySelectorAll(".panel")
-    .forEach(p => p.classList.remove("active"));
+    document.getElementById(id)?.classList.add("active");
+    sidebar.classList.add("open");
+  }
 
-  document.getElementById(id)?.classList.add("active");
-  sidebar.classList.add("open");
-}
+  function closeSidebar() {
+    sidebar.classList.remove("open");
+  }
 
-function closeSidebar() {
-  sidebar.classList.remove("open");
-}
+  document.getElementById("toggleSidebar")
+    ?.addEventListener("click", () => showPanel("explorerPanel"));
 
-// Explorer
-document.getElementById("toggleSidebar")
-  ?.addEventListener("click", () => showPanel("explorerPanel"));
+  document.getElementById("openSearch")
+    ?.addEventListener("click", () => showPanel("searchPanel"));
 
-// Search
-document.getElementById("openSearch")
-  ?.addEventListener("click", () => showPanel("searchPanel"));
+  document.getElementById("openGit")
+    ?.addEventListener("click", () => showPanel("gitPanel"));
 
-// Git
-document.getElementById("openGit")
-  ?.addEventListener("click", () => showPanel("gitPanel"));
+  document.getElementById("openSettings")
+    ?.addEventListener("click", () => showPanel("settingsPanel"));
 
-// Settings
-document.getElementById("openSettings")
-  ?.addEventListener("click", () => showPanel("settingsPanel"));
+  document.getElementById("openTerminal")
+    ?.addEventListener("click", () => {
+      document.getElementById("terminal")
+        ?.classList.toggle("open");
+    });
 
-// Terminal
-document.getElementById("openTerminal")
-  ?.addEventListener("click", () => {
-    document.getElementById("terminal")
-      ?.classList.toggle("open");
-  });
-
-// Close sidebar button
-document.getElementById("closeSidebar")
-  ?.addEventListener("click", closeSidebar);
+  document.getElementById("closeSidebar")
+    ?.addEventListener("click", closeSidebar);
 
   /* ==============================
-     Explorer Tree (Folder Support)
+     Explorer Tree (With Deletion)
   ============================== */
 
   async function renderFiles() {
@@ -88,7 +94,6 @@ document.getElementById("closeSidebar")
     entries.forEach(entry => {
 
       const parts = entry.path.split("/");
-
       let current = root;
 
       parts.forEach((part, index) => {
@@ -118,10 +123,27 @@ document.getElementById("closeSidebar")
       const div = document.createElement("div");
       div.style.paddingLeft = (depth * 16) + "px";
 
+      let pressTimer;
+
+      /* ==============================
+         FILE
+      ============================== */
+
       if (meta && meta.type === "file") {
 
         div.textContent = "📄 " + name;
         div.className = "file-item";
+
+        // Long press delete
+        div.addEventListener("touchstart", () => {
+          pressTimer = setTimeout(() => {
+            confirmDelete(meta.path, "file");
+          }, 600);
+        });
+
+        div.addEventListener("touchend", () => {
+          clearTimeout(pressTimer);
+        });
 
         div.onclick = () => {
           openFile(meta.path);
@@ -130,13 +152,27 @@ document.getElementById("closeSidebar")
 
         container.appendChild(div);
 
-      } else {
+      } 
+      /* ==============================
+         FOLDER
+      ============================== */
+      else {
 
         div.textContent = "📁 " + name;
         div.className = "folder-item";
 
         const childContainer = document.createElement("div");
         childContainer.style.display = "none";
+
+        div.addEventListener("touchstart", () => {
+          pressTimer = setTimeout(() => {
+            confirmDelete(name, "folder");
+          }, 600);
+        });
+
+        div.addEventListener("touchend", () => {
+          clearTimeout(pressTimer);
+        });
 
         div.onclick = () => {
           childContainer.style.display =
@@ -150,8 +186,34 @@ document.getElementById("closeSidebar")
 
         renderTree(children, childContainer, depth + 1);
       }
-
     });
+  }
+
+  async function confirmDelete(path, type) {
+
+    const confirmAction = confirm(
+      `Delete this ${type}? This cannot be undone.`
+    );
+
+    if (!confirmAction) return;
+
+    if (type === "file") {
+
+      await deleteFile(state.currentProjectId, path);
+      removeModel(path);
+
+    } else {
+
+      await deleteFolder(state.currentProjectId, path);
+
+      Object.keys(state.models || {}).forEach(key => {
+        if (key.startsWith(path + "/")) {
+          removeModel(key);
+        }
+      });
+    }
+
+    renderFiles();
   }
 
   document.getElementById("newFileBtn")
@@ -167,7 +229,7 @@ document.getElementById("closeSidebar")
   renderFiles();
 
   /* ==============================
-     Search (Project-wide)
+     Search
   ============================== */
 
   searchInput?.addEventListener("input", async () => {
