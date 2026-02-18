@@ -32,14 +32,14 @@ html {
 /* ---------------------------
    Main Area
 ---------------------------- */
-
 #mainArea {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: hidden;   /* <-- ADD THIS LINE */
+  overflow: hidden;
 }
+
 
 #editor {
   flex: 1 1 auto;
@@ -209,11 +209,11 @@ html {
 }
 
 #editorContainer {
-  flex: 1 1 auto;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0; /* critical */
-  overflow: hidden; /* critical */
+  min-height: 0;
+  overflow: hidden;
 }
 
 #previewPane {
@@ -236,8 +236,9 @@ html {
   }
 
   #editor {
-    width: 50%;
-  }
+  flex: 1;
+  min-height: 0;
+}
 
   #previewPane {
     width: 50%;
