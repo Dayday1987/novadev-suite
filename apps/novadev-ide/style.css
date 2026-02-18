@@ -16,6 +16,10 @@ body {
     sans-serif;
 }
 
+html {
+  touch-action: manipulation;
+}
+
 /* Use dynamic viewport height (fixes Safari toolbar issue) */
 #app {
   display: flex;
@@ -103,6 +107,20 @@ body {
   left: 0;
 }
 
+#sidebarHeader {
+  display: flex;
+  justify-content: flex-end;
+  padding-bottom: 10px;
+}
+
+#closeSidebar {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+}
 /* ---------------------------
    Tabs Bar
 ---------------------------- */
@@ -187,23 +205,4 @@ body {
   font-family: monospace;
   font-size: 16px;
   outline: none;
-}
-
-html {
-  touch-action: manipulation;
-}
-
-#sidebarHeader {
-  display: flex;
-  justify-content: flex-end;
-  padding-bottom: 10px;
-}
-
-#closeSidebar {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 20px;
-  width: 40px;
-  height: 40px;
 }
