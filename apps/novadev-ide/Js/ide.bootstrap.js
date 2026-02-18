@@ -1,18 +1,20 @@
 import { initEditor } from './ide.core.js';
 import { initPanels } from './ide.panels.js';
-import { loadProject } from './ide.services.js';
+import { initFS } from './ide.fs.js';
 
 export async function bootstrapApp() {
 
   document.addEventListener("DOMContentLoaded", async () => {
 
-    // 1️⃣ Load project into shared state FIRST
-    loadProject();
+    try {
+      await initFS();
+    } catch (err) {
+      console.error("FS init failed:", err);
+      return;
+    }
 
-    // 2️⃣ Initialize UI panels (they depend on state.files)
     initPanels();
 
-    // 3️⃣ Initialize Monaco editor
     try {
       await initEditor();
     } catch (err) {
