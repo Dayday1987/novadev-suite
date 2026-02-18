@@ -196,3 +196,43 @@ export function listEntries(projectId) {
     request.onerror = () => reject(request.error);
   });
 }
+
+/* ==============================
+   Delete File
+============================== */
+
+export async function deleteFile(projectId, path) {
+
+  const db = await getDB();
+
+  return new Promise((resolve, reject) => {
+
+    const tx = db.transaction("files", "readwrite");
+    const store = tx.objectStore("files");
+
+    const request = store.delete([projectId, path]);
+
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+/* ==============================
+   Delete Folder (Recursive)
+============================== */
+
+export async function deleteFolder(projectId, folderPath) {
+
+  const entries = await listEntries(projectId);
+
+  const targets = entries.filter(e =>
+    e.path.startsWith(folderPath + "/")
+  );
+
+  for (const entry of targets) {
+    await deleteFile(projectId, entry.path);
+  }
+
+  // delete the folder entry itself if stored
+  await deleteFile(projectId, folderPath);
+}
