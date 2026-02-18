@@ -152,7 +152,25 @@ function renderTabs() {
     tabsBar.appendChild(tab);
   });
 }
+/* delete file/folder */
+export function removeModel(path) {
 
+  if (!state.models) return;
+  if (!state.models[path]) return;
+
+  state.models[path].dispose();
+  delete state.models[path];
+
+  const tabIndex = state.openTabs.indexOf(path);
+  if (tabIndex > -1) {
+    state.openTabs.splice(tabIndex, 1);
+  }
+
+  if (state.currentFile === path) {
+    state.currentFile = null;
+    state.editor.setModel(null);
+  }
+}
 /* ==============================
    Language Detection
 ============================== */
