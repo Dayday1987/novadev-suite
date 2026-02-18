@@ -1,11 +1,13 @@
-/* ide.core.js */
 import { state } from "./ide.state.js";
 import { saveProject } from "./ide.services.js";
 
 export async function initEditor() {
   await loadMonaco();
 
-  state.editor = monaco.editor.create(document.getElementById("editor"), {
+  const container = document.getElementById("editor");
+  if (!container) return;
+
+  state.editor = monaco.editor.create(container, {
     theme: "vs-dark",
     automaticLayout: true,
     fontSize: 14,
@@ -29,19 +31,19 @@ function loadMonaco() {
 /* ============================== */
 
 function openInitialFile() {
-  const firstFile = Object.keys(state.files)[0];
-  if (firstFile) openFile(firstFile);
+  const first = Object.keys(state.files)[0];
+  if (first) openFile(first);
 }
 
 /* ============================== */
 
 export function openFile(name) {
+  if (!state.editor) return;
   if (!(name in state.files)) return;
 
-  // Create model if not exists
   if (!state.models[name]) {
     state.models[name] = monaco.editor.createModel(
-      state.files[name],
+      state.files[name] || "",
       getLanguage(name),
     );
   }
@@ -59,6 +61,8 @@ export function openFile(name) {
 /* ============================== */
 
 export function createFile(name) {
+  if (!name) return;
+
   state.files[name] = "";
 
   state.models[name] = monaco.editor.createModel("", getLanguage(name));
@@ -66,24 +70,12 @@ export function createFile(name) {
   state.openTabs.push(name);
   state.currentFile = name;
 
-  state.editor.setModel(state.models[name]);
+  if (state.editor) {
+    state.editor.setModel(state.models[name]);
+  }
 
   saveProject();
   renderTabs();
-}
-
-/* ============================== */
-
-function getLanguage(name) {
-  const ext = name.split(".").pop();
-  const map = {
-    js: "javascript",
-    html: "html",
-    css: "css",
-    json: "json",
-    md: "markdown",
-  };
-  return map[ext] || "plaintext";
 }
 
 /* ============================== */
@@ -97,7 +89,7 @@ export function closeTab(name) {
   if (state.currentFile === name) {
     const next = state.openTabs[state.openTabs.length - 1];
     if (next) openFile(next);
-    else state.editor.setModel(null);
+    else if (state.editor) state.editor.setModel(null);
   }
 
   renderTabs();
@@ -107,6 +99,8 @@ export function closeTab(name) {
 
 function renderTabs() {
   const tabsBar = document.getElementById("tabsBar");
+  if (!tabsBar) return; // CRITICAL FIX
+
   tabsBar.innerHTML = "";
 
   state.openTabs.forEach((name) => {
@@ -134,4 +128,18 @@ function renderTabs() {
 
     tabsBar.appendChild(tab);
   });
+}
+
+/* ============================== */
+
+function getLanguage(name) {
+  const ext = name.split(".").pop();
+  const map = {
+    js: "javascript",
+    html: "html",
+    css: "css",
+    json: "json",
+    md: "markdown",
+  };
+  return map[ext] || "plaintext";
 }
