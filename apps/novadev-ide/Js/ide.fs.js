@@ -26,7 +26,7 @@ export function initFS() {
       }
 
       if (!db.objectStoreNames.contains(ENTRY_STORE)) {
-        const store = db.createObjectStore(ENTRY_STORE, {
+        db.createObjectStore(ENTRY_STORE, {
           keyPath: ["projectId", "path"]
         });
       }
@@ -201,19 +201,18 @@ export function listEntries(projectId) {
    Delete File
 ============================== */
 
-export async function deleteFile(projectId, path) {
-
-  const db = await getDB();
+export function deleteFile(projectId, path) {
+  path = normalize(path);
 
   return new Promise((resolve, reject) => {
 
-    const tx = db.transaction("files", "readwrite");
-    const store = tx.objectStore("files");
+    const tx = db.transaction(ENTRY_STORE, "readwrite");
+    const store = tx.objectStore(ENTRY_STORE);
 
-    const request = store.delete([projectId, path]);
+    store.delete([projectId, path]);
 
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
   });
 }
 
@@ -223,16 +222,16 @@ export async function deleteFile(projectId, path) {
 
 export async function deleteFolder(projectId, folderPath) {
 
+  folderPath = normalize(folderPath);
+
   const entries = await listEntries(projectId);
 
   const targets = entries.filter(e =>
+    e.path === folderPath ||
     e.path.startsWith(folderPath + "/")
   );
 
   for (const entry of targets) {
     await deleteFile(projectId, entry.path);
   }
-
-  // delete the folder entry itself if stored
-  await deleteFile(projectId, folderPath);
 }
