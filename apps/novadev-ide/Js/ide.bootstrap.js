@@ -1,27 +1,40 @@
-import { initFS, listProjects, createProject, listEntries, writeFile } from './ide.fs.js';
-import { initEditor } from './ide.core.js';
-import { initPanels } from './ide.panels.js';
-import { state } from './ide.state.js';
+import {
+  initFS,
+  listProjects,
+  createProject,
+  writeFile
+} from "./ide.fs.js";
+
+import { initEditor } from "./ide.core.js";
+import { initPanels } from "./ide.panels.js";
+import { state } from "./ide.state.js";
 
 export async function bootstrapApp() {
 
   document.addEventListener("DOMContentLoaded", async () => {
 
     await initFS();
-    renderProjectLauncher();
+
+    await renderProjectLauncher();
 
   });
 
 }
 
+/* =====================================
+   Project Launcher
+===================================== */
+
 async function renderProjectLauncher() {
 
   const launcher = document.getElementById("projectLauncher");
   const projectList = document.getElementById("projectList");
-  const ideContainer = document.getElementById("ideContainer");
+  const newProjectBtn = document.getElementById("newProjectBtn");
+
+  launcher.classList.remove("hidden");
+  projectList.innerHTML = "";
 
   const projects = await listProjects();
-  projectList.innerHTML = "";
 
   projects.forEach(project => {
 
@@ -30,43 +43,59 @@ async function renderProjectLauncher() {
     div.textContent = project.name;
 
     div.onclick = async () => {
-      state.currentProjectId = project.id;
-      launcher.classList.add("hidden");
-      ideContainer.classList.remove("hidden");
-      await startIDE();
+      await openProject(project.id);
     };
 
     projectList.appendChild(div);
-
   });
 
-  document.getElementById("newProjectBtn").onclick = async () => {
+  newProjectBtn.onclick = async () => {
 
     const name = prompt("Project name:");
     if (!name) return;
 
     const id = await createProject(name);
-    state.currentProjectId = id;
 
     await createStarterProject(id);
 
-    launcher.classList.add("hidden");
-    ideContainer.classList.remove("hidden");
-
-    await startIDE();
+    await openProject(id);
   };
-
 }
+
+/* =====================================
+   Open Project
+===================================== */
+
+async function openProject(projectId) {
+
+  state.currentProjectId = projectId;
+
+  const launcher = document.getElementById("projectLauncher");
+  launcher.classList.add("hidden");
+
+  await startIDE();
+}
+
+/* =====================================
+   Starter Template
+===================================== */
 
 async function createStarterProject(projectId) {
 
   await writeFile(projectId, "index.html", "<h1>Hello NovaDev 🚀</h1>");
   await writeFile(projectId, "style.css", "body { font-family: sans-serif; }");
   await writeFile(projectId, "script.js", "console.log('NovaDev ready');");
-
 }
 
+/* =====================================
+   Start IDE Properly
+===================================== */
+
 async function startIDE() {
+
+  // Initialize UI first
   initPanels();
+
+  // Then load Monaco
   await initEditor();
 }
