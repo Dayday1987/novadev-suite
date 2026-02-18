@@ -22,26 +22,48 @@ export function initPanels() {
     });
 
   /* ==============================
-     Sidebar Controls
-  ============================== */
+   Sidebar Controls
+============================== */
 
-  function showPanel(id) {
-    document.querySelectorAll(".panel")
-      .forEach(p => p.classList.remove("active"));
+function showPanel(id) {
 
-    document.getElementById(id)?.classList.add("active");
-    sidebar.classList.add("open");
-  }
+  document.querySelectorAll(".panel")
+    .forEach(p => p.classList.remove("active"));
 
-  function closeSidebar() {
-    sidebar.classList.remove("open");
-  }
+  document.getElementById(id)?.classList.add("active");
+  sidebar.classList.add("open");
+}
 
-  document.getElementById("toggleSidebar")
-    ?.addEventListener("click", () => showPanel("explorerPanel"));
+function closeSidebar() {
+  sidebar.classList.remove("open");
+}
 
-  document.getElementById("closeSidebar")
-    ?.addEventListener("click", closeSidebar);
+// Explorer
+document.getElementById("toggleSidebar")
+  ?.addEventListener("click", () => showPanel("explorerPanel"));
+
+// Search
+document.getElementById("openSearch")
+  ?.addEventListener("click", () => showPanel("searchPanel"));
+
+// Git
+document.getElementById("openGit")
+  ?.addEventListener("click", () => showPanel("gitPanel"));
+
+// Settings
+document.getElementById("openSettings")
+  ?.addEventListener("click", () => showPanel("settingsPanel"));
+
+// Terminal
+document.getElementById("openTerminal")
+  ?.addEventListener("click", () => {
+    document.getElementById("terminal")
+      ?.classList.toggle("open");
+  });
+
+// Close sidebar button
+document.getElementById("closeSidebar")
+  ?.addEventListener("click", closeSidebar);
 
   /* ==============================
      Explorer Tree (Folder Support)
