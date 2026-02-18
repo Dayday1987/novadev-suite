@@ -7,6 +7,21 @@ export async function initEditor() {
   const container = document.getElementById("editor");
   if (!container) return;
 
+  state.editor.onDidChangeModelContent(() => {
+    if (!state.currentFile) return;
+
+    state.files[state.currentFile] = state.editor.getValue();
+    saveProject();
+
+    if (
+      state.currentFile.endsWith(".html") ||
+      state.currentFile.endsWith(".css") ||
+      state.currentFile.endsWith(".js")
+    ) {
+      updatePreview();
+    }
+  });
+
   state.editor = monaco.editor.create(container, {
     theme: "vs-dark",
     automaticLayout: true,
@@ -156,4 +171,31 @@ export function applyEditorSettings(settings) {
     minimap: { enabled: settings.minimap },
     lineNumbers: settings.lineNumbers ? "on" : "off",
   });
+}
+
+/* ==============================
+   Live Preview
+============================== */
+
+export function updatePreview() {
+  const preview = document.getElementById("previewPane");
+  if (!preview) return;
+
+  const html = state.files["index.html"] || "";
+  const css = state.files["style.css"] || "";
+  const js = state.files["script.js"] || state.files["main.js"] || "";
+
+  const fullDoc = `
+    <html>
+      <head>
+        <style>${css}</style>
+      </head>
+      <body>
+        ${html}
+        <script>${js}<\/script>
+      </body>
+    </html>
+  `;
+
+  preview.srcdoc = fullDoc;
 }

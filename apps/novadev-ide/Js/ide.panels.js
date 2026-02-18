@@ -2,12 +2,27 @@
 import { state } from "./ide.state.js";
 import { openFile, createFile, applyEditorSettings } from "./ide.core.js";
 import { saveProject, saveSettings } from "./ide.services.js";
+import { updatePreview } from "./ide.core.js";
 
 export function initPanels() {
   const sidebar = document.getElementById("sidebar");
   const fileList = document.getElementById("fileList");
   const searchInput = document.getElementById("searchInput");
   const searchResults = document.getElementById("searchResults");
+  /* ==============================
+   Preview Toggle
+============================== */
+
+  const previewBtn = document.getElementById("togglePreview");
+  const previewPane = document.getElementById("previewPane");
+
+  previewBtn?.addEventListener("click", () => {
+    previewPane.classList.toggle("active");
+
+    if (previewPane.classList.contains("active")) {
+      updatePreview();
+    }
+  });
 
   /* ==============================
      Sidebar Controls

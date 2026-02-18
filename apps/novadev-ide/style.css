@@ -206,3 +206,39 @@ html {
   font-size: 16px;
   outline: none;
 }
+
+#editorContainer {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#previewPane {
+  display: none;
+  border: none;
+  width: 100%;
+  height: 40%;
+  background: white;
+}
+
+#previewPane.active {
+  display: block;
+}
+
+/* Desktop split */
+@media (min-width: 768px) {
+  #editorContainer {
+    flex-direction: row;
+  }
+
+  #editor {
+    width: 50%;
+  }
+
+  #previewPane {
+    width: 50%;
+    height: 100%;
+    display: block;
+  }
+}
