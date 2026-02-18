@@ -1,11 +1,10 @@
 /* ide.panels.js */
 
-import { state } from './ide.state.js';
-import { openFile, createFile } from './ide.core.js';
-import { saveProject } from './ide.services.js';
+import { state } from "./ide.state.js";
+import { openFile, createFile } from "./ide.core.js";
+import { saveProject } from "./ide.services.js";
 
 export function initPanels() {
-
   const sidebar = document.getElementById("sidebar");
   const fileList = document.getElementById("fileList");
   const searchInput = document.getElementById("searchInput");
@@ -16,9 +15,9 @@ export function initPanels() {
   ============================== */
 
   function showPanel(panelId) {
-    document.querySelectorAll(".panel").forEach(p =>
-      p.classList.remove("active")
-    );
+    document
+      .querySelectorAll(".panel")
+      .forEach((p) => p.classList.remove("active"));
 
     const panel = document.getElementById(panelId);
     if (panel) panel.classList.add("active");
@@ -30,25 +29,28 @@ export function initPanels() {
     sidebar.classList.remove("open");
   }
 
-  document.getElementById("toggleSidebar")
+  document
+    .getElementById("toggleSidebar")
     ?.addEventListener("click", () => showPanel("explorerPanel"));
 
-  document.getElementById("openSearch")
+  document
+    .getElementById("openSearch")
     ?.addEventListener("click", () => showPanel("searchPanel"));
 
-  document.getElementById("openGit")
+  document
+    .getElementById("openGit")
     ?.addEventListener("click", () => showPanel("gitPanel"));
 
-  document.getElementById("openSettings")
+  document
+    .getElementById("openSettings")
     ?.addEventListener("click", () => showPanel("settingsPanel"));
 
-  document.getElementById("openTerminal")
-    ?.addEventListener("click", () => {
-      document.getElementById("terminal")
-        ?.classList.toggle("open");
-    });
+  document.getElementById("openTerminal")?.addEventListener("click", () => {
+    document.getElementById("terminal")?.classList.toggle("open");
+  });
 
-  document.getElementById("closeSidebar")
+  document
+    .getElementById("closeSidebar")
     ?.addEventListener("click", closeSidebar);
 
   /* ==============================
@@ -56,13 +58,11 @@ export function initPanels() {
   ============================== */
 
   function renderFileList() {
-
     if (!fileList) return;
 
     fileList.innerHTML = "";
 
-    Object.keys(state.files).forEach(name => {
-
+    Object.keys(state.files).forEach((name) => {
       const li = document.createElement("li");
       li.textContent = name;
 
@@ -81,75 +81,75 @@ export function initPanels() {
       });
 
       fileList.appendChild(li);
-
     });
   }
 
   // Create new file button (must exist in HTML)
-  document.getElementById("newFileBtn")
-    ?.addEventListener("click", () => {
+  document.getElementById("newFileBtn")?.addEventListener("click", () => {
+    const name = prompt("Enter file name (example: app.js)");
 
-      const name = prompt("Enter file name (example: app.js)");
+    if (!name) return;
 
-      if (!name) return;
+    if (state.files[name]) {
+      alert("File already exists.");
+      return;
+    }
 
-      if (state.files[name]) {
-        alert("File already exists.");
-        return;
-      }
-
-      createFile(name, "");
-      renderFileList();
-      saveProject();
-    });
+    createFile(name, "");
+    renderFileList();
+    saveProject();
+  });
 
   renderFileList();
 
   /* ==============================
-     Search
-  ============================== */
+   Search (Fully Working)
+============================== */
 
-  searchInput?.addEventListener("input", () => {
+  searchInput?.addEventListener("input", (e) => {
+    if (e.key !== "Enter") return;
 
-    const query = searchInput.value.toLowerCase();
+    const query = searchInput.value.trim().toLowerCase();
+
     searchResults.innerHTML = "";
 
     if (!query) return;
 
-    Object.keys(state.files).forEach(file => {
-
+    Object.keys(state.files).forEach((file) => {
       const lines = state.files[file].split("\n");
 
       lines.forEach((line, index) => {
-
         if (line.toLowerCase().includes(query)) {
+          const result = document.createElement("div");
+          result.textContent = `${file} (Ln ${index + 1})`;
+          result.classList.add("search-result");
 
-          const div = document.createElement("div");
-          div.textContent = `${file} (Ln ${index + 1})`;
-
-          div.addEventListener("click", () => {
+          result.addEventListener("click", () => {
             openFile(file);
 
             if (state.editor) {
               state.editor.setPosition({
                 lineNumber: index + 1,
-                column: 1
+                column: 1,
               });
+
+              state.editor.revealLineInCenter(index + 1);
               state.editor.focus();
             }
 
             if (window.innerWidth < 768) {
-              closeSidebar();
+              sidebar.classList.remove("open");
             }
           });
 
-          searchResults.appendChild(div);
+          searchResults.appendChild(result);
         }
-
       });
-
     });
 
+    if (!searchResults.innerHTML) {
+      searchResults.innerHTML = "<div>No results found</div>";
+    }
   });
 
   /* ==============================
@@ -157,7 +157,6 @@ export function initPanels() {
   ============================== */
 
   document.addEventListener("click", (e) => {
-
     if (
       sidebar.classList.contains("open") &&
       !sidebar.contains(e.target) &&
@@ -168,7 +167,6 @@ export function initPanels() {
     ) {
       closeSidebar();
     }
-
   });
 
   /* ==============================
@@ -182,13 +180,10 @@ export function initPanels() {
   });
 
   sidebar.addEventListener("touchmove", (e) => {
-
     const deltaX = e.touches[0].clientX - touchStartX;
 
     if (deltaX < -50) {
       closeSidebar();
     }
-
   });
-
 }
