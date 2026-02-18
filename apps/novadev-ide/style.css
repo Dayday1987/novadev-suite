@@ -2,14 +2,18 @@
    iOS Safe Reset
 ---------------------------- */
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   height: 100%;
   width: 100%;
   overflow: hidden;
   background: #1e1e1e;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
 }
 
 /* Use dynamic viewport height (fixes Safari toolbar issue) */
@@ -97,6 +101,38 @@ html, body {
 
 #sidebar.open {
   left: 0;
+}
+
+/* ---------------------------
+   Tabs Bar
+---------------------------- */
+#tabsBar {
+  display: flex;
+  overflow-x: auto;
+  background: #1e1e1e;
+  height: 40px;
+  align-items: center;
+}
+
+.tab {
+  padding: 8px 14px;
+  background: #2d2d30;
+  margin-right: 4px;
+  border-radius: 6px 6px 0 0;
+  font-size: 14px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+}
+
+.tab.active {
+  background: #007acc;
+}
+
+.tab-close {
+  margin-left: 8px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 /* ---------------------------

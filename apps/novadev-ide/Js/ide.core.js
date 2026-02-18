@@ -1,28 +1,16 @@
 /* ide.core.js */
 import { state } from "./ide.state.js";
-import { saveProject, loadSettings } from "./ide.services.js";
+import { saveProject } from "./ide.services.js";
 
 export async function initEditor() {
   await loadMonaco();
 
   state.editor = monaco.editor.create(document.getElementById("editor"), {
-    value: "",
-    language: "html",
     theme: "vs-dark",
     automaticLayout: true,
     fontSize: 14,
     minimap: { enabled: window.innerWidth > 768 },
   });
-
-  applySavedSettings();
-
-  state.editor.onDidChangeModelContent(() => {
-    if (!state.currentFile) return;
-    state.files[state.currentFile] = state.editor.getValue();
-    saveProject();
-  });
-
-  state.editor.onDidChangeCursorPosition(updateStatusBar);
 
   openInitialFile();
 }
@@ -34,7 +22,6 @@ function loadMonaco() {
     require.config({
       paths: { vs: "https://unpkg.com/monaco-editor@0.44.0/min/vs" },
     });
-
     require(["vs/editor/editor.main"], resolve, reject);
   });
 }
@@ -51,20 +38,43 @@ function openInitialFile() {
 export function openFile(name) {
   if (!(name in state.files)) return;
 
-  state.currentFile = name;
-  state.editor.setValue(state.files[name] || "");
+  // Create model if not exists
+  if (!state.models[name]) {
+    state.models[name] = monaco.editor.createModel(
+      state.files[name],
+      getLanguage(name),
+    );
+  }
 
-  setLanguage(name);
+  state.editor.setModel(state.models[name]);
+  state.currentFile = name;
+
+  if (!state.openTabs.includes(name)) {
+    state.openTabs.push(name);
+  }
+
+  renderTabs();
 }
+
+/* ============================== */
 
 export function createFile(name) {
   state.files[name] = "";
+
+  state.models[name] = monaco.editor.createModel("", getLanguage(name));
+
+  state.openTabs.push(name);
   state.currentFile = name;
-  state.editor.setValue("");
+
+  state.editor.setModel(state.models[name]);
+
   saveProject();
+  renderTabs();
 }
 
-function setLanguage(name) {
+/* ============================== */
+
+function getLanguage(name) {
   const ext = name.split(".").pop();
   const map = {
     js: "javascript",
@@ -73,36 +83,55 @@ function setLanguage(name) {
     json: "json",
     md: "markdown",
   };
-  monaco.editor.setModelLanguage(
-    state.editor.getModel(),
-    map[ext] || "plaintext",
-  );
+  return map[ext] || "plaintext";
 }
 
 /* ============================== */
 
-export function applyEditorSettings(settings) {
-  monaco.editor.setTheme(settings.theme);
+export function closeTab(name) {
+  const index = state.openTabs.indexOf(name);
+  if (index > -1) {
+    state.openTabs.splice(index, 1);
+  }
 
-  state.editor.updateOptions({
-    fontSize: settings.fontSize,
-    tabSize: settings.tabSize,
-    wordWrap: settings.wordWrap ? "on" : "off",
-    minimap: { enabled: settings.minimap },
-    lineNumbers: settings.lineNumbers ? "on" : "off",
+  if (state.currentFile === name) {
+    const next = state.openTabs[state.openTabs.length - 1];
+    if (next) openFile(next);
+    else state.editor.setModel(null);
+  }
+
+  renderTabs();
+}
+
+/* ============================== */
+
+function renderTabs() {
+  const tabsBar = document.getElementById("tabsBar");
+  tabsBar.innerHTML = "";
+
+  state.openTabs.forEach((name) => {
+    const tab = document.createElement("div");
+    tab.className = "tab";
+
+    if (name === state.currentFile) {
+      tab.classList.add("active");
+    }
+
+    tab.textContent = name;
+
+    const close = document.createElement("span");
+    close.className = "tab-close";
+    close.textContent = "×";
+
+    close.onclick = (e) => {
+      e.stopPropagation();
+      closeTab(name);
+    };
+
+    tab.appendChild(close);
+
+    tab.onclick = () => openFile(name);
+
+    tabsBar.appendChild(tab);
   });
-}
-
-function applySavedSettings() {
-  const settings = loadSettings();
-  if (!settings) return;
-  applyEditorSettings(settings);
-}
-
-/* ============================== */
-
-function updateStatusBar() {
-  const pos = state.editor.getPosition();
-  document.getElementById("statusPosition").textContent =
-    `Ln ${pos.lineNumber}, Col ${pos.column}`;
 }
