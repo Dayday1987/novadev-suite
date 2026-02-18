@@ -1,23 +1,16 @@
 // ide.fs.js
-// Hierarchical Virtual File System (IndexedDB)
+// Multi-project Virtual File System
 
 const DB_NAME = "novadev_fs";
-const DB_VERSION = 2;
-const STORE_NAME = "entries";
+const DB_VERSION = 3;
+
+const PROJECT_STORE = "projects";
+const ENTRY_STORE = "entries";
 
 let db = null;
 
-/*
-Entry structure:
-{
-  path: "src/app.js",
-  type: "file" | "folder",
-  content: string | null
-}
-*/
-
 /* ==============================
-   Init Database
+   Init DB
 ============================== */
 
 export function initFS() {
@@ -28,8 +21,14 @@ export function initFS() {
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
 
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: "path" });
+      if (!db.objectStoreNames.contains(PROJECT_STORE)) {
+        db.createObjectStore(PROJECT_STORE, { keyPath: "id" });
+      }
+
+      if (!db.objectStoreNames.contains(ENTRY_STORE)) {
+        const store = db.createObjectStore(ENTRY_STORE, {
+          keyPath: ["projectId", "path"]
+        });
       }
     };
 
@@ -43,30 +42,75 @@ export function initFS() {
 }
 
 /* ==============================
-   Helpers
+   Utilities
 ============================== */
 
 function normalize(path) {
   return path.replace(/^\/+/, "").replace(/\/+$/, "");
 }
 
+function uuid() {
+  return crypto.randomUUID();
+}
+
 /* ==============================
-   Create Folder
+   Project Management
 ============================== */
 
-export function mkdir(path) {
-  path = normalize(path);
+export function createProject(name) {
+  const id = uuid();
 
   return new Promise((resolve, reject) => {
 
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
+    const tx = db.transaction(PROJECT_STORE, "readwrite");
+    const store = tx.objectStore(PROJECT_STORE);
 
     store.put({
-      path,
-      type: "folder",
-      content: null
+      id,
+      name,
+      createdAt: Date.now()
     });
+
+    tx.oncomplete = () => resolve(id);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+export function listProjects() {
+  return new Promise((resolve, reject) => {
+
+    const tx = db.transaction(PROJECT_STORE, "readonly");
+    const store = tx.objectStore(PROJECT_STORE);
+
+    const request = store.getAll();
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export function deleteProject(projectId) {
+  return new Promise((resolve, reject) => {
+
+    const tx = db.transaction(
+      [PROJECT_STORE, ENTRY_STORE],
+      "readwrite"
+    );
+
+    tx.objectStore(PROJECT_STORE).delete(projectId);
+
+    const entryStore = tx.objectStore(ENTRY_STORE);
+    const request = entryStore.openCursor();
+
+    request.onsuccess = (event) => {
+      const cursor = event.target.result;
+      if (cursor) {
+        if (cursor.value.projectId === projectId) {
+          cursor.delete();
+        }
+        cursor.continue();
+      }
+    };
 
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
@@ -74,18 +118,19 @@ export function mkdir(path) {
 }
 
 /* ==============================
-   Write File
+   File / Folder Operations
 ============================== */
 
-export function writeFile(path, content) {
+export function writeFile(projectId, path, content) {
   path = normalize(path);
 
   return new Promise((resolve, reject) => {
 
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
+    const tx = db.transaction(ENTRY_STORE, "readwrite");
+    const store = tx.objectStore(ENTRY_STORE);
 
     store.put({
+      projectId,
       path,
       type: "file",
       content
@@ -96,90 +141,58 @@ export function writeFile(path, content) {
   });
 }
 
-/* ==============================
-   Read File
-============================== */
-
-export function readFile(path) {
+export function mkdir(projectId, path) {
   path = normalize(path);
 
   return new Promise((resolve, reject) => {
 
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const store = tx.objectStore(STORE_NAME);
+    const tx = db.transaction(ENTRY_STORE, "readwrite");
+    const store = tx.objectStore(ENTRY_STORE);
 
-    const request = store.get(path);
-
-    request.onsuccess = () => {
-      if (!request.result) {
-        resolve(null);
-      } else {
-        resolve(request.result.content);
-      }
-    };
-
-    request.onerror = () => reject(request.error);
-  });
-}
-
-/* ==============================
-   Delete Entry
-============================== */
-
-export function remove(path) {
-  path = normalize(path);
-
-  return new Promise((resolve, reject) => {
-
-    const tx = db.transaction(STORE_NAME, "readwrite");
-    const store = tx.objectStore(STORE_NAME);
-
-    store.delete(path);
+    store.put({
+      projectId,
+      path,
+      type: "folder",
+      content: null
+    });
 
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
 }
 
-/* ==============================
-   List All Entries
-============================== */
+export function readFile(projectId, path) {
+  path = normalize(path);
 
-export function listAll() {
   return new Promise((resolve, reject) => {
 
-    const tx = db.transaction(STORE_NAME, "readonly");
-    const store = tx.objectStore(STORE_NAME);
+    const tx = db.transaction(ENTRY_STORE, "readonly");
+    const store = tx.objectStore(ENTRY_STORE);
 
-    const request = store.getAll();
+    const request = store.get([projectId, path]);
 
     request.onsuccess = () => {
-      resolve(request.result);
+      resolve(request.result ? request.result.content : null);
     };
 
     request.onerror = () => reject(request.error);
   });
 }
 
-/* ==============================
-   List Directory
-============================== */
+export function listEntries(projectId) {
+  return new Promise((resolve, reject) => {
 
-export async function listDir(path = "") {
+    const tx = db.transaction(ENTRY_STORE, "readonly");
+    const store = tx.objectStore(ENTRY_STORE);
 
-  path = normalize(path);
+    const request = store.getAll();
 
-  const entries = await listAll();
+    request.onsuccess = () => {
+      resolve(
+        request.result.filter(e => e.projectId === projectId)
+      );
+    };
 
-  const prefix = path ? path + "/" : "";
-
-  return entries.filter(entry => {
-
-    if (!entry.path.startsWith(prefix)) return false;
-
-    const remainder = entry.path.slice(prefix.length);
-
-    return !remainder.includes("/");
-
+    request.onerror = () => reject(request.error);
   });
 }
