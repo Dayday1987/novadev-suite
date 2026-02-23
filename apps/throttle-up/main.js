@@ -71,10 +71,10 @@ const CONFIG = {
   friction: 0.995, // Friction multiplier (closer to 1 = less friction)
 
   // Wheelie mechanics
-  torque: 0.01, // added 13 Rotational force applied during wheelie (stronger for sustained wheelies)
+  torque: 0.009, // added 13 Rotational force applied during wheelie (stronger for sustained wheelies)
   torqueSpeedMult: 0.002, // added 10 Speed-dependent torque multiplier
   gravity: 0.02, // added 15 Gravity force pulling towards balance (weaker for longer wheelies)
-  damping: 0.988, // added 5 Angular velocity damping
+  damping: 0.994, // added 5 Angular velocity damping
 
   // Wheelie detection thresholds
   WHEELIE_START_ANGLE: -0.05, // Angle at which wheelie is considered started (shallower)
@@ -494,7 +494,7 @@ function endWheelie() {
 function update(now) {
   if (paused) return;
 
-  const deltaTime = Math.min((now - lastTime) / 16.67, 2);
+  const deltaTime = Math.min((now - lastTime) / 1000, 0.05);
   lastTime = now;
 
   camera.update(deltaTime);
@@ -577,10 +577,10 @@ function update(now) {
 
     // MOVEMENT
     if (game.speed > 0) {
-      game.scroll -= game.speed * deltaTime;
+      game.scroll -= game.speed * 0.6 * deltaTime;
       game.wheelRotation -= game.speed * 0.02 * deltaTime;
       game.distance += game.speed * 0.1 * deltaTime;
-      game.dashOffset -= game.speed * deltaTime;
+      game.dashOffset -= game.speed * 0.6 * deltaTime;
     }
 
     // AUDIO
