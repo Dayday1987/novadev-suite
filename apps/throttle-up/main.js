@@ -494,7 +494,6 @@ function endWheelie() {
 // Main update function called every frame
 function update(now) {
   if (paused) return; // Don't update if paused
-
   const deltaTime = Math.min((now - lastTime) / 16.67, 2); // Calculate deltaTime (capped at 2)
   lastTime = now; // Store current time for next frame
 
@@ -530,383 +529,378 @@ function update(now) {
   // RACING PHASE - game is active
   if (game.phase === "RACING") {
     const angleDeg = Math.abs((game.bikeAngle * 180) / Math.PI);
-
-    // ===== SPEED =====
-    if (game.throttle) {
-      game.speed += CONFIG.acceleration * deltaTime;
-    } else {
-      game.speed *= Math.pow(CONFIG.friction, deltaTime);
-      if (game.speed < 0.05) game.speed = 0;
-    }
-    game.speed = Math.min(game.speed, CONFIG.maxSpeed);
-
-    // ===== REALISTIC TORQUE + GRAVITY =====
-    const throttleTorque = game.throttle ? CONFIG.torque : 0;
-    const gravityTorque = Math.sin(game.bikeAngle) * CONFIG.gravity;
-
-    let angularAcceleration = -throttleTorque - gravityTorque;
-
-    // ===== SWEET SPOT ASSIST (70°–85°) =====
-    if (angleDeg > 70 && angleDeg < 85) {
-      const center = 77.5;
-      const distance = Math.abs(angleDeg - center);
-      const stabilityFactor = 1 - distance / 7.5;
-
-      angularAcceleration *= 1 - stabilityFactor * 0.35;
-      game.bikeAngularVelocity *= 0.985;
-    }
-
-    // ===== INTEGRATE =====
-    game.bikeAngularVelocity += angularAcceleration * deltaTime;
-    game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime);
-
-    const MAX_ANGULAR_VEL = 0.28;
-    game.bikeAngularVelocity = Math.max(
-      -MAX_ANGULAR_VEL,
-      Math.min(MAX_ANGULAR_VEL, game.bikeAngularVelocity),
-    );
-
-    game.bikeAngle += game.bikeAngularVelocity * deltaTime;
-
-    // ===== FRONT WHEEL CLAMP =====
-    if (game.bikeAngle > CONFIG.GROUND_CONTACT_ANGLE) {
-      game.bikeAngle = CONFIG.GROUND_CONTACT_ANGLE;
-      game.bikeAngularVelocity = 0;
-    }
-
-    // ===== BACKWARD CRASH =====
-    if (Math.abs(game.bikeAngle) > 1.7) crash();
-
-    // ===== MOVEMENT =====
-    if (game.speed > 0) {
-      game.scroll -= game.speed * deltaTime;
-      game.wheelRotation -= game.speed * 0.02 * deltaTime;
-      game.distance += game.speed * 0.1 * deltaTime;
-      game.dashOffset -= game.speed * deltaTime;
-    }
-
-    // ===== AUDIO & FX =====
-    audio.updateEngineSound();
-
-    if (Math.random() < 0.1 && game.speed > 20) {
-      const bikeX = width * CONFIG.BIKE_X_PERCENT;
-      particles.createDust(bikeX - 30, game.currentY + 10);
-    }
-
-    // ===== SCORING =====
-    if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
-      if (!game.inWheelie) {
-        game.inWheelie = true;
-        game.score = 0;
-      }
-      game.score += 1 * deltaTime;
-    } else if (game.inWheelie) {
-      endWheelie();
-    }
-
-    updateUI();
   }
-  // ==========================================
-  // RENDERING
-  // ==========================================
-  // Draw loading screen while assets load
-  function drawLoadingScreen() {
-    ctx.fillStyle = "#1a1a1a"; // Dark background
+  // ===== SPEED =====
+  if (game.throttle) {
+    game.speed += CONFIG.acceleration * deltaTime;
+  } else {
+    game.speed *= Math.pow(CONFIG.friction, deltaTime);
+    if (game.speed < 0.05) game.speed = 0;
+  }
+  game.speed = Math.min(game.speed, CONFIG.maxSpeed);
+
+  // ===== REALISTIC TORQUE + GRAVITY =====
+  const throttleTorque = game.throttle ? CONFIG.torque : 0;
+  const gravityTorque = Math.sin(game.bikeAngle) * CONFIG.gravity;
+
+  let angularAcceleration = -throttleTorque - gravityTorque;
+
+  // ===== SWEET SPOT ASSIST (70°–85°) =====
+  if (angleDeg > 70 && angleDeg < 85) {
+    const center = 77.5;
+    const distance = Math.abs(angleDeg - center);
+    const stabilityFactor = 1 - distance / 7.5;
+
+    angularAcceleration *= 1 - stabilityFactor * 0.35;
+    game.bikeAngularVelocity *= 0.985;
+  }
+
+  // ===== INTEGRATE =====
+  game.bikeAngularVelocity += angularAcceleration * deltaTime;
+  game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime);
+
+  const MAX_ANGULAR_VEL = 0.28;
+  game.bikeAngularVelocity = Math.max(
+    -MAX_ANGULAR_VEL,
+    Math.min(MAX_ANGULAR_VEL, game.bikeAngularVelocity),
+  );
+
+  game.bikeAngle += game.bikeAngularVelocity * deltaTime;
+
+  // ===== FRONT WHEEL CLAMP =====
+  if (game.bikeAngle > CONFIG.GROUND_CONTACT_ANGLE) {
+    game.bikeAngle = CONFIG.GROUND_CONTACT_ANGLE;
+    game.bikeAngularVelocity = 0;
+  }
+
+  // ===== BACKWARD CRASH =====
+  if (Math.abs(game.bikeAngle) > 1.7) crash();
+
+  // ===== MOVEMENT =====
+  if (game.speed > 0) {
+    game.scroll -= game.speed * deltaTime;
+    game.wheelRotation -= game.speed * 0.02 * deltaTime;
+    game.distance += game.speed * 0.1 * deltaTime;
+    game.dashOffset -= game.speed * deltaTime;
+  }
+
+  // ===== AUDIO & FX =====
+  audio.updateEngineSound();
+
+  if (Math.random() < 0.1 && game.speed > 20) {
+    const bikeX = width * CONFIG.BIKE_X_PERCENT;
+    particles.createDust(bikeX - 30, game.currentY + 10);
+  }
+
+  // ===== SCORING =====
+  if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
+    if (!game.inWheelie) {
+      game.inWheelie = true;
+      game.score = 0;
+    }
+    game.score += 1 * deltaTime;
+  } else if (game.inWheelie) {
+    endWheelie();
+  }
+
+  updateUI();
+}
+// ==========================================
+// RENDERING
+// ==========================================
+// Draw loading screen while assets load
+function drawLoadingScreen() {
+  ctx.fillStyle = "#1a1a1a"; // Dark background
+  ctx.fillRect(0, 0, width, height); // Fill entire canvas
+
+  const progress = assetsLoaded / TOTAL_ASSETS; // Calculate loading progress
+
+  ctx.fillStyle = "#fff"; // White text
+  ctx.font = "bold 48px Roboto Mono, monospace"; // Large bold font
+  ctx.textAlign = "center"; // Center text horizontally
+  ctx.fillText("THROTTLE UP", width / 2, height / 2 - 60); // Draw title
+
+  // Progress bar
+  const barWidth = 400; // Progress bar width
+  const barHeight = 30; // Progress bar height
+  const barX = (width - barWidth) / 2; // Center bar horizontally
+  const barY = height / 2 + 20; // Position bar below title
+
+  ctx.strokeStyle = "#444"; // Dark gray border
+  ctx.lineWidth = 2; // Border width
+  ctx.strokeRect(barX, barY, barWidth, barHeight); // Draw bar outline
+
+  ctx.fillStyle = "#4CAF50"; // Green fill
+  ctx.fillRect(barX + 2, barY + 2, (barWidth - 4) * progress, barHeight - 4); // Draw progress
+
+  ctx.fillStyle = "#aaa"; // Light gray text
+  ctx.font = "20px Roboto Mono, monospace"; // Smaller font
+  ctx.fillText(
+    `Loading... ${Math.floor(progress * 100)}%`,
+    width / 2,
+    barY + barHeight + 40,
+  ); // Draw percentage
+}
+
+// Draw "WHEELIE!" indicator when performing wheelie
+function drawWheelieIndicator() {
+  if (!game.inWheelie || game.phase !== "RACING") return; // Only draw during wheelie in race
+
+  const x = width / 2; // Center horizontally
+  const y = 100; // Fixed Y position
+  const pulse = Math.sin(Date.now() / 100) * 0.15 + 1; // Pulsing animation
+
+  ctx.save(); // Save canvas state
+  ctx.translate(x, y); // Move to position
+  ctx.scale(pulse, pulse); // Apply pulse scale
+
+  ctx.fillStyle = "#FFD700"; // Gold color
+  ctx.strokeStyle = "#FF4500"; // Orange-red outline
+  ctx.lineWidth = 4; // Thick outline
+  ctx.font = "bold 42px Roboto Mono, monospace"; // Large bold font
+  ctx.textAlign = "center"; // Center text
+  ctx.textBaseline = "middle"; // Center text vertically
+  ctx.strokeText("WHEELIE!", 0, 0); // Draw text outline
+  ctx.fillText("WHEELIE!", 0, 0); // Draw text fill
+
+  ctx.restore(); // Restore canvas state
+}
+
+// Draw speedometer in corner
+function drawSpeedometer() {
+  if (game.phase !== "RACING") return; // Only draw during race
+
+  const x = width - 100; // Position near right edge
+  const y = height - 100; // Position near bottom edge
+  const radius = 45; // Speedometer radius
+
+  // Background circle
+  ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black
+  ctx.beginPath(); // Start path
+  ctx.arc(x, y, radius + 5, 0, Math.PI * 2); // Draw circle
+  ctx.fill(); // Fill circle
+
+  // Outer arc (background)
+  ctx.strokeStyle = "#333"; // Dark gray
+  ctx.lineWidth = 8; // Thick line
+  ctx.beginPath(); // Start path
+  ctx.arc(x, y, radius, 0.75 * Math.PI, 2.25 * Math.PI); // Draw arc from -135° to 135°
+  ctx.stroke(); // Draw arc
+
+  // Speed arc (progress indicator)
+  const speedPercent = game.speed / CONFIG.maxSpeed; // Calculate speed percentage
+  const angle = 0.75 * Math.PI + speedPercent * 1.5 * Math.PI; // Calculate end angle
+
+  ctx.strokeStyle = speedPercent > 0.8 ? "#ff4444" : "#4CAF50"; // Red if fast, green otherwise
+  ctx.lineWidth = 8; // Thick line
+  ctx.beginPath(); // Start path
+  ctx.arc(x, y, radius, 0.75 * Math.PI, angle); // Draw arc from start to current speed
+  ctx.stroke(); // Draw arc
+
+  // Speed text
+  ctx.fillStyle = "#fff"; // White text
+  ctx.font = "bold 24px Roboto Mono, monospace"; // Large bold font
+  ctx.textAlign = "center"; // Center text horizontally
+  ctx.textBaseline = "middle"; // Center text vertically
+  ctx.fillText(Math.floor(game.speed), x, y); // Draw speed number
+
+  ctx.font = "12px Roboto Mono, monospace"; // Smaller font
+  ctx.fillText("km/h", x, y + 20); // Draw units label
+}
+
+// Main draw function called every frame
+function draw() {
+  if (!gameReady) {
+    // If assets not loaded yet
+    drawLoadingScreen(); // Draw loading screen
+    requestAnimationFrame(draw); // Continue animation loop
+    return; // Exit early
+  }
+
+  // Background - fill entire screen with grass
+  ctx.fillStyle = "#2e7d32"; // Green grass color
+  ctx.fillRect(0, 0, width, height); // Fill entire canvas
+
+  // Sky - only above the road
+  ctx.fillStyle = "#6db3f2"; // Blue sky color
+  ctx.fillRect(0, 0, width, roadYPos - 40); // Fill from top to above road
+
+  // Road
+  ctx.fillStyle = "#333"; // Dark gray road color
+  ctx.fillRect(0, roadYPos, width, CONFIG.roadStripHeight); // Draw road rectangle
+
+  // Road markings - use separate dashOffset tracker
+  ctx.strokeStyle = "#fff"; // White dashes
+  ctx.lineWidth = 2; // Thin line
+  ctx.setLineDash([60, 40]); // Dash pattern: 60px dash, 40px gap
+  ctx.lineDashOffset = -game.dashOffset; // Set dash offset for animation
+  ctx.beginPath(); // Start path
+  ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2); // Start at left center of road
+  ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2); // Draw to right center of road
+  ctx.stroke(); // Draw dashed line
+  ctx.setLineDash([]); // Reset dash pattern
+
+  // Apply camera shake
+  ctx.save(); // Save canvas state
+  camera.apply(); // Apply shake transformation
+
+  // Draw entities
+  particles.draw(); // Draw all particles
+
+  // Draw bike
+  if (assets.bike.loaded && assets.tire.loaded) {
+    // If bike and tire assets loaded
+    const bW = assets.bike.img.width * CONFIG.bikeScale; // Calculate bike width
+    const bH = assets.bike.img.height * CONFIG.bikeScale; // Calculate bike height
+    const tS = bH * CONFIG.tireSizeMult; // Calculate tire size
+    const pivotX = width * CONFIG.BIKE_X_PERCENT; // Calculate bike pivot X position
+
+    const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount; // Calculate lane height
+    const laneTopY = roadYPos + game.lane * laneHeight; // Calculate lane top Y
+    const laneSurfaceY = laneTopY + laneHeight; // Calculate lane surface Y
+    const targetY = laneSurfaceY - tS / 2; // Calculate target Y position
+
+    game.currentY += (targetY - game.currentY) * CONFIG.LANE_SWITCH_SMOOTHING; // Smoothly move to target Y
+
+    ctx.save(); // Save canvas state
+    ctx.translate(pivotX + CONFIG.rearTireXShift, game.currentY); // Move to bike pivot point
+    ctx.rotate(game.bikeAngle); // Rotate by bike angle
+
+    // Rear tire
+    ctx.save(); // Save canvas state
+    ctx.rotate(game.wheelRotation); // Rotate wheel
+    ctx.drawImage(assets.tire.img, -tS / 2, -tS / 2, tS, tS); // Draw tire centered
+    ctx.restore(); // Restore canvas state
+
+    // Bike frame
+    ctx.save(); // Save canvas state
+    ctx.rotate(CONFIG.noseDownAngle); // Apply nose-down tilt
+    ctx.drawImage(
+      assets.bike.img,
+      -CONFIG.rearWheelOffsetX - CONFIG.rearTireXShift,
+      -bH / 2 + CONFIG.frameYShift,
+      bW,
+      bH,
+    ); // Draw bike
+    ctx.restore(); // Restore canvas state
+
+    // Draw rider with dynamic lean
+    if (assets.rider.loaded) {
+      // If rider asset loaded
+      ctx.save(); // Save canvas state
+
+      // Calculate rider lean based on bike state
+      let riderLean = 0; // Initialize lean angle
+      if (game.throttle && game.bikeAngle > CONFIG.WHEELIE_START_ANGLE) {
+        // If accelerating on ground
+        riderLean = CONFIG.RIDER_LEAN_FORWARD; // Lean forward
+      }
+      if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
+        // If in wheelie
+        riderLean = CONFIG.RIDER_LEAN_BACK; // Lean back
+      }
+
+      // Position rider in the CENTER of the bike frame
+      const bikeCenterX =
+        (bW * CONFIG.frontTireX - CONFIG.rearTireXShift) * 0.4; // Calculate rider X offset
+      const riderOffsetY = -bH * 0.7; // Calculate rider Y offset (higher up)
+      const riderWidth = bW * 0.55; // Calculate rider width (55% of bike)
+      const riderHeight = bH * 0.85; // Calculate rider height (85% of bike)
+
+      ctx.translate(bikeCenterX, riderOffsetY); // Move to rider position
+      ctx.rotate(riderLean); // Apply rider lean
+      ctx.drawImage(
+        assets.rider.img,
+        -riderWidth / 2,
+        -riderHeight / 2,
+        riderWidth,
+        riderHeight,
+      ); // Draw rider centered
+      ctx.restore(); // Restore canvas state
+    }
+
+    // Front tire
+    ctx.save(); // Save canvas state
+    ctx.translate(bW * CONFIG.frontTireX - CONFIG.rearTireXShift, 0); // Move to front tire position
+    ctx.rotate(game.wheelRotation); // Rotate wheel
+    ctx.drawImage(assets.tire.img, -tS / 2, -tS / 2, tS, tS); // Draw tire centered
+    ctx.restore(); // Restore canvas state
+
+    ctx.restore(); // Restore canvas state (bike rotation)
+  }
+
+  ctx.restore(); // Restore canvas state (camera shake)
+
+  // Countdown
+  if (game.phase === "COUNTDOWN") {
+    // If in countdown phase
+    const cx = width / 2; // Center X position
+    const cy = CONFIG.COUNTDOWN_Y; // Countdown Y position
+
+    for (let i = 0; i < 3; i++) {
+      // Draw 3 countdown lights
+      ctx.fillStyle =
+        game.countdownIndex > i // If this light is active
+          ? i === 2
+            ? "lime"
+            : "yellow" // Green for last, yellow for others
+          : "rgba(0,0,0,0.3)"; // Dark gray if not active
+      ctx.beginPath(); // Start path
+      ctx.arc(
+        cx + (i - 1) * CONFIG.COUNTDOWN_SPACING,
+        cy,
+        CONFIG.COUNTDOWN_RADIUS,
+        0,
+        Math.PI * 2,
+      ); // Draw circle
+      ctx.fill(); // Fill circle
+
+      if (game.countdownIndex > i) {
+        // If this light is active
+        ctx.strokeStyle = "#fff"; // White outline
+        ctx.lineWidth = 2; // Thin outline
+        ctx.stroke(); // Draw outline
+      }
+    }
+  }
+
+  // UI overlays
+  drawWheelieIndicator(); // Draw wheelie indicator if active
+  drawSpeedometer(); // Draw speedometer
+
+  // Debug info
+  if (game.phase === "RACING") {
+    // Only show during race
+    ctx.fillStyle = "#fff"; // White text
+    ctx.font = "14px monospace"; // Monospace font
+    ctx.textAlign = "left"; // Left align text
+    ctx.fillText(`Speed: ${game.speed.toFixed(2)}`, 10, height - 120); // Display speed
+    ctx.fillText(`Scroll: ${game.scroll.toFixed(2)}`, 10, height - 100); // Display scroll
+    ctx.fillText(`Distance: ${game.distance.toFixed(2)}`, 10, height - 80); // Display distance
+    ctx.fillText(`DashOffset: ${game.dashOffset.toFixed(2)}`, 10, height - 60); // Display dash offset
+    ctx.fillText(`Throttle: ${game.throttle}`, 10, height - 40); // Display throttle state
+    ctx.fillText(`BikeAngle: ${game.bikeAngle.toFixed(3)}`, 10, height - 20); // Display bike angle
+  }
+
+  // Pause indicator
+  if (paused) {
+    // If game is paused
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Semi-transparent black overlay
     ctx.fillRect(0, 0, width, height); // Fill entire canvas
-
-    const progress = assetsLoaded / TOTAL_ASSETS; // Calculate loading progress
-
     ctx.fillStyle = "#fff"; // White text
     ctx.font = "bold 48px Roboto Mono, monospace"; // Large bold font
-    ctx.textAlign = "center"; // Center text horizontally
-    ctx.fillText("THROTTLE UP", width / 2, height / 2 - 60); // Draw title
-
-    // Progress bar
-    const barWidth = 400; // Progress bar width
-    const barHeight = 30; // Progress bar height
-    const barX = (width - barWidth) / 2; // Center bar horizontally
-    const barY = height / 2 + 20; // Position bar below title
-
-    ctx.strokeStyle = "#444"; // Dark gray border
-    ctx.lineWidth = 2; // Border width
-    ctx.strokeRect(barX, barY, barWidth, barHeight); // Draw bar outline
-
-    ctx.fillStyle = "#4CAF50"; // Green fill
-    ctx.fillRect(barX + 2, barY + 2, (barWidth - 4) * progress, barHeight - 4); // Draw progress
-
-    ctx.fillStyle = "#aaa"; // Light gray text
-    ctx.font = "20px Roboto Mono, monospace"; // Smaller font
-    ctx.fillText(
-      `Loading... ${Math.floor(progress * 100)}%`,
-      width / 2,
-      barY + barHeight + 40,
-    ); // Draw percentage
-  }
-
-  // Draw "WHEELIE!" indicator when performing wheelie
-  function drawWheelieIndicator() {
-    if (!game.inWheelie || game.phase !== "RACING") return; // Only draw during wheelie in race
-
-    const x = width / 2; // Center horizontally
-    const y = 100; // Fixed Y position
-    const pulse = Math.sin(Date.now() / 100) * 0.15 + 1; // Pulsing animation
-
-    ctx.save(); // Save canvas state
-    ctx.translate(x, y); // Move to position
-    ctx.scale(pulse, pulse); // Apply pulse scale
-
-    ctx.fillStyle = "#FFD700"; // Gold color
-    ctx.strokeStyle = "#FF4500"; // Orange-red outline
-    ctx.lineWidth = 4; // Thick outline
-    ctx.font = "bold 42px Roboto Mono, monospace"; // Large bold font
     ctx.textAlign = "center"; // Center text
-    ctx.textBaseline = "middle"; // Center text vertically
-    ctx.strokeText("WHEELIE!", 0, 0); // Draw text outline
-    ctx.fillText("WHEELIE!", 0, 0); // Draw text fill
-
-    ctx.restore(); // Restore canvas state
+    ctx.fillText("PAUSED", width / 2, height / 2); // Draw "PAUSED" text
+    ctx.font = "20px Roboto Mono, monospace"; // Smaller font
+    ctx.fillText("Press ESC to resume", width / 2, height / 2 + 50); // Draw instruction
   }
 
-  // Draw speedometer in corner
-  function drawSpeedometer() {
-    if (game.phase !== "RACING") return; // Only draw during race
-
-    const x = width - 100; // Position near right edge
-    const y = height - 100; // Position near bottom edge
-    const radius = 45; // Speedometer radius
-
-    // Background circle
-    ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black
-    ctx.beginPath(); // Start path
-    ctx.arc(x, y, radius + 5, 0, Math.PI * 2); // Draw circle
-    ctx.fill(); // Fill circle
-
-    // Outer arc (background)
-    ctx.strokeStyle = "#333"; // Dark gray
-    ctx.lineWidth = 8; // Thick line
-    ctx.beginPath(); // Start path
-    ctx.arc(x, y, radius, 0.75 * Math.PI, 2.25 * Math.PI); // Draw arc from -135° to 135°
-    ctx.stroke(); // Draw arc
-
-    // Speed arc (progress indicator)
-    const speedPercent = game.speed / CONFIG.maxSpeed; // Calculate speed percentage
-    const angle = 0.75 * Math.PI + speedPercent * 1.5 * Math.PI; // Calculate end angle
-
-    ctx.strokeStyle = speedPercent > 0.8 ? "#ff4444" : "#4CAF50"; // Red if fast, green otherwise
-    ctx.lineWidth = 8; // Thick line
-    ctx.beginPath(); // Start path
-    ctx.arc(x, y, radius, 0.75 * Math.PI, angle); // Draw arc from start to current speed
-    ctx.stroke(); // Draw arc
-
-    // Speed text
-    ctx.fillStyle = "#fff"; // White text
-    ctx.font = "bold 24px Roboto Mono, monospace"; // Large bold font
-    ctx.textAlign = "center"; // Center text horizontally
-    ctx.textBaseline = "middle"; // Center text vertically
-    ctx.fillText(Math.floor(game.speed), x, y); // Draw speed number
-
-    ctx.font = "12px Roboto Mono, monospace"; // Smaller font
-    ctx.fillText("km/h", x, y + 20); // Draw units label
-  }
-
-  // Main draw function called every frame
-  function draw() {
-    if (!gameReady) {
-      // If assets not loaded yet
-      drawLoadingScreen(); // Draw loading screen
-      requestAnimationFrame(draw); // Continue animation loop
-      return; // Exit early
-    }
-
-    // Background - fill entire screen with grass
-    ctx.fillStyle = "#2e7d32"; // Green grass color
-    ctx.fillRect(0, 0, width, height); // Fill entire canvas
-
-    // Sky - only above the road
-    ctx.fillStyle = "#6db3f2"; // Blue sky color
-    ctx.fillRect(0, 0, width, roadYPos - 40); // Fill from top to above road
-
-    // Road
-    ctx.fillStyle = "#333"; // Dark gray road color
-    ctx.fillRect(0, roadYPos, width, CONFIG.roadStripHeight); // Draw road rectangle
-
-    // Road markings - use separate dashOffset tracker
-    ctx.strokeStyle = "#fff"; // White dashes
-    ctx.lineWidth = 2; // Thin line
-    ctx.setLineDash([60, 40]); // Dash pattern: 60px dash, 40px gap
-    ctx.lineDashOffset = -game.dashOffset; // Set dash offset for animation
-    ctx.beginPath(); // Start path
-    ctx.moveTo(0, roadYPos + CONFIG.roadStripHeight / 2); // Start at left center of road
-    ctx.lineTo(width, roadYPos + CONFIG.roadStripHeight / 2); // Draw to right center of road
-    ctx.stroke(); // Draw dashed line
-    ctx.setLineDash([]); // Reset dash pattern
-
-    // Apply camera shake
-    ctx.save(); // Save canvas state
-    camera.apply(); // Apply shake transformation
-
-    // Draw entities
-    particles.draw(); // Draw all particles
-
-    // Draw bike
-    if (assets.bike.loaded && assets.tire.loaded) {
-      // If bike and tire assets loaded
-      const bW = assets.bike.img.width * CONFIG.bikeScale; // Calculate bike width
-      const bH = assets.bike.img.height * CONFIG.bikeScale; // Calculate bike height
-      const tS = bH * CONFIG.tireSizeMult; // Calculate tire size
-      const pivotX = width * CONFIG.BIKE_X_PERCENT; // Calculate bike pivot X position
-
-      const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount; // Calculate lane height
-      const laneTopY = roadYPos + game.lane * laneHeight; // Calculate lane top Y
-      const laneSurfaceY = laneTopY + laneHeight; // Calculate lane surface Y
-      const targetY = laneSurfaceY - tS / 2; // Calculate target Y position
-
-      game.currentY += (targetY - game.currentY) * CONFIG.LANE_SWITCH_SMOOTHING; // Smoothly move to target Y
-
-      ctx.save(); // Save canvas state
-      ctx.translate(pivotX + CONFIG.rearTireXShift, game.currentY); // Move to bike pivot point
-      ctx.rotate(game.bikeAngle); // Rotate by bike angle
-
-      // Rear tire
-      ctx.save(); // Save canvas state
-      ctx.rotate(game.wheelRotation); // Rotate wheel
-      ctx.drawImage(assets.tire.img, -tS / 2, -tS / 2, tS, tS); // Draw tire centered
-      ctx.restore(); // Restore canvas state
-
-      // Bike frame
-      ctx.save(); // Save canvas state
-      ctx.rotate(CONFIG.noseDownAngle); // Apply nose-down tilt
-      ctx.drawImage(
-        assets.bike.img,
-        -CONFIG.rearWheelOffsetX - CONFIG.rearTireXShift,
-        -bH / 2 + CONFIG.frameYShift,
-        bW,
-        bH,
-      ); // Draw bike
-      ctx.restore(); // Restore canvas state
-
-      // Draw rider with dynamic lean
-      if (assets.rider.loaded) {
-        // If rider asset loaded
-        ctx.save(); // Save canvas state
-
-        // Calculate rider lean based on bike state
-        let riderLean = 0; // Initialize lean angle
-        if (game.throttle && game.bikeAngle > CONFIG.WHEELIE_START_ANGLE) {
-          // If accelerating on ground
-          riderLean = CONFIG.RIDER_LEAN_FORWARD; // Lean forward
-        }
-        if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
-          // If in wheelie
-          riderLean = CONFIG.RIDER_LEAN_BACK; // Lean back
-        }
-
-        // Position rider in the CENTER of the bike frame
-        const bikeCenterX =
-          (bW * CONFIG.frontTireX - CONFIG.rearTireXShift) * 0.4; // Calculate rider X offset
-        const riderOffsetY = -bH * 0.7; // Calculate rider Y offset (higher up)
-        const riderWidth = bW * 0.55; // Calculate rider width (55% of bike)
-        const riderHeight = bH * 0.85; // Calculate rider height (85% of bike)
-
-        ctx.translate(bikeCenterX, riderOffsetY); // Move to rider position
-        ctx.rotate(riderLean); // Apply rider lean
-        ctx.drawImage(
-          assets.rider.img,
-          -riderWidth / 2,
-          -riderHeight / 2,
-          riderWidth,
-          riderHeight,
-        ); // Draw rider centered
-        ctx.restore(); // Restore canvas state
-      }
-
-      // Front tire
-      ctx.save(); // Save canvas state
-      ctx.translate(bW * CONFIG.frontTireX - CONFIG.rearTireXShift, 0); // Move to front tire position
-      ctx.rotate(game.wheelRotation); // Rotate wheel
-      ctx.drawImage(assets.tire.img, -tS / 2, -tS / 2, tS, tS); // Draw tire centered
-      ctx.restore(); // Restore canvas state
-
-      ctx.restore(); // Restore canvas state (bike rotation)
-    }
-
-    ctx.restore(); // Restore canvas state (camera shake)
-
-    // Countdown
-    if (game.phase === "COUNTDOWN") {
-      // If in countdown phase
-      const cx = width / 2; // Center X position
-      const cy = CONFIG.COUNTDOWN_Y; // Countdown Y position
-
-      for (let i = 0; i < 3; i++) {
-        // Draw 3 countdown lights
-        ctx.fillStyle =
-          game.countdownIndex > i // If this light is active
-            ? i === 2
-              ? "lime"
-              : "yellow" // Green for last, yellow for others
-            : "rgba(0,0,0,0.3)"; // Dark gray if not active
-        ctx.beginPath(); // Start path
-        ctx.arc(
-          cx + (i - 1) * CONFIG.COUNTDOWN_SPACING,
-          cy,
-          CONFIG.COUNTDOWN_RADIUS,
-          0,
-          Math.PI * 2,
-        ); // Draw circle
-        ctx.fill(); // Fill circle
-
-        if (game.countdownIndex > i) {
-          // If this light is active
-          ctx.strokeStyle = "#fff"; // White outline
-          ctx.lineWidth = 2; // Thin outline
-          ctx.stroke(); // Draw outline
-        }
-      }
-    }
-
-    // UI overlays
-    drawWheelieIndicator(); // Draw wheelie indicator if active
-    drawSpeedometer(); // Draw speedometer
-
-    // Debug info
-    if (game.phase === "RACING") {
-      // Only show during race
-      ctx.fillStyle = "#fff"; // White text
-      ctx.font = "14px monospace"; // Monospace font
-      ctx.textAlign = "left"; // Left align text
-      ctx.fillText(`Speed: ${game.speed.toFixed(2)}`, 10, height - 120); // Display speed
-      ctx.fillText(`Scroll: ${game.scroll.toFixed(2)}`, 10, height - 100); // Display scroll
-      ctx.fillText(`Distance: ${game.distance.toFixed(2)}`, 10, height - 80); // Display distance
-      ctx.fillText(
-        `DashOffset: ${game.dashOffset.toFixed(2)}`,
-        10,
-        height - 60,
-      ); // Display dash offset
-      ctx.fillText(`Throttle: ${game.throttle}`, 10, height - 40); // Display throttle state
-      ctx.fillText(`BikeAngle: ${game.bikeAngle.toFixed(3)}`, 10, height - 20); // Display bike angle
-    }
-
-    // Pause indicator
-    if (paused) {
-      // If game is paused
-      ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Semi-transparent black overlay
-      ctx.fillRect(0, 0, width, height); // Fill entire canvas
-      ctx.fillStyle = "#fff"; // White text
-      ctx.font = "bold 48px Roboto Mono, monospace"; // Large bold font
-      ctx.textAlign = "center"; // Center text
-      ctx.fillText("PAUSED", width / 2, height / 2); // Draw "PAUSED" text
-      ctx.font = "20px Roboto Mono, monospace"; // Smaller font
-      ctx.fillText("Press ESC to resume", width / 2, height / 2 + 50); // Draw instruction
-    }
-
-    update(performance.now()); // Update game logic
-    requestAnimationFrame(draw); // Continue animation loop
-  }
-
-  // ==========================================
-  // INITIALIZATION
-  // ==========================================
-  loadAssets(); // Start loading assets
-  draw(); // Start animation loop
+  update(performance.now()); // Update game logic
+  requestAnimationFrame(draw); // Continue animation loop
 }
+
+// ==========================================
+// INITIALIZATION
+// ==========================================
+loadAssets(); // Start loading assets
+draw(); // Start animation loop
