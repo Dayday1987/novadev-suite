@@ -524,11 +524,10 @@ function update(now) {
     return;
   }
 
-  // RACING
   if (game.phase === "RACING") {
     const angleDeg = Math.abs((game.bikeAngle * 180) / Math.PI);
 
-    // ===== SPEED (mph per second) =====
+    // ===== SPEED =====
     if (game.throttle) {
       game.speed += CONFIG.acceleration * deltaTime;
     } else {
@@ -538,26 +537,29 @@ function update(now) {
 
     game.speed = Math.min(game.speed, CONFIG.maxSpeed);
 
-    // ===== TORQUE + GRAVITY =====
-    const throttleTorque = game.throttle ? CONFIG.torque : 0;
-    const gravityTorque = Math.sin(game.bikeAngle) * CONFIG.gravity;
+    // ===== TORQUE ONLY AFTER 20 MPH =====
+    let throttleTorque = 0;
+
+    if (game.throttle && game.speed > 20) {
+      const speedFactor = (game.speed - 20) / 100;
+      throttleTorque = CONFIG.torque * Math.min(speedFactor, 1);
+    }
+
+    const gravityTorque = Math.sin(game.bikeAngle) * CONFIG.gravity * 0.6;
 
     let angularAcceleration = -throttleTorque - gravityTorque;
 
-    // ===== SWEET SPOT (subtle, not springy) =====
-    if (angleDeg > 70 && angleDeg < 85) {
-      angularAcceleration *= 0.85;
-      game.bikeAngularVelocity *= 0.985;
+    // Progressive rotation realism
+    if (game.bikeAngle < 0) {
+      const riseFactor = Math.min(Math.abs(game.bikeAngle) / 1.2, 1);
+      angularAcceleration *= 0.6 + riseFactor * 0.6;
     }
 
     // ===== INTEGRATE =====
     game.bikeAngularVelocity += angularAcceleration * deltaTime;
-
-    // frame-rate independent damping
     game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime * 60);
 
-    // velocity clamp (prevents spring explosion)
-    const MAX_ANGULAR_VEL = 4.0;
+    const MAX_ANGULAR_VEL = 5.0;
     game.bikeAngularVelocity = Math.max(
       -MAX_ANGULAR_VEL,
       Math.min(MAX_ANGULAR_VEL, game.bikeAngularVelocity),
@@ -565,18 +567,18 @@ function update(now) {
 
     game.bikeAngle += game.bikeAngularVelocity * deltaTime;
 
-    // ===== FRONT WHEEL CLAMP =====
+    // Front wheel clamp
     if (game.bikeAngle > CONFIG.GROUND_CONTACT_ANGLE) {
       game.bikeAngle = CONFIG.GROUND_CONTACT_ANGLE;
       game.bikeAngularVelocity = 0;
     }
 
-    // ===== BACKWARD CRASH =====
-    if (Math.abs(game.bikeAngle) > 1.75) crash();
+    // Full loop crash allowed
+    if (Math.abs(game.bikeAngle) > 2.2) crash();
 
-    // ===== MPH → WORLD SPEED CONVERSION =====
-    // Convert mph to pixels/sec (tune 6–9 for feel)
-    const worldSpeed = game.speed * 7;
+    // ===== WORLD SPEED =====
+    const WORLD_SPEED_SCALE = 18;
+    const worldSpeed = game.speed * WORLD_SPEED_SCALE;
 
     if (game.speed > 0) {
       game.scroll -= worldSpeed * deltaTime;
@@ -585,7 +587,6 @@ function update(now) {
       game.dashOffset -= worldSpeed * deltaTime;
     }
 
-    // ===== AUDIO =====
     audio.updateEngineSound();
 
     if (Math.random() < 0.15 && game.speed > 15) {
@@ -593,7 +594,6 @@ function update(now) {
       particles.createDust(bikeX - 30, game.currentY + 10);
     }
 
-    // ===== SCORING =====
     if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
       if (!game.inWheelie) {
         game.inWheelie = true;
