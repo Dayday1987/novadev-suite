@@ -491,119 +491,119 @@ function endWheelie() {
   resetGame(); // Reset the game
 }
 
-// Main update function called every frame
 function update(now) {
-  if (paused) return; // Don't update if paused
-  const deltaTime = Math.min((now - lastTime) / 16.67, 2); // Calculate deltaTime (capped at 2)
-  lastTime = now; // Store current time for next frame
+  if (paused) return;
 
-  camera.update(deltaTime); // Update camera shake
-  particles.update(deltaTime); // Update all particles
+  const deltaTime = Math.min((now - lastTime) / 16.67, 2);
+  lastTime = now;
 
-  // IDLE PHASE - bike is stationary
+  camera.update(deltaTime);
+  particles.update(deltaTime);
+
+  // IDLE
   if (game.phase === "IDLE") {
-    const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount; // Calculate lane height
-    const laneTopY = roadYPos + game.lane * laneHeight; // Calculate lane top Y
-    const laneSurfaceY = laneTopY + laneHeight; // Calculate lane surface Y
-    const tS = assets.bike.img.height * CONFIG.bikeScale * CONFIG.tireSizeMult; // Calculate tire size
-    game.currentY = laneSurfaceY - tS / 2; // Position bike on surface
-    return; // Exit update early
+    const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount;
+    const laneTopY = roadYPos + game.lane * laneHeight;
+    const laneSurfaceY = laneTopY + laneHeight;
+    const tS = assets.bike.img.height * CONFIG.bikeScale * CONFIG.tireSizeMult;
+
+    game.currentY = laneSurfaceY - tS / 2;
+    return;
   }
 
-  // COUNTDOWN PHASE - waiting for race to start
+  // COUNTDOWN
   if (game.phase === "COUNTDOWN") {
     if (now - game.countdownTimer > CONFIG.COUNTDOWN_INTERVAL_MS) {
-      // If countdown interval passed
-      game.countdownIndex++; // Move to next countdown step
-      game.countdownTimer = now; // Reset timer
+      game.countdownIndex++;
+      game.countdownTimer = now;
 
       if (game.countdownIndex >= 3) {
-        // If countdown complete
-        game.phase = "RACING"; // Start racing
-        audio.play("engine"); // Start engine sound
+        game.phase = "RACING";
+        audio.play("engine");
       }
     }
-    return; // Exit update early
+    return;
   }
 
-  // RACING PHASE - game is active
+  // RACING
   if (game.phase === "RACING") {
     const angleDeg = Math.abs((game.bikeAngle * 180) / Math.PI);
-  }
-  // ===== SPEED =====
-  if (game.throttle) {
-    game.speed += CONFIG.acceleration * deltaTime;
-  } else {
-    game.speed *= Math.pow(CONFIG.friction, deltaTime);
-    if (game.speed < 0.05) game.speed = 0;
-  }
-  game.speed = Math.min(game.speed, CONFIG.maxSpeed);
 
-  // ===== REALISTIC TORQUE + GRAVITY =====
-  const throttleTorque = game.throttle ? CONFIG.torque : 0;
-  const gravityTorque = Math.sin(game.bikeAngle) * CONFIG.gravity;
-
-  let angularAcceleration = -throttleTorque - gravityTorque;
-
-  // ===== SWEET SPOT ASSIST (70°–85°) =====
-  if (angleDeg > 70 && angleDeg < 85) {
-    const center = 77.5;
-    const distance = Math.abs(angleDeg - center);
-    const stabilityFactor = 1 - distance / 7.5;
-
-    angularAcceleration *= 1 - stabilityFactor * 0.35;
-    game.bikeAngularVelocity *= 0.985;
-  }
-
-  // ===== INTEGRATE =====
-  game.bikeAngularVelocity += angularAcceleration * deltaTime;
-  game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime);
-
-  const MAX_ANGULAR_VEL = 0.28;
-  game.bikeAngularVelocity = Math.max(
-    -MAX_ANGULAR_VEL,
-    Math.min(MAX_ANGULAR_VEL, game.bikeAngularVelocity),
-  );
-
-  game.bikeAngle += game.bikeAngularVelocity * deltaTime;
-
-  // ===== FRONT WHEEL CLAMP =====
-  if (game.bikeAngle > CONFIG.GROUND_CONTACT_ANGLE) {
-    game.bikeAngle = CONFIG.GROUND_CONTACT_ANGLE;
-    game.bikeAngularVelocity = 0;
-  }
-
-  // ===== BACKWARD CRASH =====
-  if (Math.abs(game.bikeAngle) > 1.7) crash();
-
-  // ===== MOVEMENT =====
-  if (game.speed > 0) {
-    game.scroll -= game.speed * deltaTime;
-    game.wheelRotation -= game.speed * 0.02 * deltaTime;
-    game.distance += game.speed * 0.1 * deltaTime;
-    game.dashOffset -= game.speed * deltaTime;
-  }
-
-  // ===== AUDIO & FX =====
-  audio.updateEngineSound();
-
-  if (Math.random() < 0.1 && game.speed > 20) {
-    const bikeX = width * CONFIG.BIKE_X_PERCENT;
-    particles.createDust(bikeX - 30, game.currentY + 10);
-  }
-
-  // ===== SCORING =====
-  if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
-    if (!game.inWheelie) {
-      game.inWheelie = true;
-      game.score = 0;
+    // SPEED
+    if (game.throttle) {
+      game.speed += CONFIG.acceleration * deltaTime;
+    } else {
+      game.speed *= Math.pow(CONFIG.friction, deltaTime);
+      if (game.speed < 0.05) game.speed = 0;
     }
-    game.score += 1 * deltaTime;
-  } else if (game.inWheelie) {
-    endWheelie();
-  }
+    game.speed = Math.min(game.speed, CONFIG.maxSpeed);
 
-  updateUI();
+    // TORQUE + GRAVITY
+    const throttleTorque = game.throttle ? CONFIG.torque : 0;
+    const gravityTorque = Math.sin(game.bikeAngle) * CONFIG.gravity;
+
+    let angularAcceleration = -throttleTorque - gravityTorque;
+
+    // SWEET SPOT ASSIST
+    if (angleDeg > 70 && angleDeg < 85) {
+      const center = 77.5;
+      const distance = Math.abs(angleDeg - center);
+      const stabilityFactor = 1 - distance / 7.5;
+
+      angularAcceleration *= 1 - stabilityFactor * 0.35;
+      game.bikeAngularVelocity *= 0.985;
+    }
+
+    // INTEGRATE
+    game.bikeAngularVelocity += angularAcceleration * deltaTime;
+    game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime);
+
+    const MAX_ANGULAR_VEL = 0.28;
+    game.bikeAngularVelocity = Math.max(
+      -MAX_ANGULAR_VEL,
+      Math.min(MAX_ANGULAR_VEL, game.bikeAngularVelocity),
+    );
+
+    game.bikeAngle += game.bikeAngularVelocity * deltaTime;
+
+    // FRONT CLAMP
+    if (game.bikeAngle > CONFIG.GROUND_CONTACT_ANGLE) {
+      game.bikeAngle = CONFIG.GROUND_CONTACT_ANGLE;
+      game.bikeAngularVelocity = 0;
+    }
+
+    // CRASH
+    if (Math.abs(game.bikeAngle) > 1.7) crash();
+
+    // MOVEMENT
+    if (game.speed > 0) {
+      game.scroll -= game.speed * deltaTime;
+      game.wheelRotation -= game.speed * 0.02 * deltaTime;
+      game.distance += game.speed * 0.1 * deltaTime;
+      game.dashOffset -= game.speed * deltaTime;
+    }
+
+    // AUDIO
+    audio.updateEngineSound();
+
+    if (Math.random() < 0.1 && game.speed > 20) {
+      const bikeX = width * CONFIG.BIKE_X_PERCENT;
+      particles.createDust(bikeX - 30, game.currentY + 10);
+    }
+
+    // SCORING
+    if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
+      if (!game.inWheelie) {
+        game.inWheelie = true;
+        game.score = 0;
+      }
+      game.score += deltaTime;
+    } else if (game.inWheelie) {
+      endWheelie();
+    }
+
+    updateUI();
+  }
 }
 // ==========================================
 // RENDERING
