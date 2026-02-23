@@ -1,11 +1,7 @@
 export const state = {
   editor: null,
-  files: {},
+  currentProjectId: null,
   currentFile: null,
-  models: {}, // Monaco models per file
-  openTabs: [], // Open file tabs
-  git: {
-    initialized: false,
-    history: [],
-  },
+  openTabs: [],
+  models: {}
 };

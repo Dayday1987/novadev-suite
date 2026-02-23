@@ -1,27 +1,64 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width,
-               initial-scale=1,
-               maximum-scale=1,
-               user-scalable=no,
-               viewport-fit=cover"
-    />
-    <title>NovaDev IDE</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width,
+                 initial-scale=1,
+                 maximum-scale=1,
+                 user-scalable=no,
+                 viewport-fit=cover" />
+  <title>NovaDev IDE</title>
 
-    <link rel="stylesheet" href="style.css" />
-    <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
-  </head>
-  <body>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
+</head>
+
+<body>
+
+  <!-- =========================
+       AUTH SCREEN
+  ========================== -->
+  <div id="authScreen" class="auth-screen">
+
+    <h1>NovaDev IDE</h1>
+
+    <input id="emailInput" type="email" placeholder="Email" />
+    <input id="passwordInput" type="password" placeholder="Password" />
+
+    <button id="loginBtn">Login</button>
+    <button id="signupBtn">Sign Up</button>
+
+    <hr />
+
+    <button id="googleLogin">Continue with Google</button>
+    <button id="githubLogin">Continue with GitHub</button>
+
+  </div>
+
+  <!-- =========================
+       PROJECT LAUNCHER
+  ========================== -->
+  <div id="projectLauncher" class="launcher hidden">
+    <h1>NovaDev Projects</h1>
+    <div id="projectList"></div>
+    <button id="newProjectBtn">New Project</button>
+  </div>
+
+  <!-- =========================
+       IDE CONTAINER
+  ========================== -->
+  <div id="ideContainer" class="hidden">
+
     <div id="app">
+
       <!-- Sidebar Drawer -->
       <div id="sidebar">
         <div id="sidebarHeader">
           <button id="closeSidebar">✕</button>
         </div>
+
         <div id="explorerPanel" class="panel active">
           <div class="panelHeader">
             <span>Explorer</span>
@@ -32,11 +69,7 @@
 
         <div id="searchPanel" class="panel">
           <div class="panelHeader">Search</div>
-          <input
-            type="text"
-            id="searchInput"
-            placeholder="Search in files..."
-          />
+          <input type="text" id="searchInput" placeholder="Search in files..." />
           <div id="searchResults"></div>
         </div>
 
@@ -51,8 +84,7 @@
         <div id="settingsPanel" class="panel">
           <div class="panelHeader">Settings</div>
 
-          <label
-            >Theme
+          <label>Theme
             <select id="themeSelect">
               <option value="vs-dark">Dark</option>
               <option value="vs">Light</option>
@@ -60,13 +92,11 @@
             </select>
           </label>
 
-          <label
-            >Font Size
+          <label>Font Size
             <input type="number" id="fontSizeInput" min="10" max="24" />
           </label>
 
-          <label
-            >Tab Size
+          <label>Tab Size
             <input type="number" id="tabSizeInput" min="2" max="8" />
           </label>
 
@@ -90,18 +120,13 @@
       <!-- Main Area -->
       <div id="mainArea">
 
-  <div id="tabsBar"></div>
+        <div id="tabsBar"></div>
 
-  <div id="editorContainer">
-    <div id="editor"></div>
-    <iframe id="previewPane"></iframe>
-  </div>
+        <div id="editorContainer">
+          <div id="editor"></div>
+          <iframe id="previewPane"></iframe>
+        </div>
 
-  <div id="terminal">...</div>
-  <div id="statusBar">...</div>
-
-</div>
-        <!-- Terminal Slide Panel -->
         <div id="terminal">
           <div id="terminalOutput"></div>
           <input id="terminalInput" placeholder="Type command..." />
@@ -112,9 +137,10 @@
           <span id="statusLanguage">plaintext</span>
           <span>UTF-8</span>
         </div>
+
       </div>
 
-      <!-- Bottom Activity Bar (Mobile First) -->
+      <!-- Bottom Activity Bar -->
       <div id="activityBar">
         <button id="toggleSidebar">📁</button>
         <button id="openSearch">🔍</button>
@@ -123,8 +149,12 @@
         <button id="openTerminal">🖥</button>
         <button id="openSettings">⚙</button>
       </div>
+
     </div>
 
-    <script type="module" src="Js/main.js"></script>
-  </body>
+  </div>
+
+  <script type="module" src="Js/main.js"></script>
+
+</body>
 </html>

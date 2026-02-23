@@ -1,5 +1,9 @@
 import { state } from "./ide.state.js";
-import { saveProject } from "./ide.services.js";
+import { readFile, writeFile, listEntries } from "./ide.fs.js";
+
+/* ==============================
+   Init Editor
+============================== */
 
 export async function initEditor() {
   await loadMonaco();
@@ -7,7 +11,6 @@ export async function initEditor() {
   const container = document.getElementById("editor");
   if (!container) return;
 
-  // ✅ Create editor FIRST
   state.editor = monaco.editor.create(container, {
     theme: "vs-dark",
     automaticLayout: true,
@@ -15,24 +18,21 @@ export async function initEditor() {
     minimap: { enabled: window.innerWidth > 768 },
   });
 
-  // ✅ THEN attach change listener
-  state.editor.onDidChangeModelContent(() => {
-    if (!state.currentFile) return;
+  state.editor.onDidChangeModelContent(async () => {
+    if (!state.currentFile || !state.currentProjectId) return;
 
-    state.files[state.currentFile] = state.editor.getValue();
+    const content = state.editor.getValue();
 
-    saveProject();
+    await writeFile(
+      state.currentProjectId,
+      state.currentFile,
+      content
+    );
 
-    if (
-      state.currentFile.endsWith(".html") ||
-      state.currentFile.endsWith(".css") ||
-      state.currentFile.endsWith(".js")
-    ) {
-      updatePreview();
-    }
+    updatePreview();
   });
 
-  openInitialFile();
+  await openFirstFile();
 }
 
 /* ============================== */
@@ -46,90 +46,96 @@ function loadMonaco() {
   });
 }
 
-/* ============================== */
+/* ==============================
+   Open First File
+============================== */
 
-function openInitialFile() {
-  const first = Object.keys(state.files)[0];
-  if (first) openFile(first);
+async function openFirstFile() {
+  if (!state.currentProjectId) return;
+
+  const entries = await listEntries(state.currentProjectId);
+  const firstFile = entries.find(e => e.type === "file");
+
+  if (firstFile) {
+    await openFile(firstFile.path);
+  }
 }
 
-/* ============================== */
+/* ==============================
+   Open File
+============================== */
 
-export function openFile(name) {
-  if (!state.editor) return;
-  if (!(name in state.files)) return;
+export async function openFile(path) {
+  if (!state.editor || !state.currentProjectId) return;
 
-  if (!state.models[name]) {
-    state.models[name] = monaco.editor.createModel(
-      state.files[name] || "",
-      getLanguage(name),
+  const content = await readFile(state.currentProjectId, path);
+  if (content === null) return;
+
+  if (!state.models[path]) {
+    state.models[path] = monaco.editor.createModel(
+      content,
+      getLanguage(path)
     );
   }
 
-  state.editor.setModel(state.models[name]);
-  state.currentFile = name;
+  state.editor.setModel(state.models[path]);
+  state.currentFile = path;
 
-  if (!state.openTabs.includes(name)) {
-    state.openTabs.push(name);
+  if (!state.openTabs.includes(path)) {
+    state.openTabs.push(path);
   }
 
   renderTabs();
 }
 
-/* ============================== */
+/* ==============================
+   Create File
+============================== */
 
-export function createFile(name) {
-  if (!name) return;
+export async function createFile(path) {
+  if (!state.currentProjectId || !path) return;
 
-  state.files[name] = "";
+  await writeFile(state.currentProjectId, path, "");
 
-  state.models[name] = monaco.editor.createModel("", getLanguage(name));
-
-  state.openTabs.push(name);
-  state.currentFile = name;
-
-  if (state.editor) {
-    state.editor.setModel(state.models[name]);
-  }
-
-  saveProject();
-  renderTabs();
+  await openFile(path);
 }
 
-/* ============================== */
+/* ==============================
+   Close Tab
+============================== */
 
-export function closeTab(name) {
-  const index = state.openTabs.indexOf(name);
-  if (index > -1) {
-    state.openTabs.splice(index, 1);
-  }
+export function closeTab(path) {
+  const index = state.openTabs.indexOf(path);
+  if (index > -1) state.openTabs.splice(index, 1);
 
-  if (state.currentFile === name) {
+  if (state.currentFile === path) {
     const next = state.openTabs[state.openTabs.length - 1];
     if (next) openFile(next);
-    else if (state.editor) state.editor.setModel(null);
+    else state.editor.setModel(null);
   }
 
   renderTabs();
 }
 
-/* ============================== */
+/* ==============================
+   Render Tabs
+============================== */
 
 function renderTabs() {
   const tabsBar = document.getElementById("tabsBar");
-  if (!tabsBar) return; // CRITICAL FIX
+  if (!tabsBar) return;
 
   tabsBar.innerHTML = "";
 
-  state.openTabs.forEach((name) => {
+  state.openTabs.forEach(path => {
     const tab = document.createElement("div");
     tab.className = "tab";
 
-    if (name === state.currentFile) {
+    if (path === state.currentFile) {
       tab.classList.add("active");
     }
 
-    tab.textContent = name;
+    tab.textContent = path;
 
     const close = document.createElement("span");
     close.className = "tab-close";
@@ -137,21 +143,40 @@ function renderTabs() {
 
     close.onclick = (e) => {
       e.stopPropagation();
-      closeTab(name);
+      closeTab(path);
     };
 
     tab.appendChild(close);
-
-    tab.onclick = () => openFile(name);
+    tab.onclick = () => openFile(path);
 
     tabsBar.appendChild(tab);
   });
 }
+/* delete file/folder */
+export function removeModel(path) {
 
-/* ============================== */
+  if (!state.models) return;
+  if (!state.models[path]) return;
 
-function getLanguage(name) {
-  const ext = name.split(".").pop();
+  state.models[path].dispose();
+  delete state.models[path];
+
+  const tabIndex = state.openTabs.indexOf(path);
+  if (tabIndex > -1) {
+    state.openTabs.splice(tabIndex, 1);
+  }
+
+  if (state.currentFile === path) {
+    state.currentFile = null;
+    state.editor.setModel(null);
+  }
+}
+/* ==============================
+   Language Detection
+============================== */
+
+function getLanguage(path) {
+  const ext = path.split(".").pop();
   const map = {
     js: "javascript",
     html: "html",
@@ -161,6 +186,10 @@ function getLanguage(name) {
   };
   return map[ext] || "plaintext";
 }
+
+/* ==============================
+   Settings
+============================== */
 
 export function applyEditorSettings(settings) {
   if (!state.editor) return;
@@ -180,13 +209,18 @@ export function applyEditorSettings(settings) {
    Live Preview
 ============================== */
 
-export function updatePreview() {
+export async function updatePreview() {
   const preview = document.getElementById("previewPane");
-  if (!preview) return;
+  if (!preview || !state.currentProjectId) return;
 
-  const html = state.files["index.html"] || "";
-  const css = state.files["style.css"] || "";
-  const js = state.files["script.js"] || state.files["main.js"] || "";
+  const entries = await listEntries(state.currentProjectId);
+
+  const html = await readFile(state.currentProjectId, "index.html") || "";
+  const css = await readFile(state.currentProjectId, "style.css") || "";
+  const js =
+    await readFile(state.currentProjectId, "script.js") ||
+    await readFile(state.currentProjectId, "main.js") ||
+    "";
 
   const fullDoc = `
     <html>
