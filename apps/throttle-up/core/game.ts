@@ -79,7 +79,7 @@ function updateBike(game: GameState, dt: number, throttle: number) {
   } = BIKE_PHYSICS;
 
   const playerTorque = throttle * torqueHoldForce;
-  const gravityTorque = -bike.angle * gravityRestore;
+  const gravityTorque = -Math.sin(bike.angle) * gravityRestore;
   const angularAcceleration = playerTorque + gravityTorque;
 
   bike.angularVelocity += angularAcceleration * dt;
