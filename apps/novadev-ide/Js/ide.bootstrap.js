@@ -1,11 +1,9 @@
-import { initEditor } from './ide.core.js';
-import { initPanels } from './ide.panels.js';
-import { loadProject } from './ide.services.js';
+import { initEditor } from "./ide.core.js";
+import { initPanels } from "./ide.panels.js";
+import { loadProject } from "./ide.services.js";
 
 export async function bootstrapApp() {
-
   document.addEventListener("DOMContentLoaded", async () => {
-
     // 1️⃣ Load project into shared state FIRST
     loadProject();
 
@@ -18,7 +16,5 @@ export async function bootstrapApp() {
     } catch (err) {
       console.error("Editor failed:", err);
     }
-
   });
-
 }
