@@ -669,7 +669,7 @@ function drawWheelieIndicator() {
   if (!game.inWheelie || game.phase !== "RACING") return; // Only draw during wheelie in race
 
   const x = width / 2; // Center horizontally
-  const y = 100; // Fixed Y position
+  const y = height * 0.18;
   const pulse = Math.sin(Date.now() / 100) * 0.15 + 1; // Pulsing animation
 
   ctx.save(); // Save canvas state
@@ -897,7 +897,7 @@ function draw() {
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; // Semi-transparent black overlay
     ctx.fillRect(0, 0, width, height); // Fill entire canvas
     ctx.fillStyle = "#fff"; // White text
-    ctx.font = "bold 48px Roboto Mono, monospace"; // Large bold font
+    ctx.font = `bold ${Math.min(width * 0.04, 48)}px Roboto Mono`;
     ctx.textAlign = "center"; // Center text
     ctx.fillText("PAUSED", width / 2, height / 2); // Draw "PAUSED" text
     ctx.font = "20px Roboto Mono, monospace"; // Smaller font
