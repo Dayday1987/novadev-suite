@@ -85,7 +85,7 @@ const CONFIG = {
   roadStripHeight: 150, // Height of the road in pixels
 
   // Visual positioning
-  BIKE_X_PERCENT: 0, // Horizontal position of bike as screen percentage
+  BIKE_X_PERCENT: 0.22, // Horizontal position of bike as screen percentage
   LANE_SWITCH_SMOOTHING: 0.1, // Smoothing factor for lane changes (0-1)
 
   // Rider lean
