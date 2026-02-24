@@ -692,9 +692,10 @@ function drawWheelieIndicator() {
 function drawSpeedometer() {
   if (game.phase !== "RACING") return; // Only draw during race
 
-  const x = width - 100; // Position near right edge
-  const y = height - 100; // Position near bottom edge
-  const radius = 45; // Speedometer radius
+  const radius = Math.min(width, height) * 0.08;
+const x = width - radius - 30;
+const y = height - radius - 30;
+  
 
   // Background circle
   ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black
@@ -889,21 +890,7 @@ function draw() {
   // UI overlays
   drawWheelieIndicator(); // Draw wheelie indicator if active
   drawSpeedometer(); // Draw speedometer
-
-  // Debug info
-  if (game.phase === "RACING") {
-    // Only show during race
-    ctx.fillStyle = "#fff"; // White text
-    ctx.font = "14px monospace"; // Monospace font
-    ctx.textAlign = "left"; // Left align text
-    ctx.fillText(`Speed: ${game.speed.toFixed(2)}`, 10, height - 120); // Display speed
-    ctx.fillText(`Scroll: ${game.scroll.toFixed(2)}`, 10, height - 100); // Display scroll
-    ctx.fillText(`Distance: ${game.distance.toFixed(2)}`, 10, height - 80); // Display distance
-    ctx.fillText(`DashOffset: ${game.dashOffset.toFixed(2)}`, 10, height - 60); // Display dash offset
-    ctx.fillText(`Throttle: ${game.throttle}`, 10, height - 40); // Display throttle state
-    ctx.fillText(`BikeAngle: ${game.bikeAngle.toFixed(3)}`, 10, height - 20); // Display bike angle
-  }
-
+  
   // Pause indicator
   if (paused) {
     // If game is paused
