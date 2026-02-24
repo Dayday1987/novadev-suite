@@ -71,7 +71,7 @@ const CONFIG = {
   friction: 0.995, // Friction multiplier (closer to 1 = less friction)
 
   // Wheelie mechanics
-  torque: 8.0, // added 13 Rotational force applied during wheelie (stronger for sustained wheelies)
+  torque: 10.0, // added 13 Rotational force applied during wheelie (stronger for sustained wheelies)
   gravity: 14, // added 15 Gravity force pulling towards balance (weaker for longer wheelies)
   damping: 0.96, // added 5 Angular velocity damping
 
@@ -85,7 +85,7 @@ const CONFIG = {
   roadStripHeight: 150, // Height of the road in pixels
 
   // Visual positioning
-  BIKE_X_PERCENT: 0.1, // Horizontal position of bike as screen percentage
+  BIKE_X_PERCENT: 0, // Horizontal position of bike as screen percentage
   LANE_SWITCH_SMOOTHING: 0.1, // Smoothing factor for lane changes (0-1)
 
   // Rider lean
@@ -545,7 +545,8 @@ function update(now) {
       throttleTorque = CONFIG.torque * Math.min(speedFactor, 1);
     }
 
-    const gravityTorque = Math.sin(game.bikeAngle) * CONFIG.gravity * 0.6;
+    const gravityTorque =
+      Math.sin(game.bikeAngle) * CONFIG.gravity * Math.cos(game.bikeAngle);
 
     let angularAcceleration = -throttleTorque - gravityTorque;
 
