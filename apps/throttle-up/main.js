@@ -120,6 +120,7 @@ const game = {
   inWheelie: false, // Whether currently performing a wheelie
   distance: 0, // Total distance traveled
   dashOffset: 0, // Offset for road dash animation
+  crashing: false,
 };
 
 let width, height, roadYPos; // Canvas dimensions and road position
