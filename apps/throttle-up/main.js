@@ -450,33 +450,48 @@ function togglePause() {
 // ==========================================
 // Reset game to initial state
 function resetGame() {
+  game.crashing = false; // reset crash flag
   game.phase = "IDLE"; // Set to idle phase
-  game.speed = 0; // Reset speed
-  game.bikeAngle = 0; // Reset bike angle
-  game.bikeAngularVelocity = 0; // Reset angular velocity
-  game.inWheelie = false; // Not in wheelie
-  game.score = 0; // Reset score
-  game.distance = 0; // Reset distance
-  game.scroll = 0; // Reset scroll
-  game.wheelRotation = 0; // Reset wheel rotation
-  game.dashOffset = 0; // Reset dash offset
-  particles.list = []; // Clear all particles
-  audio.stop("engine"); // Stop engine sound
-  audio.stop("crowd"); // Stop crowd sound
-  updateUI(); // Update UI display
+
+  game.speed = 0;
+  game.bikeAngle = 0;
+  game.bikeAngularVelocity = 0;
+  game.inWheelie = false;
+  game.score = 0;
+  game.distance = 0;
+  game.scroll = 0;
+  game.wheelRotation = 0;
+  game.dashOffset = 0;
+
+  particles.list = [];
+  camera.shake = 0; // STOP camera shake immediately
+
+  audio.stop("engine");
+  audio.stop("crowd");
+
+  updateUI();
 }
 
 // Handle crash event
 function crash() {
-  const bikeX = width * CONFIG.BIKE_X_PERCENT; // Calculate bike X position
-  camera.startShake(15); // Start camera shake
-  particles.createCrashSparks(bikeX, game.currentY); // Create crash particles
-  audio.stop("engine"); // Stop engine sound
-  audio.play("crash"); // Play crash sound
+  if (game.crashing) return; // prevent double crash
+
+  game.crashing = true;
+  game.phase = "CRASHING"; // stop racing logic
+
+  game.bikeAngularVelocity = 0;
+  game.speed = 0;
+
+  const bikeX = width * CONFIG.BIKE_X_PERCENT;
+
+  camera.startShake(15);
+  particles.createCrashSparks(bikeX, game.currentY);
+
+  audio.stop("engine");
+  audio.play("crash");
 
   setTimeout(() => {
-    // Wait 1 second
-    endWheelie(); // Then end wheelie
+    endWheelie();
   }, 1000);
 }
 
@@ -498,6 +513,9 @@ function update(now) {
 
   camera.update(deltaTime);
   particles.update(deltaTime);
+  if (game.phase === "CRASHING") {
+    return;
+  }
 
   // IDLE
   if (game.phase === "IDLE") {
