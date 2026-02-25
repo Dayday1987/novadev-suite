@@ -126,10 +126,12 @@ const game = {
   distance: 0, // Total distance traveled
   dashOffset: 0, // Offset for road dash animation
   crashing: false,
+
+  game.gear = 1,
+  game.shiftTimer = 0
 };
 
-game.gear = 1;
-  game.shiftTimer = 0;
+
 
 let width, height, roadYPos; // Canvas dimensions and road position
 let lastTime = performance.now(); // Timestamp of last frame for deltaTime calculation
