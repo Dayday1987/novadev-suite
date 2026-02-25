@@ -599,10 +599,13 @@ function update(now) {
     const bikeX = width * CONFIG.BIKE_X_PERCENT;
 
     const isBurnout =
-      game.throttle && game.speed < 20 && Math.abs(game.bikeAngle) < 0.05;
+      game.throttle &&
+      game.speed < 35 && // allow more window
+      game.bikeAngle > -0.15 && // still near ground
+      game.bikeAngularVelocity < 0.5; // not lifting fast yet
 
     if (isBurnout) {
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 4; i++) {
         particles.createDust(bikeX - 35, game.currentY + 12);
       }
     }
