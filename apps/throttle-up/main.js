@@ -750,8 +750,8 @@ function drawSpeedometer() {
   
 
   const radius = Math.min(width, height) * 0.08;
-  const x = width - radius - 30;
-  const y = height - radius - 30;
+ const x = width - radius - 30;
+const y = radius + 30;
 
   // Background circle
   ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black
@@ -842,8 +842,8 @@ function draw() {
     }
     const pivotX = width * CONFIG.BIKE_X_PERCENT; // Calculate bike pivot X position
     const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount;
-const laneTopY = roadYPos + game.lane * laneHeight;
-const laneSurfaceY = laneTopY + laneHeight;
+    const laneTopY = roadYPos + game.lane * laneHeight;
+    const laneSurfaceY = laneTopY + laneHeight;
 
 const ROAD_OFFSET = -8; // adjust this value
 const targetY = laneSurfaceY - tS / 2 + ROAD_OFFSET;
