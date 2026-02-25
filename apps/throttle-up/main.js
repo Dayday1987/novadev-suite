@@ -1,8 +1,3 @@
-// ==========================================
-// THROTTLE UP - IMPROVED VERSION
-// A motorcycle wheelie physics game
-// ==========================================
-
 // Get the canvas element from HTML and set up 2D rendering context
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -10,7 +5,6 @@ const ctx = canvas.getContext("2d");
 // ==========================================
 // ASSET LOADING SYSTEM
 // ==========================================
-// Object to store all game images and their loading status
 const assets = {
   bike: { img: new Image(), loaded: false }, // Motorcycle image
   tire: { img: new Image(), loaded: false }, // Wheel/tire image
@@ -102,7 +96,6 @@ const CONFIG = {
 // ==========================================
 // GAME STATE
 // ==========================================
-// Object containing all game state variables
 const game = {
   phase: "IDLE", // Current game phase: IDLE, COUNTDOWN, RACING
   speed: 0, // Current forward speed
@@ -272,7 +265,6 @@ const camera = {
 // ==========================================
 // SCREEN RESIZE
 // ==========================================
-// Resize canvas to match window size
 function resize() {
   width = canvas.width = window.innerWidth; // Set canvas width to window width
   height = canvas.height = window.innerHeight; // Set canvas height to window height
@@ -424,9 +416,6 @@ function updateUI() {
   if (highscoreEl) highscoreEl.textContent = Math.floor(game.bestScore); // Update highscore display
 }
 
-// ==========================================
-// PAUSE SYSTEM
-// ==========================================
 // Toggle game pause state
 function togglePause() {
   if (game.phase !== "RACING") return; // Only pause during racing
@@ -446,7 +435,6 @@ function togglePause() {
 // ==========================================
 // GAME LOGIC
 // ==========================================
-// Reset game to initial state
 function resetGame() {
   game.crashing = false; // reset crash flag
   game.phase = "IDLE"; // Set to idle phase
@@ -634,7 +622,6 @@ function update(now) {
 // ==========================================
 // RENDERING
 // ==========================================
-// Draw loading screen while assets load
 function drawLoadingScreen() {
   ctx.fillStyle = "#1a1a1a"; // Dark background
   ctx.fillRect(0, 0, width, height); // Fill entire canvas
