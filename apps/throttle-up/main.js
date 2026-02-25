@@ -63,6 +63,7 @@ const CONFIG = {
   maxSpeed: 170, // Maximum speed in game units
   acceleration: 45, // from 08 Acceleration rate when throttle is applied (increased for better feedback)
   friction: 0.995, // Friction multiplier (closer to 1 = less friction)
+  
 
   // Wheelie mechanics
   torque: 10.0, // added 13 Rotational force applied during wheelie (stronger for sustained wheelies)
@@ -92,6 +93,17 @@ const CONFIG = {
   COUNTDOWN_RADIUS: 15, // Radius of countdown light circles
   COUNTDOWN_INTERVAL_MS: 800, // Time between countdown steps (milliseconds)
 };
+
+CONFIG.GEARS = [
+  { min: 0,   max: 30 },
+  { min: 25,  max: 60 },
+  { min: 55,  max: 95 },
+  { min: 90,  max: 125 },
+  { min: 120, max: 155 },
+  { min: 150, max: 190 }
+];
+
+CONFIG.SHIFT_DELAY = 0.15; // seconds between shifts
 
 // ==========================================
 // GAME STATE
@@ -439,6 +451,8 @@ function togglePause() {
 function resetGame() {
   game.crashing = false; // reset crash flag
   game.phase = "IDLE"; // Set to idle phase
+  game.gear = 1;
+  game.shiftTimer = 0;
 
   game.speed = 0;
   game.bikeAngle = 0;
@@ -532,15 +546,46 @@ function update(now) {
   if (game.phase === "RACING") {
     const angleDeg = Math.abs((game.bikeAngle * 180) / Math.PI);
 
-    // ===== SPEED =====
-    if (game.throttle) {
-      game.speed += CONFIG.acceleration * deltaTime;
-    } else {
-      game.speed *= Math.pow(CONFIG.friction, deltaTime * 60);
-      if (game.speed < 0.05) game.speed = 0;
-    }
+    // ===== SPEED WITH GEARS =====
+let gearRatio = 1 - (game.gear - 1) * 0.12;
+gearRatio = Math.max(0.35, gearRatio); // prevent weak high gears
 
-    game.speed = Math.min(game.speed, CONFIG.maxSpeed);
+if (game.throttle) {
+  game.speed += CONFIG.acceleration * gearRatio * deltaTime;
+} else {
+  game.speed *= Math.pow(CONFIG.friction, deltaTime * 60);
+  if (game.speed < 0.05) game.speed = 0;
+}
+
+game.speed = Math.min(game.speed, CONFIG.maxSpeed);
+
+    // ===== GEAR SYSTEM =====
+game.shiftTimer -= deltaTime;
+
+if (game.shiftTimer <= 0) {
+  const currentGearData = CONFIG.GEARS[game.gear - 1];
+
+  // ======= Shift up =======
+  if (
+    game.gear < CONFIG.GEARS.length &&
+    game.speed > currentGearData.max
+  ) {
+    game.gear++;
+    game.shiftTimer = CONFIG.SHIFT_DELAY;
+
+    // Simulate RPM drop
+    game.bikeAngularVelocity *= 0.85;
+  }
+
+  // ====== Shift down =======
+  if (
+    game.gear > 1 &&
+    game.speed < CONFIG.GEARS[game.gear - 2].min
+  ) {
+    game.gear--;
+    game.shiftTimer = CONFIG.SHIFT_DELAY;
+  }
+}
 
     // ===== TORQUE ONLY AFTER 20 MPH =====
     let throttleTorque = 0;
@@ -683,6 +728,7 @@ function drawWheelieIndicator() {
 // Draw speedometer in corner
 function drawSpeedometer() {
   if (game.phase !== "RACING") return; // Only draw during race
+  
 
   const radius = Math.min(width, height) * 0.08;
   const x = width - radius - 30;
@@ -720,6 +766,9 @@ function drawSpeedometer() {
 
   ctx.font = "12px Roboto Mono, monospace"; // Smaller font
   ctx.fillText("km/h", x, y + 20); // Draw units label
+
+  ctx.font = "bold 18px Roboto Mono";
+  ctx.fillText(`G${game.gear}`, x, y + 40);
 }
 
 // Main draw function called every frame
