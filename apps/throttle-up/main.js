@@ -119,6 +119,7 @@ const game = {
 let width, height, roadYPos; // Canvas dimensions and road position
 let lastTime = performance.now(); // Timestamp of last frame for deltaTime calculation
 let paused = false; // Whether game is paused
+let squatOffset = 0;
 
 // ==========================================
 // AUDIO SYSTEM
