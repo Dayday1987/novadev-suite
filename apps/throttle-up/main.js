@@ -588,12 +588,21 @@ if (game.shiftTimer <= 0) {
 }
 
     // ===== TORQUE ONLY AFTER 20 MPH =====
-    let throttleTorque = 0;
+    // ===== TORQUE WITH GEAR INFLUENCE =====
+let throttleTorque = 0;
 
-    if (game.throttle && game.speed > 20) {
-      const speedFactor = (game.speed - 20) / 100;
-      throttleTorque = CONFIG.torque * Math.min(speedFactor, 1);
-    }
+if (game.throttle && game.speed > 15) {
+  const speedFactor = (game.speed - 15) / 100;
+
+  // Lower gears = more lift torque
+  let gearLiftMultiplier = 1 - (game.gear - 1) * 0.18;
+  gearLiftMultiplier = Math.max(0.25, gearLiftMultiplier);
+
+  throttleTorque =
+    CONFIG.torque *
+    Math.min(speedFactor, 1) *
+    gearLiftMultiplier;
+}
 
     const gravityTorque =
       Math.sin(game.bikeAngle) * CONFIG.gravity * Math.cos(game.bikeAngle);
