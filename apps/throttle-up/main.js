@@ -60,7 +60,7 @@ const CONFIG = {
   frontTireX: 0.6, // Front tire position as fraction of bike width
 
   // Physics
-  maxSpeed: 170, // Maximum speed in game units
+  maxSpeed: 240, // Maximum speed in game units
   acceleration: 45, // from 08 Acceleration rate when throttle is applied (increased for better feedback)
   friction: 0.995, // Friction multiplier (closer to 1 = less friction)
   
