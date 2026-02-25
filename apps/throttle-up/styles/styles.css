@@ -146,30 +146,30 @@ body {
 /* Scoreboard */
 #scoreboard {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.8);
-  padding: var(--spacing-md);
+  flex-direction: row;
+  align-items: center;
+  gap: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 8px 16px;
   border-radius: var(--border-radius);
   border: 2px solid rgba(76, 175, 80, 0.3);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   pointer-events: auto;
   backdrop-filter: blur(10px);
   box-shadow: var(--shadow-md);
-  transition: transform var(--transition-normal);
 }
 
 #scoreboard:hover {
   transform: translateY(-2px);
 }
 
-#scoreboard div {
+/* #scoreboard div {
   display: flex;
   justify-content: space-between;
   gap: var(--spacing-md);
   min-width: 180px;
-}
+}*/
 
 #scoreboard span {
   color: var(--color-primary);
