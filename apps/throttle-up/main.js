@@ -95,12 +95,12 @@ const CONFIG = {
 };
 
 CONFIG.GEARS = [
-  { min: 0,   max: 30 },
-  { min: 25,  max: 60 },
-  { min: 55,  max: 95 },
-  { min: 90,  max: 125 },
-  { min: 120, max: 155 },
-  { min: 150, max: 190 }
+  { min: 0,   max: 80 },
+  { min: 80,  max: 110 },
+  { min: 110,  max: 140 },
+  { min: 140,  max: 170 },
+  { min: 170, max: 198 },
+  { min: 198, max: 260 }
 ];
 
 CONFIG.SHIFT_DELAY = 0.15; // seconds between shifts
