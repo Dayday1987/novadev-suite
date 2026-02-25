@@ -110,6 +110,7 @@ CONFIG.SHIFT_DELAY = 0.15; // seconds between shifts
 // ==========================================
 const game = {
   phase: "IDLE", // Current game phase: IDLE, COUNTDOWN, RACING
+  crashing: false,
   speed: 0, // Current forward speed
   scroll: 0, // Background scroll position (for visual reference only)
   lane: 1, // Current lane (0 = top, 1 = bottom)
@@ -124,11 +125,9 @@ const game = {
   bestScore: parseInt(localStorage.getItem("throttleUpBest")) || 0, // High score from storage
   inWheelie: false, // Whether currently performing a wheelie
   distance: 0, // Total distance traveled
-  dashOffset: 0, // Offset for road dash animation
-  crashing: false,
-
-  game.gear = 1,
-  game.shiftTimer = 0
+  dashOffset: 0, // Offset for road 
+  gear: 1,
+  shiftTimer: 0
 };
 
 
