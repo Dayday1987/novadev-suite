@@ -126,6 +126,8 @@ const game = {
   distance: 0, // Total distance traveled
   dashOffset: 0, // Offset for road dash animation
   crashing: false,
+  game.gear = 1;
+  game.shiftTimer = 0;
 };
 
 let width, height, roadYPos; // Canvas dimensions and road position
@@ -451,8 +453,6 @@ function togglePause() {
 function resetGame() {
   game.crashing = false; // reset crash flag
   game.phase = "IDLE"; // Set to idle phase
-  game.gear = 1;
-  game.shiftTimer = 0;
 
   game.speed = 0;
   game.bikeAngle = 0;
