@@ -841,12 +841,12 @@ function draw() {
       squatOffset *= 0.8;
     }
     const pivotX = width * CONFIG.BIKE_X_PERCENT; // Calculate bike pivot X position
+    const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount;
+const laneTopY = roadYPos + game.lane * laneHeight;
+const laneSurfaceY = laneTopY + laneHeight;
 
-    const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount; // Calculate lane height
-    const laneTopY = roadYPos + game.lane * laneHeight; // Calculate lane top Y
-    const laneSurfaceY = laneTopY + laneHeight; // Calculate lane surface Y
-    const targetY = laneSurfaceY - tS / 2; // Calculate target Y position
-
+const ROAD_OFFSET = -8; // adjust this value
+const targetY = laneSurfaceY - tS / 2 + ROAD_OFFSET;
     game.currentY += (targetY - game.currentY) * CONFIG.LANE_SWITCH_SMOOTHING; // Smoothly move to target Y
 
     ctx.save(); // Save canvas state
