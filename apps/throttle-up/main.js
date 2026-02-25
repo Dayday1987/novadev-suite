@@ -126,9 +126,10 @@ const game = {
   distance: 0, // Total distance traveled
   dashOffset: 0, // Offset for road dash animation
   crashing: false,
-  game.gear = 1;
-  game.shiftTimer = 0;
 };
+
+game.gear = 1;
+  game.shiftTimer = 0;
 
 let width, height, roadYPos; // Canvas dimensions and road position
 let lastTime = performance.now(); // Timestamp of last frame for deltaTime calculation
@@ -463,6 +464,8 @@ function resetGame() {
   game.scroll = 0;
   game.wheelRotation = 0;
   game.dashOffset = 0;
+  game.gear = 1;
+  game.shiftTimer = 0;
 
   particles.list = [];
   camera.shake = 0; // STOP camera shake immediately
@@ -591,8 +594,6 @@ if (game.bikeAngle < 0) {
   }
 }
 
-    // ===== TORQUE ONLY AFTER 20 MPH =====
-    // ===== TORQUE WITH GEAR INFLUENCE =====
     // ===== TORQUE WITH H2R-STYLE HIGH SPEED LIFT =====
 let throttleTorque = 0;
 
