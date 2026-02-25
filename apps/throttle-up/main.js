@@ -188,18 +188,18 @@ const particles = {
 
   // Create dust particles behind bike
   createDust(x, y) {
-  for (let i = 0; i < 1; i++) {
-    this.list.push({
-      x: x + (Math.random() - 0.5) * 8,
-      y: y + (Math.random() - 0.5) * 4,
-      vx: (Math.random() - 0.5) * 1.5 - game.speed * 0.02,
-      vy: -Math.random() * 1.5,
-      life: 1.0,
-      size: Math.random() * 6 + 6,
-      color: "rgba(200,200,200,0.6)"
-    });
-  }
-}
+    for (let i = 0; i < 1; i++) {
+      this.list.push({
+        x: x + (Math.random() - 0.5) * 8,
+        y: y + (Math.random() - 0.5) * 4,
+        vx: (Math.random() - 0.5) * 1.5 - game.speed * 0.02,
+        vy: -Math.random() * 1.5,
+        life: 1.0,
+        size: Math.random() * 6 + 6,
+        color: "rgba(200,200,200,0.6)",
+      });
+    }
+  },
 
   // Create spark particles for crash effect
   createCrashSparks(x, y) {
@@ -607,18 +607,16 @@ function update(now) {
     audio.updateEngineSound();
 
     // ===== BURNOUT SMOKE =====
-const bikeX = width * CONFIG.BIKE_X_PERCENT;
+    const bikeX = width * CONFIG.BIKE_X_PERCENT;
 
-const isBurnout =
-  game.throttle &&
-  game.speed < 20 &&
-  Math.abs(game.bikeAngle) < 0.05;
+    const isBurnout =
+      game.throttle && game.speed < 20 && Math.abs(game.bikeAngle) < 0.05;
 
-if (isBurnout) {
-  for (let i = 0; i < 6; i++) {
-    particles.createDust(bikeX - 35, game.currentY + 12);
-  }
-}
+    if (isBurnout) {
+      for (let i = 0; i < 6; i++) {
+        particles.createDust(bikeX - 35, game.currentY + 12);
+      }
+    }
 
     if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
       if (!game.inWheelie) {
@@ -699,9 +697,8 @@ function drawSpeedometer() {
   if (game.phase !== "RACING") return; // Only draw during race
 
   const radius = Math.min(width, height) * 0.08;
-const x = width - radius - 30;
-const y = height - radius - 30;
-  
+  const x = width - radius - 30;
+  const y = height - radius - 30;
 
   // Background circle
   ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black
@@ -785,8 +782,8 @@ function draw() {
     squatOffset += (6 - squatOffset) * 0.2;
     // Rear suspension squat during burnout
     if (!(game.phase === "RACING" && game.throttle && game.speed < 20)) {
-  squatOffset *= 0.8;
-}
+      squatOffset *= 0.8;
+    }
     const pivotX = width * CONFIG.BIKE_X_PERCENT; // Calculate bike pivot X position
 
     const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount; // Calculate lane height
@@ -797,10 +794,7 @@ function draw() {
     game.currentY += (targetY - game.currentY) * CONFIG.LANE_SWITCH_SMOOTHING; // Smoothly move to target Y
 
     ctx.save(); // Save canvas state
-    ctx.translate(
-  pivotX + CONFIG.rearTireXShift,
-  game.currentY + squatOffset
-);
+    ctx.translate(pivotX + CONFIG.rearTireXShift, game.currentY + squatOffset);
     ctx.rotate(game.bikeAngle); // Rotate by bike angle
 
     // Rear tire
@@ -904,7 +898,7 @@ function draw() {
   // UI overlays
   drawWheelieIndicator(); // Draw wheelie indicator if active
   drawSpeedometer(); // Draw speedometer
-  
+
   // Pause indicator
   if (paused) {
     // If game is paused
