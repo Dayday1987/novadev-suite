@@ -749,7 +749,7 @@ function drawSpeedometer() {
   if (game.phase !== "RACING") return; // Only draw during race
   
 
-  const radius = Math.min(width, height) * 0.08;
+  const radius = Math.min(width, height) * 0.06;
  const x = width - radius - 30;
 const y = radius + 30;
 
