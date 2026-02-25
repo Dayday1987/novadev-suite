@@ -747,11 +747,12 @@ function drawWheelieIndicator() {
 // Draw speedometer in corner
 function drawSpeedometer() {
   if (game.phase !== "RACING") return; // Only draw during race
-  
 
   const radius = Math.min(width, height) * 0.06;
- const x = width - radius - 30;
-const y = radius + 30;
+
+const topUIHeight = 100; // adjust once if needed
+const x = width - radius - 20;
+const y = topUIHeight + radius;
 
   // Background circle
   ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black
