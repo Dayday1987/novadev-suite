@@ -485,6 +485,8 @@ function resetGame() {
   particles.list = [];
   camera.shake = 0; // STOP camera shake immediately
 
+  audio.stop("neutral"); // ← add
+  audio.stop("launch"); // ← add
   audio.stop("lastGears");
   audio.stop("crowd");
 
