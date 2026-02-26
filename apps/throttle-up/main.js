@@ -357,6 +357,11 @@ const input = {
   startThrottle() {
     if (this.locked || !gameReady) return;
 
+    // Resume AudioContext on first user gesture
+    if (audio.ctx && audio.ctx.state === "suspended") {
+      audio.ctx.resume();
+    }
+
     if (game.phase === "IDLE") {
       game.phase = "COUNTDOWN";
       game.countdownIndex = 0;
