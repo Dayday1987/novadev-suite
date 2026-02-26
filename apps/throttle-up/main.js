@@ -127,6 +127,25 @@ const audio = {
 
   init() {
     try {
+      // Only load one-shot sound files here (no AudioContext yet)
+      this.sounds.crowd = new Audio("assets/audio/crowd.mp3");
+      this.sounds.crowd.volume = 0.3;
+
+      this.sounds.crash = new Audio("assets/audio/crash.mp3");
+      this.sounds.crash.volume = 0.5;
+
+      this.sounds.chirp = new Audio("assets/audio/chirp.mp3");
+      this.sounds.chirp.volume = 0.6;
+    } catch (e) {
+      console.warn("Audio initialization failed:", e);
+      this.enabled = false;
+    }
+  },
+
+  // Call this on first user gesture instead
+  initContext() {
+    if (this.ctx) return; // already created
+    try {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
 
       this.masterGain = this.ctx.createGain();
@@ -157,17 +176,8 @@ const audio = {
         this.oscillators.push(osc);
         this.gainNodes.push(gain);
       });
-
-      this.sounds.crowd = new Audio("assets/audio/crowd.mp3");
-      this.sounds.crowd.volume = 0.3;
-
-      this.sounds.crash = new Audio("assets/audio/crash.mp3");
-      this.sounds.crash.volume = 0.5;
-
-      this.sounds.chirp = new Audio("assets/audio/chirp.mp3");
-      this.sounds.chirp.volume = 0.6;
     } catch (e) {
-      console.warn("Audio initialization failed:", e);
+      console.warn("AudioContext init failed:", e);
       this.enabled = false;
     }
   },
@@ -203,7 +213,8 @@ const audio = {
     const smoothing = game.throttle ? 0.18 : 0.06;
     this.currentRPM += (targetRPM - this.currentRPM) * smoothing;
 
-    const baseFreq = (this.currentRPM / 60) * 0.8;
+    // ← key fix: multiply by 4 to push into audible range (80Hz+ at idle)
+    const baseFreq = (this.currentRPM / 60) * 4;
 
     this.oscillators.forEach((osc, i) => {
       const harmonic = [1, 2, 3, 4, 6][i];
@@ -357,10 +368,7 @@ const input = {
   startThrottle() {
     if (this.locked || !gameReady) return;
 
-    // Resume AudioContext on first user gesture
-    if (audio.ctx && audio.ctx.state === "suspended") {
-      audio.ctx.resume();
-    }
+    audio.initContext(); // ← create AudioContext on first gesture, guaranteed running
 
     if (game.phase === "IDLE") {
       game.phase = "COUNTDOWN";
