@@ -154,6 +154,12 @@ const audio = {
       this.sounds.lastGears = new Audio("assets/audio/last-gears.mp3"); // Upshift sound
       this.sounds.lastGears.volume = 0.2; // Set initial upshift volume
 
+      this.sounds.crowd = new Audio("assets/audio/crowd.mp3");
+      this.sounds.crowd.volume = 0.3;
+
+      this.sounds.crash = new Audio("assets/audio/crash.mp3");
+      this.sounds.crash.volume = 0.5;
+
       this.sounds.neutral.loop = true; // Engine sound loops continuously
       this.sounds.launch.loop = false; // Upshifting sound loops continuously
       this.sounds.lastGears.loop = false; // Last gears sound loops continuously
@@ -184,7 +190,7 @@ const audio = {
 
   // Update engine sound based on current speed
   updateEngineSound() {
-    if (this.enabled && this.sounds.engine) {
+    if (this.enabled && this.sounds.neutral) {
       // Check if audio enabled and engine sound exists
       const pitchFactor = 1 + (game.speed / CONFIG.maxSpeed) * 0.5; // Calculate pitch based on speed
       this.sounds.lastGears.playbackRate = Math.max(
@@ -449,10 +455,10 @@ function togglePause() {
 
   if (paused) {
     // If now paused
-    audio.stop("lastGears"); // Stop last gears sound
+    audio.stop("launch"); // Stop last gears sound
   } else {
     // If now unpaused
-    audio.play("lastGears"); // Start engine sound
+    audio.play("launch"); // Start engine sound
     lastTime = performance.now(); // Reset time for deltaTime calculation
   }
 }
@@ -585,8 +591,6 @@ function update(now) {
 
         game.gear++;
         game.shiftTimer = CONFIG.SHIFT_DELAY;
-
-        audio.playChirp();
 
         // play correct shift sound
         if (previousGear === 5 && game.gear === 6) {
