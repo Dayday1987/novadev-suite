@@ -187,8 +187,11 @@ const audio = {
     if (this.enabled && this.sounds.engine) {
       // Check if audio enabled and engine sound exists
       const pitchFactor = 1 + (game.speed / CONFIG.maxSpeed) * 0.5; // Calculate pitch based on speed
-      this.sounds.engine.playbackRate = Math.max(0.5, Math.min(2, pitchFactor)); // Set playback rate (clamped)
-      this.sounds.engine.volume = game.throttle ? 0.4 : 0.2; // Louder when throttling
+      this.sounds.lastGears.playbackRate = Math.max(
+        0.5,
+        Math.min(2, pitchFactor),
+      ); // Set playback rate (clamped)
+      this.sounds.lastGears.volume = game.throttle ? 0.4 : 0.2; // Louder when throttling
     }
   },
 };
