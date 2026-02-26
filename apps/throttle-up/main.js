@@ -316,7 +316,7 @@ const input = {
       game.phase = "COUNTDOWN"; // Start countdown
       game.countdownIndex = 0; // Reset countdown
       game.countdownTimer = performance.now(); // Record start time
-      audio.play = "neutral"; // Play engine sound
+      audio.play("neutral"); // Play engine sound
       audio.play("crowd"); // Play crowd sound
     }
 
@@ -497,7 +497,7 @@ function crash() {
   camera.startShake(15);
   particles.createCrashSparks(bikeX, game.currentY);
 
-  audio.stop("engine");
+  audio.stop("lastGears");
   audio.play("crash");
 
   setTimeout(() => {
@@ -540,33 +540,30 @@ function update(now) {
 
   // COUNTDOWN
   if (game.phase === "COUNTDOWN") {
-    audio.play("neutral");
-  }
-  if (now - game.countdownTimer > CONFIG.COUNTDOWN_INTERVAL_MS) {
-    game.countdownIndex++;
-    game.countdownTimer = now;
+    if (now - game.countdownTimer > CONFIG.COUNTDOWN_INTERVAL_MS) {
+      game.countdownIndex++;
+      game.countdownTimer = now;
 
-    if (game.countdownIndex >= 3) {
-      game.phase = "RACING";
-      audio.stop("neutral");
-      audio.play("launch");
-      audio.play("lastGears");
+      if (game.countdownIndex >= 3) {
+        game.phase = "RACING";
+        audio.stop("neutral");
+        audio.play("launch");
+      }
     }
+    return;
   }
-  return;
-}
 
-if (game.phase === "RACING") {
-  const angleDeg = Math.abs((game.bikeAngle * 180) / Math.PI);
+  if (game.phase === "RACING") {
+    const angleDeg = Math.abs((game.bikeAngle * 180) / Math.PI);
+    // ===== SPEED WITH GEARS =====
+    let gearRatio = 1 - (game.gear - 1) * 0.08;
+    gearRatio = Math.max(0.55, gearRatio);
 
-  // ===== SPEED WITH GEARS =====
-  let gearRatio = 1 - (game.gear - 1) * 0.08;
-  gearRatio = Math.max(0.55, gearRatio);
-
-  if (game.throttle) {
-    game.speed += CONFIG.acceleration * gearRatio * deltaTime;
-  } else {
-    game.speed -= game.speed * (1 - CONFIG.friction) * 60 * deltaTime;
+    if (game.throttle) {
+      game.speed += CONFIG.acceleration * gearRatio * deltaTime;
+    } else {
+      game.speed -= game.speed * (1 - CONFIG.friction) * 60 * deltaTime;
+    }
     if (game.speed < 0.05) {
       game.speed = 0;
     }
@@ -585,6 +582,8 @@ if (game.phase === "RACING") {
 
         game.gear++;
         game.shiftTimer = CONFIG.SHIFT_DELAY;
+
+        audio.playChirp();
 
         // play correct shift sound
         if (previousGear === 5 && game.gear === 6) {
