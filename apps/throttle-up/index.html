@@ -36,16 +36,17 @@
   <div id="game-container">
     <!-- Header UI -->
     <header id="ui-top">
-      <div id="scoreboard">
-        <div>Score: <span id="score">0</span></div>
-        <div>Distance: <span id="distance">0</span>m</div>
-        <div>Best: <span id="highscore">0</span></div>
-      </div>
-      <div id="top-buttons">
-        <button class="btn" id="infoBtn" aria-label="Information">ℹ️</button>
-        <button class="btn" id="homeBtn" aria-label="Home">🏠</button>
-      </div>
-    </header>
+  <div id="scoreboard">
+    <span>Score: <span id="score">0</span></span>
+    <span>Distance: <span id="distance">0</span>m</span>
+    <span>Best: <span id="highscore">0</span></span>
+  </div>
+
+  <div id="top-buttons">
+    <button class="btn" id="infoBtn">ℹ️</button>
+    <button class="btn" id="homeBtn">🏠</button>
+  </div>
+</header>
 
     <!-- Game Canvas -->
     <canvas id="gameCanvas" role="application" aria-label="Throttle Up Game"></canvas>

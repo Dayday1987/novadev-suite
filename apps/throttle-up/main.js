@@ -60,9 +60,10 @@ const CONFIG = {
   frontTireX: 0.6, // Front tire position as fraction of bike width
 
   // Physics
-  maxSpeed: 170, // Maximum speed in game units
+  maxSpeed: 240, // Maximum speed in game units
   acceleration: 45, // from 08 Acceleration rate when throttle is applied (increased for better feedback)
   friction: 0.995, // Friction multiplier (closer to 1 = less friction)
+  
 
   // Wheelie mechanics
   torque: 10.0, // added 13 Rotational force applied during wheelie (stronger for sustained wheelies)
@@ -93,11 +94,23 @@ const CONFIG = {
   COUNTDOWN_INTERVAL_MS: 800, // Time between countdown steps (milliseconds)
 };
 
+CONFIG.GEARS = [
+  { min: 0,   max: 80 },
+  { min: 80,  max: 110 },
+  { min: 110,  max: 140 },
+  { min: 140,  max: 170 },
+  { min: 170, max: 198 },
+  { min: 198, max: 260 }
+];
+
+CONFIG.SHIFT_DELAY = 0.15; // seconds between shifts
+
 // ==========================================
 // GAME STATE
 // ==========================================
 const game = {
   phase: "IDLE", // Current game phase: IDLE, COUNTDOWN, RACING
+  crashing: false,
   speed: 0, // Current forward speed
   scroll: 0, // Background scroll position (for visual reference only)
   lane: 1, // Current lane (0 = top, 1 = bottom)
@@ -112,9 +125,12 @@ const game = {
   bestScore: parseInt(localStorage.getItem("throttleUpBest")) || 0, // High score from storage
   inWheelie: false, // Whether currently performing a wheelie
   distance: 0, // Total distance traveled
-  dashOffset: 0, // Offset for road dash animation
-  crashing: false,
+  dashOffset: 0, // Offset for road 
+  gear: 1,
+  shiftTimer: 0
 };
+
+
 
 let width, height, roadYPos; // Canvas dimensions and road position
 let lastTime = performance.now(); // Timestamp of last frame for deltaTime calculation
@@ -449,6 +465,8 @@ function resetGame() {
   game.scroll = 0;
   game.wheelRotation = 0;
   game.dashOffset = 0;
+  game.gear = 1;
+  game.shiftTimer = 0;
 
   particles.list = [];
   camera.shake = 0; // STOP camera shake immediately
@@ -532,23 +550,69 @@ function update(now) {
   if (game.phase === "RACING") {
     const angleDeg = Math.abs((game.bikeAngle * 180) / Math.PI);
 
-    // ===== SPEED =====
-    if (game.throttle) {
-      game.speed += CONFIG.acceleration * deltaTime;
-    } else {
-      game.speed *= Math.pow(CONFIG.friction, deltaTime * 60);
-      if (game.speed < 0.05) game.speed = 0;
-    }
+    // ===== SPEED WITH GEARS =====
+let gearRatio = 1 - (game.gear - 1) * 0.12;
+gearRatio = Math.max(0.35, gearRatio); // prevent weak high gears
 
-    game.speed = Math.min(game.speed, CONFIG.maxSpeed);
+if (game.throttle) {
+  game.speed += CONFIG.acceleration * gearRatio * deltaTime;
+} else {
+  game.speed *= Math.pow(CONFIG.friction, deltaTime * 60);
+  if (game.speed < 0.05) game.speed = 0;
+}
 
-    // ===== TORQUE ONLY AFTER 20 MPH =====
-    let throttleTorque = 0;
+game.speed = Math.min(game.speed, CONFIG.maxSpeed);
 
-    if (game.throttle && game.speed > 20) {
-      const speedFactor = (game.speed - 20) / 100;
-      throttleTorque = CONFIG.torque * Math.min(speedFactor, 1);
-    }
+    // ===== GEAR SYSTEM =====
+game.shiftTimer -= deltaTime;
+
+if (game.shiftTimer <= 0) {
+  const currentGearData = CONFIG.GEARS[game.gear - 1];
+
+  // ======= Shift up =======
+  if (
+    game.gear < CONFIG.GEARS.length &&
+    game.speed > currentGearData.max
+  ) {
+    game.gear++;
+    game.shiftTimer = CONFIG.SHIFT_DELAY;
+
+    // Simulate RPM drop
+    // ===== SHIFT TORQUE CUT EFFECT =====
+if (game.bikeAngle < 0) {
+  // Small forward dip during shift
+  game.bikeAngularVelocity += 1.2; 
+}
+  }
+
+  // ====== Shift down =======
+  if (
+    game.gear > 1 &&
+    game.speed < CONFIG.GEARS[game.gear - 2].min
+  ) {
+    game.gear--;
+    game.shiftTimer = CONFIG.SHIFT_DELAY;
+  }
+}
+
+    // ===== TORQUE WITH H2R-STYLE HIGH SPEED LIFT =====
+let throttleTorque = 0;
+
+if (game.throttle && game.speed > 15) {
+  const speedFactor = (game.speed - 15) / 100;
+
+  // Base gear multiplier
+  let gearLiftMultiplier = 1 - (game.gear - 1) * 0.14;
+  gearLiftMultiplier = Math.max(0.45, gearLiftMultiplier);
+
+  // High speed aerodynamic lift assist
+  const aeroLift = Math.min(game.speed / 180, 1) * 0.35;
+
+  throttleTorque =
+    CONFIG.torque *
+    Math.min(speedFactor, 1) *
+    (gearLiftMultiplier + aeroLift);
+}
 
     const gravityTorque =
       Math.sin(game.bikeAngle) * CONFIG.gravity * Math.cos(game.bikeAngle);
@@ -687,9 +751,11 @@ function drawWheelieIndicator() {
 function drawSpeedometer() {
   if (game.phase !== "RACING") return; // Only draw during race
 
-  const radius = Math.min(width, height) * 0.08;
-  const x = width - radius - 30;
-  const y = height - radius - 30;
+  const radius = Math.min(width, height) * 0.06;
+
+const topUIHeight = 100; // adjust once if needed
+const x = width - radius - 20;
+const y = topUIHeight + radius;
 
   // Background circle
   ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black
@@ -723,6 +789,9 @@ function drawSpeedometer() {
 
   ctx.font = "12px Roboto Mono, monospace"; // Smaller font
   ctx.fillText("km/h", x, y + 20); // Draw units label
+
+  ctx.font = "bold 18px Roboto Mono";
+  ctx.fillText(`G${game.gear}`, x, y + 40);
 }
 
 // Main draw function called every frame
@@ -776,12 +845,12 @@ function draw() {
       squatOffset *= 0.8;
     }
     const pivotX = width * CONFIG.BIKE_X_PERCENT; // Calculate bike pivot X position
+    const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount;
+    const laneTopY = roadYPos + game.lane * laneHeight;
+    const laneSurfaceY = laneTopY + laneHeight;
 
-    const laneHeight = CONFIG.roadStripHeight / CONFIG.laneCount; // Calculate lane height
-    const laneTopY = roadYPos + game.lane * laneHeight; // Calculate lane top Y
-    const laneSurfaceY = laneTopY + laneHeight; // Calculate lane surface Y
-    const targetY = laneSurfaceY - tS / 2; // Calculate target Y position
-
+const ROAD_OFFSET = -8; // adjust this value
+const targetY = laneSurfaceY - tS / 2 + ROAD_OFFSET;
     game.currentY += (targetY - game.currentY) * CONFIG.LANE_SWITCH_SMOOTHING; // Smoothly move to target Y
 
     ctx.save(); // Save canvas state
