@@ -125,9 +125,9 @@ const audio = {
   currentRPM: 1000,
   sounds: {},
 
-  init() {
+  /*init() {
     try {
-      // Only load one-shot sound files here (no AudioContext yet)
+      Only load one-shot sound files here (no AudioContext yet)
       this.sounds.crowd = new Audio("assets/audio/crowd.mp3");
       this.sounds.crowd.volume = 0.3;
 
@@ -140,7 +140,7 @@ const audio = {
       console.warn("Audio initialization failed:", e);
       this.enabled = false;
     }
-  },
+  },*/
 
   // Call this on first user gesture instead
   initContext() {
@@ -228,7 +228,7 @@ const audio = {
     this.masterGain.gain.setTargetAtTime(targetVol, now, 0.08);
   },
 
-  playChirp() {
+  /* playChirp() {
     if (!this.enabled || !this.ctx) return;
     const now = this.ctx.currentTime;
     this.oscillators.forEach((osc, i) => {
@@ -239,7 +239,7 @@ const audio = {
       osc.frequency.setTargetAtTime(currentFreq, now + 0.2, 0.1);
     });
     this.play("chirp");
-  },
+  },*/
 
   stopEngine() {
     if (!this.enabled || !this.ctx) return;
@@ -374,7 +374,7 @@ const input = {
       game.phase = "COUNTDOWN";
       game.countdownIndex = 0;
       game.countdownTimer = performance.now();
-      audio.play("crowd");
+      //audio.play("crowd");
     }
 
     game.throttle = true;
@@ -519,8 +519,8 @@ function resetGame() {
   camera.shake = 0;
 
   audio.stopEngine();
-  audio.stop("crowd");
-  audio.stop("crash");
+  // audio.stop("crowd");
+  // audio.stop("crash");
 
   updateUI();
 }
@@ -538,7 +538,7 @@ function crash() {
   particles.createCrashSparks(bikeX, game.currentY);
 
   audio.stopEngine();
-  audio.play("crash");
+  //audio.play("crash");
 
   setTimeout(() => {
     endWheelie();
