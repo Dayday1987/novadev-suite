@@ -117,6 +117,7 @@ const game = {
   throttle: false, // Whether throttle is currently pressed
   countdownIndex: 0, // Current countdown step (0-3)
   countdownTimer: 0, // Timestamp for countdown timing
+  launchSmokeTimer: 0,
   bikeAngle: 0, // Current rotation angle of bike (radians, negative = wheelie)
   bikeAngularVelocity: 0, // Rate of rotation change
   currentY: 0, // Current Y position of bike on screen
@@ -551,13 +552,13 @@ function update(now) {
     const angleDeg = Math.abs((game.bikeAngle * 180) / Math.PI);
 
     // ===== SPEED WITH GEARS =====
-let gearRatio = 1 - (game.gear - 1) * 0.12;
-gearRatio = Math.max(0.35, gearRatio); // prevent weak high gears
+let gearRatio = 1 - (game.gear - 1) * 0.08;
+gearRatio = Math.max(0.55, gearRatio);
 
 if (game.throttle) {
   game.speed += CONFIG.acceleration * gearRatio * deltaTime;
 } else {
-  game.speed *= Math.pow(CONFIG.friction, deltaTime * 60);
+  game.speed -= game.speed * (1 - CONFIG.friction) * 60 * deltaTime;
   if (game.speed < 0.05) game.speed = 0;
 }
 
@@ -658,20 +659,28 @@ if (game.throttle && game.speed > 15) {
     }
 
     audio.updateEngineSound();
-
+    
     // ===== BURNOUT SMOKE =====
-    const bikeX = width * CONFIG.BIKE_X_PERCENT;
+const bikeX = width * CONFIG.BIKE_X_PERCENT;
 
-    const isBurnout =
-      game.throttle &&
-      game.speed < 35 && // allow more window
-      game.bikeAngle > -0.15 && // still near ground
-      game.bikeAngularVelocity < 0.5; // not lifting fast yet
+const isGrounded =
+  game.bikeAngle >= CONFIG.GROUND_CONTACT_ANGLE - 0.01;
 
-    if (isBurnout) {
-      for (let i = 0; i < 4; i++) {
-        particles.createDust(bikeX - 35, game.currentY + 12);
-      }
+const isBurnout =
+  game.throttle &&
+  game.gear === 1 &&
+  game.speed < 12 &&
+  isGrounded &&
+  Math.abs(game.bikeAngularVelocity) < 0.2;
+
+if (isBurnout) {
+  game.launchSmokeTimer = 0.2; // 200ms burst
+}
+
+if (game.launchSmokeTimer > 0) {
+  particles.createDust(bikeX - 35, game.currentY + 12);
+  game.launchSmokeTimer -= deltaTime;
+}
     }
 
     if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
