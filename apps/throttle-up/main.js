@@ -28,7 +28,7 @@ function loadAsset(asset, src) {
     assetsLoaded++;
     if (assetsLoaded === TOTAL_ASSETS) {
       gameReady = true;
-      audio.init();
+      // audio.init();
     }
   };
   asset.img.onerror = () => {
@@ -611,7 +611,7 @@ function update(now) {
       if (game.gear < CONFIG.GEARS.length && game.speed > currentGearData.max) {
         game.gear++;
         game.shiftTimer = CONFIG.SHIFT_DELAY;
-       // audio.playChirp();
+        // audio.playChirp();
 
         if (game.bikeAngle < 0) {
           game.bikeAngularVelocity += 1.2;
