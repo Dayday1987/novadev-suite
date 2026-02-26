@@ -747,15 +747,19 @@ function drawWheelieIndicator() {
   ctx.restore(); // Restore canvas state
 }
 
+function getHeaderHeight() {
+  const header = document.getElementById("ui-top");
+  return header ? header.offsetHeight : 100;
+}
 // Draw speedometer in corner
 function drawSpeedometer() {
   if (game.phase !== "RACING") return; // Only draw during race
 
-  const radius = Math.min(width, height) * 0.06;
+  const radius = Math.min(width, height) * 0.055;
 
-const topUIHeight = 100; // adjust once if needed
+const headerHeight = getHeaderHeight();
 const x = width - radius - 20;
-const y = topUIHeight + radius;
+const y = headerHeight + radius + 10;
 
   // Background circle
   ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black
