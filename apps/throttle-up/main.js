@@ -149,14 +149,14 @@ const audio = {
       this.sounds.neutral.volume = 0.2; // Set initial engine volume
 
       this.sounds.launch = new Audio("assets/audio/engine-upshifting.mp3"); // Neutral engine sound
-      this.sounds.launch.volume = 0.2; // Set initial neutral volume
+      this.sounds.launch.volume = 0.35; // Set initial neutral volume
 
-      this.sounds.engine = new Audio("assets/audio/last-gears.mp3"); // Upshift sound
-      this.sounds.engine.volume = 0.2; // Set initial upshift volume
+      this.sounds.lastGears = new Audio("assets/audio/last-gears.mp3"); // Upshift sound
+      this.sounds.lastGears.volume = 0.2; // Set initial upshift volume
 
       this.sounds.neutral.loop = true; // Engine sound loops continuously
       this.sounds.launch.loop = false; // Upshifting sound loops continuously
-      this.sounds.engine.loop = true; // Last gears sound loops continuously
+      this.sounds.lastGears.loop = false; // Last gears sound loops continuously
     } catch (e) {
       console.warn("Audio initialization failed:", e); // Log if audio fails
       this.enabled = false; // Disable audio system
@@ -446,10 +446,10 @@ function togglePause() {
 
   if (paused) {
     // If now paused
-    audio.stop("engine"); // Stop engine sound
+    audio.stop("lastGears"); // Stop last gears sound
   } else {
     // If now unpaused
-    audio.play("engine"); // Start engine sound
+    audio.play("lastGears"); // Start engine sound
     lastTime = performance.now(); // Reset time for deltaTime calculation
   }
 }
@@ -476,7 +476,7 @@ function resetGame() {
   particles.list = [];
   camera.shake = 0; // STOP camera shake immediately
 
-  audio.stop("engine");
+  audio.stop("lastGears");
   audio.stop("crowd");
 
   updateUI();
@@ -550,7 +550,7 @@ function update(now) {
       game.phase = "RACING";
       audio.stop("neutral");
       audio.play("launch");
-      audio.play("engine");
+      audio.play("lastGears");
     }
   }
   return;
@@ -581,8 +581,17 @@ if (game.phase === "RACING") {
 
       // ======= Shift up =======
       if (game.gear < CONFIG.GEARS.length && game.speed > currentGearData.max) {
+        const previousGear = game.gear;
+
         game.gear++;
         game.shiftTimer = CONFIG.SHIFT_DELAY;
+
+        // play correct shift sound
+        if (previousGear === 5 && game.gear === 6) {
+          audio.play("lastGears"); // Play last gears sound
+        } else {
+          audio.play("launch"); // Play neutral engine sound for regular shifts
+        }
 
         // Simulate RPM drop
         // ===== SHIFT TORQUE CUT EFFECT =====
