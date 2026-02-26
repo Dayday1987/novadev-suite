@@ -63,7 +63,6 @@ const CONFIG = {
   maxSpeed: 240, // Maximum speed in game units
   acceleration: 45, // from 08 Acceleration rate when throttle is applied (increased for better feedback)
   friction: 0.995, // Friction multiplier (closer to 1 = less friction)
-  
 
   // Wheelie mechanics
   torque: 10.0, // added 13 Rotational force applied during wheelie (stronger for sustained wheelies)
@@ -95,12 +94,12 @@ const CONFIG = {
 };
 
 CONFIG.GEARS = [
-  { min: 0,   max: 80 },
-  { min: 80,  max: 110 },
-  { min: 110,  max: 140 },
-  { min: 140,  max: 170 },
+  { min: 0, max: 80 },
+  { min: 80, max: 110 },
+  { min: 110, max: 140 },
+  { min: 140, max: 170 },
   { min: 170, max: 198 },
-  { min: 198, max: 260 }
+  { min: 198, max: 260 },
 ];
 
 CONFIG.SHIFT_DELAY = 0.15; // seconds between shifts
@@ -126,12 +125,10 @@ const game = {
   bestScore: parseInt(localStorage.getItem("throttleUpBest")) || 0, // High score from storage
   inWheelie: false, // Whether currently performing a wheelie
   distance: 0, // Total distance traveled
-  dashOffset: 0, // Offset for road 
+  dashOffset: 0, // Offset for road
   gear: 1,
-  shiftTimer: 0
+  shiftTimer: 0,
 };
-
-
 
 let width, height, roadYPos; // Canvas dimensions and road position
 let lastTime = performance.now(); // Timestamp of last frame for deltaTime calculation
@@ -148,14 +145,18 @@ const audio = {
   // Initialize all audio files
   init() {
     try {
-      this.sounds.engine = new Audio("assets/audio/engine-rev.mp3"); // Engine sound
-      this.sounds.crash = new Audio("assets/audio/crash.wav"); // Crash sound effect
-      this.sounds.crowd = new Audio("assets/audio/crowd.wav"); // Crowd ambience
+      this.sounds.neutral = new Audio("assets/audio/neutral-rev.mp3"); // Engine sound
+      this.sounds.neutral.volume = 0.2; // Set initial engine volume
+      this.sounds.launch = new Audio("assets/audio/engine-upshifting.mp3"); // Neutral engine sound
+      this.sounds.launch.volume = 0.2; // Set initial neutral volume
+      this.sounds.engine = new Audio("assets/audio/last-gears.mp3"); // Upshift sound
+      this.sounds.engine.volume = 0.2; // Set initial upshift volume
 
-      this.sounds.engine.loop = true; // Engine sound loops continuously
-      this.sounds.crowd.loop = true; // Crowd sound loops continuously
-      this.sounds.crowd.volume = 0.3; // Set crowd volume lower
-    } catch (e) {
+      this.sounds.neutral.loop = true; // Engine sound loops continuously
+      this.sounds.launch.loop = true; // Upshifting sound loops continuously
+      this.sounds.engine.loop = true; // Last gears sound loops continuously
+      
+      
       console.warn("Audio initialization failed:", e); // Log if audio fails
       this.enabled = false; // Disable audio system
     }
@@ -536,12 +537,16 @@ function update(now) {
 
   // COUNTDOWN
   if (game.phase === "COUNTDOWN") {
+    audio.play("neutral");
+  }
     if (now - game.countdownTimer > CONFIG.COUNTDOWN_INTERVAL_MS) {
       game.countdownIndex++;
       game.countdownTimer = now;
 
       if (game.countdownIndex >= 3) {
         game.phase = "RACING";
+        audio.stop("neutral");
+        audio.play("launch");
         audio.play("engine");
       }
     }
@@ -552,136 +557,132 @@ function update(now) {
     const angleDeg = Math.abs((game.bikeAngle * 180) / Math.PI);
 
     // ===== SPEED WITH GEARS =====
-let gearRatio = 1 - (game.gear - 1) * 0.08;
-gearRatio = Math.max(0.55, gearRatio);
+    let gearRatio = 1 - (game.gear - 1) * 0.08;
+    gearRatio = Math.max(0.55, gearRatio);
 
-if (game.throttle) {
-  game.speed += CONFIG.acceleration * gearRatio * deltaTime;
-} else {
-  game.speed -= game.speed * (1 - CONFIG.friction) * 60 * deltaTime;
-  if (game.speed < 0.05) game.speed = 0;
-}
+    if (game.throttle) {
+      game.speed += CONFIG.acceleration * gearRatio * deltaTime;
+    } else {
+      game.speed -= game.speed * (1 - CONFIG.friction) * 60 * deltaTime;
+      if (game.speed < 0.05) {
+        game.speed = 0;
+      }
 
-game.speed = Math.min(game.speed, CONFIG.maxSpeed);
+      game.speed = Math.min(game.speed, CONFIG.maxSpeed);
 
-    // ===== GEAR SYSTEM =====
-game.shiftTimer -= deltaTime;
+      // ===== GEAR SYSTEM =====
+      game.shiftTimer -= deltaTime;
 
-if (game.shiftTimer <= 0) {
-  const currentGearData = CONFIG.GEARS[game.gear - 1];
+      if (game.shiftTimer <= 0) {
+        const currentGearData = CONFIG.GEARS[game.gear - 1];
 
-  // ======= Shift up =======
-  if (
-    game.gear < CONFIG.GEARS.length &&
-    game.speed > currentGearData.max
-  ) {
-    game.gear++;
-    game.shiftTimer = CONFIG.SHIFT_DELAY;
+        // ======= Shift up =======
+        if (
+          game.gear < CONFIG.GEARS.length &&
+          game.speed > currentGearData.max
+        ) {
+          game.gear++;
+          game.shiftTimer = CONFIG.SHIFT_DELAY;
 
-    // Simulate RPM drop
-    // ===== SHIFT TORQUE CUT EFFECT =====
-if (game.bikeAngle < 0) {
-  // Small forward dip during shift
-  game.bikeAngularVelocity += 1.2; 
-}
-  }
+          // Simulate RPM drop
+          // ===== SHIFT TORQUE CUT EFFECT =====
+          if (game.bikeAngle < 0) {
+            // Small forward dip during shift
+            game.bikeAngularVelocity += 1.2;
+          }
+        }
 
-  // ====== Shift down =======
-  if (
-    game.gear > 1 &&
-    game.speed < CONFIG.GEARS[game.gear - 2].min
-  ) {
-    game.gear--;
-    game.shiftTimer = CONFIG.SHIFT_DELAY;
-  }
-}
+        // ====== Shift down =======
+        if (game.gear > 1 && game.speed < CONFIG.GEARS[game.gear - 2].min) {
+          game.gear--;
+          game.shiftTimer = CONFIG.SHIFT_DELAY;
+        }
+      }
 
-    // ===== TORQUE WITH H2R-STYLE HIGH SPEED LIFT =====
-let throttleTorque = 0;
+      // ===== TORQUE WITH H2R-STYLE HIGH SPEED LIFT =====
+      let throttleTorque = 0;
 
-if (game.throttle && game.speed > 15) {
-  const speedFactor = (game.speed - 15) / 100;
+      if (game.throttle && game.speed > 15) {
+        const speedFactor = (game.speed - 15) / 100;
 
-  // Base gear multiplier
-  let gearLiftMultiplier = 1 - (game.gear - 1) * 0.14;
-  gearLiftMultiplier = Math.max(0.45, gearLiftMultiplier);
+        // Base gear multiplier
+        let gearLiftMultiplier = 1 - (game.gear - 1) * 0.14;
+        gearLiftMultiplier = Math.max(0.45, gearLiftMultiplier);
 
-  // High speed aerodynamic lift assist
-  const aeroLift = Math.min(game.speed / 180, 1) * 0.35;
+        // High speed aerodynamic lift assist
+        const aeroLift = Math.min(game.speed / 180, 1) * 0.35;
 
-  throttleTorque =
-    CONFIG.torque *
-    Math.min(speedFactor, 1) *
-    (gearLiftMultiplier + aeroLift);
-}
+        throttleTorque =
+          CONFIG.torque *
+          Math.min(speedFactor, 1) *
+          (gearLiftMultiplier + aeroLift);
+      }
 
-    const gravityTorque =
-      Math.sin(game.bikeAngle) * CONFIG.gravity * Math.cos(game.bikeAngle);
+      const gravityTorque =
+        Math.sin(game.bikeAngle) * CONFIG.gravity * Math.cos(game.bikeAngle);
 
-    let angularAcceleration = -throttleTorque - gravityTorque;
+      let angularAcceleration = -throttleTorque - gravityTorque;
 
-    // Progressive rotation realism
-    if (game.bikeAngle < 0) {
-      const riseFactor = Math.min(Math.abs(game.bikeAngle) / 1.2, 1);
-      angularAcceleration *= 0.6 + riseFactor * 0.6;
-    }
+      // Progressive rotation realism
+      if (game.bikeAngle < 0) {
+        const riseFactor = Math.min(Math.abs(game.bikeAngle) / 1.2, 1);
+        angularAcceleration *= 0.6 + riseFactor * 0.6;
+      }
 
-    // ===== INTEGRATE =====
-    game.bikeAngularVelocity += angularAcceleration * deltaTime;
-    game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime * 60);
+      // ===== INTEGRATE =====
+      game.bikeAngularVelocity += angularAcceleration * deltaTime;
+      game.bikeAngularVelocity *= Math.pow(CONFIG.damping, deltaTime * 60);
 
-    const MAX_ANGULAR_VEL = 5.0;
-    game.bikeAngularVelocity = Math.max(
-      -MAX_ANGULAR_VEL,
-      Math.min(MAX_ANGULAR_VEL, game.bikeAngularVelocity),
-    );
+      const MAX_ANGULAR_VEL = 5.0;
+      game.bikeAngularVelocity = Math.max(
+        -MAX_ANGULAR_VEL,
+        Math.min(MAX_ANGULAR_VEL, game.bikeAngularVelocity),
+      );
 
-    game.bikeAngle += game.bikeAngularVelocity * deltaTime;
+      game.bikeAngle += game.bikeAngularVelocity * deltaTime;
 
-    // Front wheel clamp
-    if (game.bikeAngle > CONFIG.GROUND_CONTACT_ANGLE) {
-      game.bikeAngle = CONFIG.GROUND_CONTACT_ANGLE;
-      game.bikeAngularVelocity = 0;
-    }
+      // Front wheel clamp
+      if (game.bikeAngle > CONFIG.GROUND_CONTACT_ANGLE) {
+        game.bikeAngle = CONFIG.GROUND_CONTACT_ANGLE;
+        game.bikeAngularVelocity = 0;
+      }
 
-    // Full loop crash allowed
-    if (Math.abs(game.bikeAngle) > 2.2) crash();
+      // Full loop crash allowed
+      if (Math.abs(game.bikeAngle) > 2.2) crash();
 
-    // ===== WORLD SPEED =====
-    const WORLD_SPEED_SCALE = 18;
-    const worldSpeed = game.speed * WORLD_SPEED_SCALE;
+      // ===== WORLD SPEED =====
+      const WORLD_SPEED_SCALE = 18;
+      const worldSpeed = game.speed * WORLD_SPEED_SCALE;
 
-    if (game.speed > 0) {
-      game.scroll -= worldSpeed * deltaTime;
-      game.wheelRotation -= worldSpeed * 0.015 * deltaTime;
-      game.distance += game.speed * deltaTime;
-      game.dashOffset -= worldSpeed * deltaTime;
-    }
+      if (game.speed > 0) {
+        game.scroll -= worldSpeed * deltaTime;
+        game.wheelRotation -= worldSpeed * 0.015 * deltaTime;
+        game.distance += game.speed * deltaTime;
+        game.dashOffset -= worldSpeed * deltaTime;
+      }
 
-    audio.updateEngineSound();
-    
-    // ===== BURNOUT SMOKE =====
-const bikeX = width * CONFIG.BIKE_X_PERCENT;
+      audio.updateEngineSound();
 
-const isGrounded =
-  game.bikeAngle >= CONFIG.GROUND_CONTACT_ANGLE - 0.01;
+      // ===== BURNOUT SMOKE =====
+      const bikeX = width * CONFIG.BIKE_X_PERCENT;
 
-const isBurnout =
-  game.throttle &&
-  game.gear === 1 &&
-  game.speed < 12 &&
-  isGrounded &&
-  Math.abs(game.bikeAngularVelocity) < 0.2;
+      const isGrounded = game.bikeAngle >= CONFIG.GROUND_CONTACT_ANGLE - 0.01;
 
-if (isBurnout) {
-  game.launchSmokeTimer = 0.2; // 200ms burst
-}
+      const isBurnout =
+        game.throttle &&
+        game.gear === 1 &&
+        game.speed < 12 &&
+        isGrounded &&
+        Math.abs(game.bikeAngularVelocity) < 0.2;
 
-if (game.launchSmokeTimer > 0) {
-  particles.createDust(bikeX - 35, game.currentY + 12);
-  game.launchSmokeTimer -= deltaTime;
-}
-    }
+      if (isBurnout) {
+        game.launchSmokeTimer = 0.2; // 200ms burst
+      }
+
+      if (game.launchSmokeTimer > 0) {
+        particles.createDust(bikeX - 35, game.currentY + 12);
+        game.launchSmokeTimer -= deltaTime;
+      }
 
     if (game.bikeAngle < CONFIG.WHEELIE_START_ANGLE) {
       if (!game.inWheelie) {
@@ -766,9 +767,9 @@ function drawSpeedometer() {
 
   const radius = Math.min(width, height) * 0.055;
 
-const headerHeight = getHeaderHeight();
-const x = width - radius - 20;
-const y = headerHeight + radius + 10;
+  const headerHeight = getHeaderHeight();
+  const x = width - radius - 20;
+  const y = headerHeight + radius + 10;
 
   // Background circle
   ctx.fillStyle = "rgba(0, 0, 0, 0.5)"; // Semi-transparent black
@@ -862,8 +863,8 @@ function draw() {
     const laneTopY = roadYPos + game.lane * laneHeight;
     const laneSurfaceY = laneTopY + laneHeight;
 
-const ROAD_OFFSET = -8; // adjust this value
-const targetY = laneSurfaceY - tS / 2 + ROAD_OFFSET;
+    const ROAD_OFFSET = -8; // adjust this value
+    const targetY = laneSurfaceY - tS / 2 + ROAD_OFFSET;
     game.currentY += (targetY - game.currentY) * CONFIG.LANE_SWITCH_SMOOTHING; // Smoothly move to target Y
 
     ctx.save(); // Save canvas state
