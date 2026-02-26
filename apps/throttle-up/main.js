@@ -149,7 +149,7 @@ const audio = {
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
 
       this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.value = 0;
+      this.masterGain.gain.value = 0.4;
       this.masterGain.connect(this.ctx.destination);
 
       this.filterNode = this.ctx.createBiquadFilter();
