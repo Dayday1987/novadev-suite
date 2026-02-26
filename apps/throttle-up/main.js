@@ -155,7 +155,7 @@ const audio = {
       this.sounds.engine.volume = 0.2; // Set initial upshift volume
 
       this.sounds.neutral.loop = true; // Engine sound loops continuously
-      this.sounds.launch.loop = true; // Upshifting sound loops continuously
+      this.sounds.launch.loop = false; // Upshifting sound loops continuously
       this.sounds.engine.loop = true; // Last gears sound loops continuously
     } catch (e) {
       console.warn("Audio initialization failed:", e); // Log if audio fails
