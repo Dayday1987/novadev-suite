@@ -83,9 +83,6 @@ CONFIG.SHIFT_DELAY = 0.15;
 // ==========================================
 // GAME STATE
 // ==========================================
-// ==========================================
-// GAME STATE
-// ==========================================
 const game = {
   phase: "IDLE",
   crashing: false,
@@ -113,7 +110,6 @@ let width, height, roadYPos;
 let lastTime = performance.now();
 let paused = false;
 let squatOffset = 0;
-let engineUpdateTimer = 0;
 
 // ==========================================
 // AUDIO SYSTEM
@@ -121,37 +117,42 @@ let engineUpdateTimer = 0;
 const audio = {
   enabled: true,
   engine: null,
-  engineStarted: false,
 
   init() {
     this.enabled = true;
   },
 
   startEngine() {
-    if (!this.enabled) return;
+  if (!this.enabled) return;
 
-    if (!this.engine) {
-      this.engine = new Audio("assets/audio/engine_loop_mid.mp3");
-      this.engine.loop = true;
-      this.engine.volume = 0.8;
-    }
+  if (!this.engine) {
+    this.engine = new Audio("assets/audio/engine_loop_mid.mp3");
+    this.engine.loop = true;
+    this.engine.preload = "auto";
+  }
 
-    if (!this.engineStarted) {
-      this.engine.play().catch((e) => console.warn("Engine play failed:", e));
-      this.engineStarted = true;
-    }
-  },
+  // Always reset values before playing
+  this.engine.volume = 0.7;
+  this.engine.playbackRate = 0.7;
+  this.engine.currentTime = 0;
+
+  this.engine.play().catch((e) =>
+    console.warn("Engine play failed:", e)
+  );
+
+  this.engineStarted = true;
+}
 
   stopEngine() {
-    if (!this.enabled || !this.engine) return;
-    this.engine.pause();
-    this.engine.currentTime = 0;
-    this.engineStarted = false;
-  },
+  if (!this.enabled || !this.engine) return;
+
+  this.engine.pause();
+  this.engine.currentTime = 0;
+}
 
   updateEngineSound() {
   if (!this.enabled || !this.engine) return;
-  if (game.phase !== "RACING") return;
+  if (game.phase !== "RACING" && game.phase !== "COUNTDOWN") return;
 
   const speedPercent = game.speed / CONFIG.maxSpeed;
   const gearDrop = 1 - (game.gear - 1) * 0.03;
