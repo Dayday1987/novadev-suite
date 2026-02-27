@@ -83,6 +83,9 @@ CONFIG.SHIFT_DELAY = 0.15;
 // ==========================================
 // GAME STATE
 // ==========================================
+// ==========================================
+// GAME STATE
+// ==========================================
 const game = {
   phase: "IDLE",
   crashing: false,
@@ -110,9 +113,10 @@ let width, height, roadYPos;
 let lastTime = performance.now();
 let paused = false;
 let squatOffset = 0;
+let engineUpdateTimer = 0;
 
 // ==========================================
-// REAL ENGINE AUDIO SYSTEM
+// AUDIO SYSTEM
 // ==========================================
 const audio = {
   enabled: true,
@@ -120,29 +124,26 @@ const audio = {
   engineStarted: false,
 
   init() {
-    try {
-      this.engine = new Audio("assets/audio/engine_loop_mid.mp3");
-      this.engine.loop = true;
-      this.engine.volume = 0.8;
-      this.engine.preload = "auto";
-    } catch (e) {
-      console.warn("Audio init failed:", e);
-      this.enabled = false;
-    }
+    this.enabled = true;
   },
 
   startEngine() {
-    if (!this.enabled || !this.engine) return;
+    if (!this.enabled) return;
+
+    if (!this.engine) {
+      this.engine = new Audio("assets/audio/engine_loop_mid.mp3");
+      this.engine.loop = true;
+      this.engine.volume = 0.8;
+    }
 
     if (!this.engineStarted) {
-      this.engine.play().catch(() => {});
+      this.engine.play().catch((e) => console.warn("Engine play failed:", e));
       this.engineStarted = true;
     }
   },
 
   stopEngine() {
     if (!this.enabled || !this.engine) return;
-
     this.engine.pause();
     this.engine.currentTime = 0;
     this.engineStarted = false;
@@ -152,31 +153,16 @@ const audio = {
     if (!this.enabled || !this.engine) return;
     if (game.phase !== "RACING") return;
 
-    this.startEngine();
+    engineUpdateTimer += 1;
+    if (engineUpdateTimer % 6 !== 0) return;
 
-    // Speed percentage
     const speedPercent = game.speed / CONFIG.maxSpeed;
-
-    // Base playback range (tuneable)
-    const minRate = 0.65; // idle feel
-    const maxRate = 1.6; // redline feel
-
-    // Gear-based RPM drop simulation
     const gearDrop = 1 - (game.gear - 1) * 0.03;
+    let targetRate = 0.65 + speedPercent * (1.6 - 0.65);
+    targetRate = Math.max(0.6, Math.min(1.8, targetRate * gearDrop));
 
-    let targetRate = minRate + speedPercent * (maxRate - minRate);
-
-    targetRate *= gearDrop;
-
-    // Clamp
-    targetRate = Math.max(0.6, Math.min(1.8, targetRate));
-
-    // Smooth transition
-    this.engine.playbackRate += (targetRate - this.engine.playbackRate) * 0.15;
-
-    // Volume reacts to throttle
-    const targetVolume = game.throttle ? 0.9 : 0.6;
-    this.engine.volume += (targetVolume - this.engine.volume) * 0.1;
+    this.engine.playbackRate = targetRate;
+    this.engine.volume = game.throttle ? 0.9 : 0.6;
   },
 };
 
