@@ -129,7 +129,7 @@ const audio = {
     this.engine = new Audio("assets/audio/engine_loop_mid.mp3");
     this.engine.loop = true;
     this.engine.preload = "auto";
-  }
+  },
 
   // Always reset values before playing
   this.engine.volume = 0.7;
