@@ -286,6 +286,8 @@ const input = {
   startThrottle() {
     if (this.locked || !gameReady) return;
 
+    audio.startEngine();
+
     if (game.phase === "IDLE") {
       game.phase = "COUNTDOWN";
       game.countdownIndex = 0;
