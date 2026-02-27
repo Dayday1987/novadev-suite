@@ -104,17 +104,18 @@ const game = {
   dashOffset: 0,
   gear: 1,
   shiftTimer: 0,
-  rpm: 0,           // FIX: smoothed 0â€“1 RPM position within current gear's rev range
+  rpm: 0,           // FIX: smoothed 0–1 RPM position within current gear's rev range
 };
 
 let width, height, roadYPos;
-// FIX: cached header height â€” read from DOM once in resize(), never during draw loop
+// FIX: cached header height — read from DOM once in resize(), never during draw loop
 let cachedHeaderHeight = 0;
 let lastTime = performance.now();
 let paused = false;
 let squatOffset = 0;
+let audioUpdateTimer = 0; // throttle HTMLAudioElement writes to ~10/sec
 
-// FIX: cache DOM elements once â€” querySelector inside updateUI() every frame causes reflow
+// FIX: cache DOM elements once — querySelector inside updateUI() every frame causes reflow
 const _scoreEl = document.getElementById("score");
 const _distanceEl = document.getElementById("distance");
 const _highscoreEl = document.getElementById("highscore");
@@ -142,6 +143,12 @@ const audio = {
       this.engine.preload = "auto";
     }
 
+    // BUG 1 FIX: only reset and play if the engine is actually stopped.
+    // startThrottle() is called on every keydown, including key-repeat events
+    // (~30ms apart). Without this guard, currentTime resets to 0 on every
+    // repeat and the clip never advances past the first millisecond → silence.
+    if (!this.engine.paused) return;
+
     this.engine.volume = 0.7;
     this.engine.playbackRate = 0.7;
     this.engine.currentTime = 0;
@@ -158,9 +165,11 @@ const audio = {
     this.engine.currentTime = 0;
   },
 
-  // FIX: RPM-driven pitch â€” game.rpm (0â€“1) tracks position within the current gear's
+  // RPM-driven pitch — game.rpm (0–1) tracks position within the current gear's
   // speed band. Pitch rises as RPM climbs, drops on upshift, spikes on downshift.
-  // No modulo throttle needed; lerp handles smoothness without skipping frames.
+  // game.rpm lerps every frame (pure JS). The write to engine.playbackRate is
+  // throttled to every 6 frames (≈10/sec) because HTMLAudioElement property writes
+  // cross the JS→audio thread boundary and cause micro-stalls at 60/sec (stutter).
   updateEngineSound() {
     if (!this.enabled || !this.engine) return;
     if (game.phase !== "RACING" && game.phase !== "COUNTDOWN") return;
@@ -171,13 +180,19 @@ const audio = {
     const speedInGear = Math.max(0, game.speed - gearData.min);
     const targetRPM = gearSpan > 0 ? Math.min(speedInGear / gearSpan, 1) : 0;
 
-    // Smooth RPM toward target â€” faster rise under throttle, slower coast-down
+    // Smooth RPM toward target — faster rise under throttle, slower coast-down.
+    // This runs every frame so the value is always accurate for when we do write.
     const lerpRate = game.throttle ? 0.07 : 0.035;
     game.rpm += (targetRPM - game.rpm) * lerpRate;
 
+    // BUG 3 FIX: only write to the HTMLAudioElement every 6 frames.
+    // The lerp above keeps game.rpm smooth; the audio thread only needs ~10 updates/sec.
+    audioUpdateTimer++;
+    if (audioUpdateTimer % 6 !== 0) return;
+
     // Map RPM to playback rate:
-    //   bottom of gear (rpmâ‰ˆ0) â†’ 0.68  (deep, just-shifted note)
-    //   top of gear    (rpmâ‰ˆ1) â†’ 1.58  (screaming near redline)
+    //   bottom of gear (rpm≈0) → 0.68  (deep, just-shifted note)
+    //   top of gear    (rpm≈1) → 1.58  (screaming near redline)
     const targetRate = 0.68 + game.rpm * 0.90;
     this.engine.playbackRate = Math.max(0.5, Math.min(2.0, targetRate));
     this.engine.volume = game.throttle ? 0.88 : 0.55;
@@ -400,7 +415,7 @@ homeBtn?.addEventListener("click", () => {
   window.location.href = "../../index.html";
 });
 
-// FIX: only write to the DOM when values have actually changed â€” eliminates
+// FIX: only write to the DOM when values have actually changed — eliminates
 // layout thrashing from textContent writes triggering reflow every frame
 function updateUI() {
   const s = Math.floor(game.score);
@@ -546,7 +561,7 @@ function update(now) {
       if (game.gear < CONFIG.GEARS.length && game.speed > currentGearData.max) {
         game.gear++;
         game.shiftTimer = CONFIG.SHIFT_DELAY;
-        // FIX: on upshift RPM snaps low â€” the pitch will drop then climb back up
+        // FIX: on upshift RPM snaps low — the pitch will drop then climb back up
         game.rpm = 0.12;
         // audio.playChirp();
 
@@ -559,7 +574,7 @@ function update(now) {
       if (game.gear > 1 && game.speed < CONFIG.GEARS[game.gear - 2].min) {
         game.gear--;
         game.shiftTimer = CONFIG.SHIFT_DELAY;
-        // FIX: on downshift RPM snaps high â€” the pitch blips up then settles
+        // FIX: on downshift RPM snaps high — the pitch blips up then settles
         game.rpm = 0.88;
       }
     }
@@ -618,7 +633,10 @@ function update(now) {
       game.scroll -= worldSpeed * deltaTime;
       game.wheelRotation -= worldSpeed * 0.015 * deltaTime;
       game.distance += game.speed * deltaTime;
-      game.dashOffset -= worldSpeed * deltaTime;
+      // BUG 2 FIX: keep dashOffset bounded within the dash pattern period (60+40=100px).
+      // Without this, dashOffset grows to tens of thousands, and floating-point precision
+      // causes lineDashOffset to snap / reverse direction mid-race.
+      game.dashOffset = ((game.dashOffset - worldSpeed * deltaTime) % 100 + 100) % 100;
     }
 
     audio.updateEngineSound();
@@ -715,7 +733,7 @@ function drawWheelieIndicator() {
   ctx.restore();
 }
 
-// FIX: returns the pre-cached value â€” never triggers a layout reflow
+// FIX: returns the pre-cached value — never triggers a layout reflow
 function getHeaderHeight() {
   return cachedHeaderHeight;
 }
@@ -761,7 +779,7 @@ function drawSpeedometer() {
   ctx.fillText(`G${game.gear}`, x, y + 40);
 }
 
-// FIX: draw() is now pure rendering â€” no update() call inside it.
+// FIX: draw() is now pure rendering — no update() call inside it.
 // The loop() function drives both at the correct rAF timestamp.
 function draw() {
   if (!gameReady) {
@@ -920,7 +938,7 @@ function draw() {
   }
 }
 
-// FIX: unified game loop â€” update() runs first with the rAF high-res timestamp,
+// FIX: unified game loop — update() runs first with the rAF high-res timestamp,
 // then draw() renders the result. Previously update() was called at the end of
 // draw() with a second performance.now() call, making deltaTime include render cost.
 function loop(now) {
