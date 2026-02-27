@@ -104,17 +104,24 @@ const game = {
   dashOffset: 0,
   gear: 1,
   shiftTimer: 0,
+  rpm: 0,           // FIX: smoothed 0â€“1 RPM position within current gear's rev range
 };
 
 let width, height, roadYPos;
+// FIX: cached header height â€” read from DOM once in resize(), never during draw loop
+let cachedHeaderHeight = 0;
 let lastTime = performance.now();
 let paused = false;
 let squatOffset = 0;
-let audioUpdateTimer = 0;
 
-// ==========================================
-// AUDIO SYSTEM
-// ==========================================
+// FIX: cache DOM elements once â€” querySelector inside updateUI() every frame causes reflow
+const _scoreEl = document.getElementById("score");
+const _distanceEl = document.getElementById("distance");
+const _highscoreEl = document.getElementById("highscore");
+// FIX: track last-written values so we only write when something actually changed
+let _lastUIScore = -1;
+let _lastUIDistance = -1;
+
 // ==========================================
 // AUDIO SYSTEM
 // ==========================================
@@ -151,26 +158,30 @@ const audio = {
     this.engine.currentTime = 0;
   },
 
+  // FIX: RPM-driven pitch â€” game.rpm (0â€“1) tracks position within the current gear's
+  // speed band. Pitch rises as RPM climbs, drops on upshift, spikes on downshift.
+  // No modulo throttle needed; lerp handles smoothness without skipping frames.
   updateEngineSound() {
-  if (!this.enabled || !this.engine) return;
-  if (game.phase !== "RACING" && game.phase !== "COUNTDOWN") return;
+    if (!this.enabled || !this.engine) return;
+    if (game.phase !== "RACING" && game.phase !== "COUNTDOWN") return;
 
-  audioUpdateTimer += 1;
+    // Compute where we sit in the current gear's rev range (0 = just shifted in, 1 = redline)
+    const gearData = CONFIG.GEARS[game.gear - 1];
+    const gearSpan = gearData.max - gearData.min;
+    const speedInGear = Math.max(0, game.speed - gearData.min);
+    const targetRPM = gearSpan > 0 ? Math.min(speedInGear / gearSpan, 1) : 0;
 
-  // Only update 10 times per second instead of 60
-  if (audioUpdateTimer % 6 !== 0) return;
+    // Smooth RPM toward target â€” faster rise under throttle, slower coast-down
+    const lerpRate = game.throttle ? 0.07 : 0.035;
+    game.rpm += (targetRPM - game.rpm) * lerpRate;
 
-  const speedPercent = game.speed / CONFIG.maxSpeed;
-  const gearDrop = 1 - (game.gear - 1) * 0.03;
-
-  let targetRate = 0.65 + speedPercent * 0.95;
-  targetRate *= gearDrop;
-  targetRate = Math.max(0.6, Math.min(1.8, targetRate));
-
-  this.engine.playbackRate = targetRate;
-
-  this.engine.volume = game.throttle ? 0.9 : 0.6;
-}
+    // Map RPM to playback rate:
+    //   bottom of gear (rpmâ‰ˆ0) â†’ 0.68  (deep, just-shifted note)
+    //   top of gear    (rpmâ‰ˆ1) â†’ 1.58  (screaming near redline)
+    const targetRate = 0.68 + game.rpm * 0.90;
+    this.engine.playbackRate = Math.max(0.5, Math.min(2.0, targetRate));
+    this.engine.volume = game.throttle ? 0.88 : 0.55;
+  }
 };
 
 // ==========================================
@@ -258,6 +269,9 @@ function resize() {
   width = canvas.width = window.innerWidth;
   height = canvas.height = window.innerHeight;
   roadYPos = height * CONFIG.roadYPercent;
+  // FIX: measure offsetHeight once here, not inside the draw loop
+  const header = document.getElementById("ui-top");
+  cachedHeaderHeight = header ? header.offsetHeight : 100;
 }
 
 window.addEventListener("resize", resize);
@@ -386,14 +400,17 @@ homeBtn?.addEventListener("click", () => {
   window.location.href = "../../index.html";
 });
 
+// FIX: only write to the DOM when values have actually changed â€” eliminates
+// layout thrashing from textContent writes triggering reflow every frame
 function updateUI() {
-  const scoreEl = document.getElementById("score");
-  const distanceEl = document.getElementById("distance");
-  const highscoreEl = document.getElementById("highscore");
-
-  if (scoreEl) scoreEl.textContent = Math.floor(game.score);
-  if (distanceEl) distanceEl.textContent = Math.floor(game.distance);
-  if (highscoreEl) highscoreEl.textContent = Math.floor(game.bestScore);
+  const s = Math.floor(game.score);
+  const d = Math.floor(game.distance);
+  if (s === _lastUIScore && d === _lastUIDistance) return;
+  _lastUIScore = s;
+  _lastUIDistance = d;
+  if (_scoreEl) _scoreEl.textContent = s;
+  if (_distanceEl) _distanceEl.textContent = d;
+  if (_highscoreEl) _highscoreEl.textContent = Math.floor(game.bestScore);
 }
 
 function togglePause() {
@@ -425,9 +442,14 @@ function resetGame() {
   game.dashOffset = 0;
   game.gear = 1;
   game.shiftTimer = 0;
+  game.rpm = 0;         // FIX: reset RPM on restart
 
   particles.list = [];
   camera.shake = 0;
+
+  // FIX: reset cached UI values so the next updateUI() write goes through
+  _lastUIScore = -1;
+  _lastUIDistance = -1;
 
   audio.stopEngine();
   // audio.stop("crowd");
@@ -495,6 +517,8 @@ function update(now) {
         game.phase = "RACING";
       }
     }
+    // FIX: keep engine audio warm during countdown
+    audio.updateEngineSound();
     return;
   }
 
@@ -522,6 +546,8 @@ function update(now) {
       if (game.gear < CONFIG.GEARS.length && game.speed > currentGearData.max) {
         game.gear++;
         game.shiftTimer = CONFIG.SHIFT_DELAY;
+        // FIX: on upshift RPM snaps low â€” the pitch will drop then climb back up
+        game.rpm = 0.12;
         // audio.playChirp();
 
         if (game.bikeAngle < 0) {
@@ -533,6 +559,8 @@ function update(now) {
       if (game.gear > 1 && game.speed < CONFIG.GEARS[game.gear - 2].min) {
         game.gear--;
         game.shiftTimer = CONFIG.SHIFT_DELAY;
+        // FIX: on downshift RPM snaps high â€” the pitch blips up then settles
+        game.rpm = 0.88;
       }
     }
 
@@ -687,9 +715,9 @@ function drawWheelieIndicator() {
   ctx.restore();
 }
 
+// FIX: returns the pre-cached value â€” never triggers a layout reflow
 function getHeaderHeight() {
-  const header = document.getElementById("ui-top");
-  return header ? header.offsetHeight : 100;
+  return cachedHeaderHeight;
 }
 
 function drawSpeedometer() {
@@ -733,10 +761,11 @@ function drawSpeedometer() {
   ctx.fillText(`G${game.gear}`, x, y + 40);
 }
 
+// FIX: draw() is now pure rendering â€” no update() call inside it.
+// The loop() function drives both at the correct rAF timestamp.
 function draw() {
   if (!gameReady) {
     drawLoadingScreen();
-    requestAnimationFrame(draw);
     return;
   }
 
@@ -889,13 +918,19 @@ function draw() {
     ctx.font = "20px Roboto Mono, monospace";
     ctx.fillText("Press ESC to resume", width / 2, height / 2 + 50);
   }
+}
 
-  update(performance.now());
-  requestAnimationFrame(draw);
+// FIX: unified game loop â€” update() runs first with the rAF high-res timestamp,
+// then draw() renders the result. Previously update() was called at the end of
+// draw() with a second performance.now() call, making deltaTime include render cost.
+function loop(now) {
+  update(now);
+  draw();
+  requestAnimationFrame(loop);
 }
 
 // ==========================================
 // INITIALIZATION
 // ==========================================
 loadAssets();
-draw();
+requestAnimationFrame(loop);
