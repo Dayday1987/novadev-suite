@@ -150,20 +150,26 @@ const audio = {
   },
 
   updateEngineSound() {
-    if (!this.enabled || !this.engine) return;
-    if (game.phase !== "RACING") return;
+  if (!this.enabled || !this.engine) return;
+  if (game.phase !== "RACING") return;
 
-    engineUpdateTimer += 1;
-    if (engineUpdateTimer % 6 !== 0) return;
+  const speedPercent = game.speed / CONFIG.maxSpeed;
+  const gearDrop = 1 - (game.gear - 1) * 0.03;
 
-    const speedPercent = game.speed / CONFIG.maxSpeed;
-    const gearDrop = 1 - (game.gear - 1) * 0.03;
-    let targetRate = 0.65 + speedPercent * (1.6 - 0.65);
-    targetRate = Math.max(0.6, Math.min(1.8, targetRate * gearDrop));
+  let targetRate = 0.65 + speedPercent * (1.6 - 0.65);
+  targetRate *= gearDrop;
 
-    this.engine.playbackRate = targetRate;
-    this.engine.volume = game.throttle ? 0.9 : 0.6;
-  },
+  targetRate = Math.max(0.6, Math.min(1.8, targetRate));
+
+  // Smooth playback rate
+  this.engine.playbackRate +=
+    (targetRate - this.engine.playbackRate) * 0.15;
+
+  // Smooth volume
+  const targetVolume = game.throttle ? 0.9 : 0.6;
+  this.engine.volume +=
+    (targetVolume - this.engine.volume) * 0.1;
+},
 };
 
 // ==========================================
