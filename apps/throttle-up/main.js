@@ -114,6 +114,9 @@ let squatOffset = 0;
 // ==========================================
 // AUDIO SYSTEM
 // ==========================================
+// ==========================================
+// AUDIO SYSTEM
+// ==========================================
 const audio = {
   enabled: true,
   engine: null,
@@ -123,51 +126,48 @@ const audio = {
   },
 
   startEngine() {
-  if (!this.enabled) return;
+    if (!this.enabled) return;
 
-  if (!this.engine) {
-    this.engine = new Audio("assets/audio/engine_loop_mid.mp3");
-    this.engine.loop = true;
-    this.engine.preload = "auto";
+    if (!this.engine) {
+      this.engine = new Audio("assets/audio/engine_loop_mid.mp3");
+      this.engine.loop = true;
+      this.engine.preload = "auto";
+    }
+
+    this.engine.volume = 0.7;
+    this.engine.playbackRate = 0.7;
+    this.engine.currentTime = 0;
+
+    this.engine.play().catch((e) =>
+      console.warn("Engine play failed:", e)
+    );
   },
 
-  // Always reset values before playing
-  this.engine.volume = 0.7;
-  this.engine.playbackRate = 0.7;
-  this.engine.currentTime = 0;
-
-  this.engine.play().catch((e) =>
-    console.warn("Engine play failed:", e)
-  );
-
   stopEngine() {
-  if (!this.enabled || !this.engine) return;
+    if (!this.enabled || !this.engine) return;
 
-  this.engine.pause();
-  this.engine.currentTime = 0;
-}
+    this.engine.pause();
+    this.engine.currentTime = 0;
+  },
 
   updateEngineSound() {
-  if (!this.enabled || !this.engine) return;
-  if (game.phase !== "RACING" && game.phase !== "COUNTDOWN") return;
+    if (!this.enabled || !this.engine) return;
+    if (game.phase !== "RACING" && game.phase !== "COUNTDOWN") return;
 
-  const speedPercent = game.speed / CONFIG.maxSpeed;
-  const gearDrop = 1 - (game.gear - 1) * 0.03;
+    const speedPercent = game.speed / CONFIG.maxSpeed;
+    const gearDrop = 1 - (game.gear - 1) * 0.03;
 
-  let targetRate = 0.65 + speedPercent * (1.6 - 0.65);
-  targetRate *= gearDrop;
+    let targetRate = 0.65 + speedPercent * (1.6 - 0.65);
+    targetRate *= gearDrop;
+    targetRate = Math.max(0.6, Math.min(1.8, targetRate));
 
-  targetRate = Math.max(0.6, Math.min(1.8, targetRate));
+    this.engine.playbackRate +=
+      (targetRate - this.engine.playbackRate) * 0.15;
 
-  // Smooth playback rate
-  this.engine.playbackRate +=
-    (targetRate - this.engine.playbackRate) * 0.15;
-
-  // Smooth volume
-  const targetVolume = game.throttle ? 0.9 : 0.6;
-  this.engine.volume +=
-    (targetVolume - this.engine.volume) * 0.1;
-},
+    const targetVolume = game.throttle ? 0.9 : 0.6;
+    this.engine.volume +=
+      (targetVolume - this.engine.volume) * 0.1;
+  },
 };
 
 // ==========================================
