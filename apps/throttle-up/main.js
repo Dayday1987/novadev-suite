@@ -110,6 +110,7 @@ let width, height, roadYPos;
 let lastTime = performance.now();
 let paused = false;
 let squatOffset = 0;
+let audioUpdateTimer = 0;
 
 // ==========================================
 // AUDIO SYSTEM
@@ -151,23 +152,25 @@ const audio = {
   },
 
   updateEngineSound() {
-    if (!this.enabled || !this.engine) return;
-    if (game.phase !== "RACING" && game.phase !== "COUNTDOWN") return;
+  if (!this.enabled || !this.engine) return;
+  if (game.phase !== "RACING" && game.phase !== "COUNTDOWN") return;
 
-    const speedPercent = game.speed / CONFIG.maxSpeed;
-    const gearDrop = 1 - (game.gear - 1) * 0.03;
+  audioUpdateTimer += 1;
 
-    let targetRate = 0.65 + speedPercent * (1.6 - 0.65);
-    targetRate *= gearDrop;
-    targetRate = Math.max(0.6, Math.min(1.8, targetRate));
+  // Only update 10 times per second instead of 60
+  if (audioUpdateTimer % 6 !== 0) return;
 
-    this.engine.playbackRate +=
-      (targetRate - this.engine.playbackRate) * 0.15;
+  const speedPercent = game.speed / CONFIG.maxSpeed;
+  const gearDrop = 1 - (game.gear - 1) * 0.03;
 
-    const targetVolume = game.throttle ? 0.9 : 0.6;
-    this.engine.volume +=
-      (targetVolume - this.engine.volume) * 0.1;
-  },
+  let targetRate = 0.65 + speedPercent * 0.95;
+  targetRate *= gearDrop;
+  targetRate = Math.max(0.6, Math.min(1.8, targetRate));
+
+  this.engine.playbackRate = targetRate;
+
+  this.engine.volume = game.throttle ? 0.9 : 0.6;
+}
 };
 
 // ==========================================
