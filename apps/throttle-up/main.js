@@ -112,153 +112,71 @@ let paused = false;
 let squatOffset = 0;
 
 // ==========================================
-// AUDIO SYSTEM
+// REAL ENGINE AUDIO SYSTEM
 // ==========================================
 const audio = {
   enabled: true,
-  ctx: null,
-  masterGain: null,
-  oscillators: [],
-  gainNodes: [],
-  filterNode: null,
-  distortionNode: null,
-  currentRPM: 1000,
-  sounds: {},
+  engine: null,
+  engineStarted: false,
 
   init() {
     try {
-      // Only load one-shot sound files here (no AudioContext yet)
-      this.sounds.crowd = new Audio("assets/audio/crowd.mp3");
-      this.sounds.crowd.volume = 0.3;
-
-      this.sounds.crash = new Audio("assets/audio/crash.mp3");
-      this.sounds.crash.volume = 0.5;
-
-      this.sounds.chirp = new Audio("assets/audio/chirp.mp3");
-      this.sounds.chirp.volume = 0.6;
+      this.engine = new Audio("assets/audio/engine_loop_mid.mp3");
+      this.engine.loop = true;
+      this.engine.volume = 0.8;
+      this.engine.preload = "auto";
     } catch (e) {
-      console.warn("Audio initialization failed:", e);
+      console.warn("Audio init failed:", e);
       this.enabled = false;
     }
   },
 
-  // Call this on first user gesture instead
-  initContext() {
-    if (this.ctx) return; // already created
-    try {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  startEngine() {
+    if (!this.enabled || !this.engine) return;
 
-      this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.value = 0.4;
-      this.masterGain.connect(this.ctx.destination);
-
-      this.filterNode = this.ctx.createBiquadFilter();
-      this.filterNode.type = "lowpass";
-      this.filterNode.frequency.value = 800;
-      this.filterNode.connect(this.masterGain);
-
-      this.distortionNode = this.ctx.createWaveShaper();
-      this.distortionNode.curve = this.makeDistortionCurve(80);
-      this.distortionNode.connect(this.filterNode);
-
-      const harmonics = [1, 2, 3, 4, 6];
-      const harmonicGains = [0.5, 0.25, 0.12, 0.08, 0.04];
-
-      harmonics.forEach((harmonic, i) => {
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = i === 0 ? "sawtooth" : "square";
-        osc.frequency.value = 40 * harmonic;
-        gain.gain.value = harmonicGains[i];
-        osc.connect(gain);
-        gain.connect(this.distortionNode);
-        osc.start();
-        this.oscillators.push(osc);
-        this.gainNodes.push(gain);
-      });
-    } catch (e) {
-      console.warn("AudioContext init failed:", e);
-      this.enabled = false;
+    if (!this.engineStarted) {
+      this.engine.play().catch(() => {});
+      this.engineStarted = true;
     }
   },
 
-  makeDistortionCurve(amount) {
-    const samples = 512;
-    const curve = new Float32Array(samples);
-    for (let i = 0; i < samples; i++) {
-      const x = (i * 2) / samples - 1;
-      curve[i] = ((Math.PI + amount) * x) / (Math.PI + amount * Math.abs(x));
-    }
-    return curve;
-  },
+  stopEngine() {
+    if (!this.enabled || !this.engine) return;
 
-  getTargetRPM() {
-    if (game.speed <= 0) return 800;
-    const gearData = CONFIG.GEARS[game.gear - 1];
-    const speedRange = gearData.max - gearData.min;
-    const speedWithinGear = Math.max(0, game.speed - gearData.min);
-    const rpmPercent =
-      speedRange > 0 ? Math.min(speedWithinGear / speedRange, 1) : 0;
-    const minRPM = 2500;
-    const maxRPM = 11000;
-    return minRPM + rpmPercent * (maxRPM - minRPM);
+    this.engine.pause();
+    this.engine.currentTime = 0;
+    this.engineStarted = false;
   },
 
   updateEngineSound() {
-    if (!this.enabled || !this.ctx || game.phase !== "RACING") return;
+    if (!this.enabled || !this.engine) return;
+    if (game.phase !== "RACING") return;
 
-    const targetRPM = this.getTargetRPM();
-    const now = this.ctx.currentTime;
+    this.startEngine();
 
-    const smoothing = game.throttle ? 0.18 : 0.06;
-    this.currentRPM += (targetRPM - this.currentRPM) * smoothing;
+    // Speed percentage
+    const speedPercent = game.speed / CONFIG.maxSpeed;
 
-    // ← key fix: multiply by 4 to push into audible range (80Hz+ at idle)
-    const baseFreq = (this.currentRPM / 60) * 4;
+    // Base playback range (tuneable)
+    const minRate = 0.65; // idle feel
+    const maxRate = 1.6; // redline feel
 
-    this.oscillators.forEach((osc, i) => {
-      const harmonic = [1, 2, 3, 4, 6][i];
-      osc.frequency.setTargetAtTime(baseFreq * harmonic, now, 0.03);
-    });
+    // Gear-based RPM drop simulation
+    const gearDrop = 1 - (game.gear - 1) * 0.03;
 
-    const filterFreq = 600 + (this.currentRPM / 11000) * 4000;
-    this.filterNode.frequency.setTargetAtTime(filterFreq, now, 0.05);
+    let targetRate = minRate + speedPercent * (maxRate - minRate);
 
-    const targetVol = game.throttle ? 0.55 : 0.28;
-    this.masterGain.gain.setTargetAtTime(targetVol, now, 0.08);
-  },
+    targetRate *= gearDrop;
 
-  /* playChirp() {
-    if (!this.enabled || !this.ctx) return;
-    const now = this.ctx.currentTime;
-    this.oscillators.forEach((osc, i) => {
-      const harmonic = [1, 2, 3, 4, 6][i];
-      const currentFreq = (this.currentRPM / 60) * 0.8 * harmonic;
-      osc.frequency.setTargetAtTime(currentFreq * 1.4, now, 0.01);
-      osc.frequency.setTargetAtTime(currentFreq * 0.75, now + 0.08, 0.05);
-      osc.frequency.setTargetAtTime(currentFreq, now + 0.2, 0.1);
-    });
-    this.play("chirp");
-  },*/
+    // Clamp
+    targetRate = Math.max(0.6, Math.min(1.8, targetRate));
 
-  stopEngine() {
-    if (!this.enabled || !this.ctx) return;
-    this.masterGain.gain.setTargetAtTime(0, this.ctx.currentTime, 0.3);
-  },
+    // Smooth transition
+    this.engine.playbackRate += (targetRate - this.engine.playbackRate) * 0.15;
 
-  play(name) {
-    if (this.enabled && this.sounds[name]) {
-      const sound = this.sounds[name];
-      sound.currentTime = 0;
-      sound.play().catch((e) => console.log("Audio play failed:", e));
-    }
-  },
-
-  stop(name) {
-    if (this.enabled && this.sounds[name]) {
-      this.sounds[name].pause();
-      this.sounds[name].currentTime = 0;
-    }
+    // Volume reacts to throttle
+    const targetVolume = game.throttle ? 0.9 : 0.6;
+    this.engine.volume += (targetVolume - this.engine.volume) * 0.1;
   },
 };
 
@@ -367,8 +285,6 @@ const input = {
 
   startThrottle() {
     if (this.locked || !gameReady) return;
-
-    audio.initContext(); // ← create AudioContext on first gesture, guaranteed running
 
     if (game.phase === "IDLE") {
       game.phase = "COUNTDOWN";
