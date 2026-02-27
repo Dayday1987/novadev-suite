@@ -28,7 +28,7 @@ function loadAsset(asset, src) {
     assetsLoaded++;
     if (assetsLoaded === TOTAL_ASSETS) {
       gameReady = true;
-       audio.init();
+      audio.init();
     }
   };
   asset.img.onerror = () => {
@@ -127,12 +127,12 @@ const audio = {
 
   init() {
     try {
-     // Only load one-shot sound files here (no AudioContext yet)
-     // this.sounds.crowd = new Audio("assets/audio/crowd.mp3");
-     // this.sounds.crowd.volume = 0.3;
+      // Only load one-shot sound files here (no AudioContext yet)
+      this.sounds.crowd = new Audio("assets/audio/crowd.mp3");
+      this.sounds.crowd.volume = 0.3;
 
-     // this.sounds.crash = new Audio("assets/audio/crash.mp3");
-     // this.sounds.crash.volume = 0.5;
+      this.sounds.crash = new Audio("assets/audio/crash.mp3");
+      this.sounds.crash.volume = 0.5;
 
       this.sounds.chirp = new Audio("assets/audio/chirp.mp3");
       this.sounds.chirp.volume = 0.6;
