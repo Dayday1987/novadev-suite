@@ -140,9 +140,6 @@ const audio = {
     console.warn("Engine play failed:", e)
   );
 
-  this.engineStarted = true;
-}
-
   stopEngine() {
   if (!this.enabled || !this.engine) return;
 
