@@ -29,7 +29,6 @@ function loadAsset(asset, src) {
     assetsLoaded++;
     if (assetsLoaded === TOTAL_ASSETS) {
       gameReady = true;
-      audio.init();
     }
   };
   asset.img.onerror = () => {
@@ -124,80 +123,7 @@ const _highscoreEl = document.getElementById("highscore");
 let _lastUIScore = -1;
 let _lastUIDistance = -1;
 
-// ==========================================
-// AUDIO SYSTEM
-// ==========================================
-const audio = {
-  enabled: true,
-  engine: null,
 
-  init() {
-    this.enabled = true;
-  },
-
-  startEngine() {
-  if (!this.enabled) return;
-
-  if (!this.engine) {
-    this.engine = new Audio();
-    this.engine.src = "assets/audio/engine_loop_mid.mp3";
-    this.engine.loop = true;
-    this.engine.preload = "auto";
-
-    // Force iOS to actually load it
-    this.engine.load();
-  }
-
-  if (!this.engine.paused) return;
-
-  this.engine.volume = 0.7;
-  this.engine.playbackRate = 0.7;
-
-  this.engine.play().catch((e) =>
-    console.warn("Engine play failed:", e)
-  );
-}
-
-  stopEngine() {
-    if (!this.enabled || !this.engine) return;
-
-    this.engine.pause();
-    this.engine.currentTime = 0;
-  },
-
-  // RPM-driven pitch — game.rpm (0–1) tracks position within the current gear's
-  // speed band. Pitch rises as RPM climbs, drops on upshift, spikes on downshift.
-  // game.rpm lerps every frame (pure JS). The write to engine.playbackRate is
-  // throttled to every 6 frames (≈10/sec) because HTMLAudioElement property writes
-  // cross the JS→audio thread boundary and cause micro-stalls at 60/sec (stutter).
-  updateEngineSound() {
-    if (!this.enabled || !this.engine) return;
-    if (game.phase !== "RACING" && game.phase !== "COUNTDOWN") return;
-
-    // Compute where we sit in the current gear's rev range (0 = just shifted in, 1 = redline)
-    const gearData = CONFIG.GEARS[game.gear - 1];
-    const gearSpan = gearData.max - gearData.min;
-    const speedInGear = Math.max(0, game.speed - gearData.min);
-    const targetRPM = gearSpan > 0 ? Math.min(speedInGear / gearSpan, 1) : 0;
-
-    // Smooth RPM toward target — faster rise under throttle, slower coast-down.
-    // This runs every frame so the value is always accurate for when we do write.
-    const lerpRate = game.throttle ? 0.07 : 0.035;
-    game.rpm += (targetRPM - game.rpm) * lerpRate;
-
-    // BUG 3 FIX: only write to the HTMLAudioElement every 6 frames.
-    // The lerp above keeps game.rpm smooth; the audio thread only needs ~10 updates/sec.
-    audioUpdateTimer++;
-    if (audioUpdateTimer % 6 !== 0) return;
-
-    // Map RPM to playback rate:
-    //   bottom of gear (rpm≈0) → 0.68  (deep, just-shifted note)
-    //   top of gear    (rpm≈1) → 1.58  (screaming near redline)
-    const targetRate = 0.68 + game.rpm * 0.90;
-    this.engine.playbackRate = Math.max(0.5, Math.min(2.0, targetRate));
-    this.engine.volume = game.throttle ? 0.88 : 0.55;
-  }
-};
 
 // ==========================================
 // PARTICLE SYSTEM
@@ -291,7 +217,7 @@ function resize() {
 
 window.addEventListener("resize", resize);
 resize();
-
+audio.init();
 // ==========================================
 // INPUT SYSTEM
 // ==========================================
