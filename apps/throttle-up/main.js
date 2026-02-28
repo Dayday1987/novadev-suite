@@ -123,6 +123,52 @@ const _highscoreEl = document.getElementById("highscore");
 let _lastUIScore = -1;
 let _lastUIDistance = -1;
 
+  // ==========================================
+// AUDIO SYSTEM
+// ==========================================
+const audio = {
+  enabled: true,
+  engine: null,
+
+  init() {
+    this.engine = new Audio("assets/audio/engine_loop_mid.mp3");
+    this.engine.loop = true;
+    this.engine.volume = 0.8;
+  },
+
+  startEngine() {
+    if (!this.enabled || !this.engine) return;
+
+    if (this.engine.paused) {
+      this.engine.play().catch((e) => {
+        console.warn("Engine play blocked:", e);
+      });
+    }
+  },
+
+  stopEngine() {
+    if (!this.enabled || !this.engine) return;
+
+    this.engine.pause();
+    this.engine.currentTime = 0;
+  },
+
+  updateEngineSound() {
+    if (!this.enabled || !this.engine) return;
+
+    const speedPercent = game.speed / CONFIG.maxSpeed;
+
+    let targetRate = 0.7 + speedPercent * 0.9;
+    targetRate = Math.max(0.6, Math.min(1.8, targetRate));
+
+    this.engine.playbackRate +=
+      (targetRate - this.engine.playbackRate) * 0.12;
+
+    const targetVolume = game.throttle ? 0.9 : 0.6;
+    this.engine.volume +=
+      (targetVolume - this.engine.volume) * 0.1;
+  },
+};
 
 
 // ==========================================
