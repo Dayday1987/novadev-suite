@@ -1,4 +1,5 @@
-// Get the canvas element from HTML and set up 2D rendering context
+document.addEventListener("DOMContentLoaded", () => {
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -940,3 +941,4 @@ function loop(now) {
 // ==========================================
 loadAssets();
 requestAnimationFrame(loop);
+});
