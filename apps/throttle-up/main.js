@@ -333,11 +333,15 @@ const input = {
 };
 
 // Touch input
-canvas.addEventListener(
-  "touchstart",
-  (e) => {
-    e.preventDefault();
-    input.startThrottle
+canvas.addEventListener("touchstart", (e) => {
+  e.preventDefault();
+  input.startThrottle();
+});
+
+canvas.addEventListener("touchend", (e) => {
+  e.preventDefault();
+  input.stopThrottle();
+});
 
 // Keyboard input
 window.addEventListener("keydown", (e) => {
