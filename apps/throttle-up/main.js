@@ -135,28 +135,27 @@ const audio = {
   },
 
   startEngine() {
-    if (!this.enabled) return;
+  if (!this.enabled) return;
 
-    if (!this.engine) {
-      this.engine = new Audio("assets/audio/engine_loop_mid.mp3");
-      this.engine.loop = true;
-      this.engine.preload = "auto";
-    }
+  if (!this.engine) {
+    this.engine = new Audio();
+    this.engine.src = "assets/audio/engine_loop_mid.mp3";
+    this.engine.loop = true;
+    this.engine.preload = "auto";
 
-    // BUG 1 FIX: only reset and play if the engine is actually stopped.
-    // startThrottle() is called on every keydown, including key-repeat events
-    // (~30ms apart). Without this guard, currentTime resets to 0 on every
-    // repeat and the clip never advances past the first millisecond → silence.
-    if (!this.engine.paused) return;
+    // Force iOS to actually load it
+    this.engine.load();
+  }
 
-    this.engine.volume = 0.7;
-    this.engine.playbackRate = 0.7;
-    this.engine.currentTime = 0;
+  if (!this.engine.paused) return;
 
-    this.engine.play().catch((e) =>
-      console.warn("Engine play failed:", e)
-    );
-  },
+  this.engine.volume = 0.7;
+  this.engine.playbackRate = 0.7;
+
+  this.engine.play().catch((e) =>
+    console.warn("Engine play failed:", e)
+  );
+}
 
   stopEngine() {
     if (!this.enabled || !this.engine) return;
@@ -301,6 +300,7 @@ const input = {
   lock() {
     this.locked = true;
   },
+
   unlock() {
     this.locked = false;
   },
@@ -308,13 +308,20 @@ const input = {
   startThrottle() {
     if (this.locked || !gameReady) return;
 
+    // iOS warm-up hack (forces buffer + unlock)
+    if (audio.engine && audio.engine.paused) {
+      audio.engine.play().then(() => {
+        audio.engine.pause();
+        audio.engine.currentTime = 0;
+      }).catch(() => {});
+    }
+
     audio.startEngine();
 
     if (game.phase === "IDLE") {
       game.phase = "COUNTDOWN";
       game.countdownIndex = 0;
       game.countdownTimer = performance.now();
-      //audio.play("crowd");
     }
 
     game.throttle = true;
@@ -330,30 +337,7 @@ canvas.addEventListener(
   "touchstart",
   (e) => {
     e.preventDefault();
-    input.startThrottle();
-  },
-  { passive: false },
-);
-
-canvas.addEventListener(
-  "touchend",
-  (e) => {
-    e.preventDefault();
-    input.stopThrottle();
-  },
-  { passive: false },
-);
-
-canvas.addEventListener(
-  "touchmove",
-  (e) => {
-    if (input.locked) return;
-    e.preventDefault();
-    const y = e.touches[0].clientY;
-    game.lane = y < height / 2 ? 0 : 1;
-  },
-  { passive: false },
-);
+    input.startThrottle
 
 // Keyboard input
 window.addEventListener("keydown", (e) => {
