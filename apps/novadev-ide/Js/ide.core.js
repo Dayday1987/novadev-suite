@@ -1,3 +1,5 @@
+===ide.core.js=====
+
 import { state } from "./ide.state.js";
 import { readFile, writeFile, listEntries } from "./ide.fs.js";
 
