@@ -1,3 +1,5 @@
+=====ide.state.js======
+
 export const state = {
   editor: null,
   currentProjectId: null,
@@ -5,3 +7,143 @@ export const state = {
   openTabs: [],
   models: {}
 };
+=============
+====main.js=====
+
+import { bootstrapApp } from './ide.bootstrap.js';
+
+bootstrapApp();
+
+==============
+=====index.html=======
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width,
+                 initial-scale=1,
+                 maximum-scale=1,
+                 user-scalable=no,
+                 viewport-fit=cover" />
+  <title>NovaDev IDE</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/monaco-editor@0.44.0/min/vs/loader.js"></script>
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- =========================
+         Project Launcher
+    ========================== -->
+    <div id="projectLauncher" class="launcher">
+      <h1>NovaDev Projects</h1>
+      <div id="projectList"></div>
+      <button id="newProjectBtn">New Project</button>
+    </div>
+
+    <!-- Sidebar Drawer -->
+    <div id="sidebar">
+      <div id="sidebarHeader">
+        <button id="closeSidebar">✕</button>
+      </div>
+
+      <div id="explorerPanel" class="panel active">
+        <div class="panelHeader">
+          <span>Explorer</span>
+          <button id="newFileBtn">+</button>
+        </div>
+        <ul id="fileList"></ul>
+      </div>
+
+      <div id="searchPanel" class="panel">
+        <div class="panelHeader">Search</div>
+        <input type="text" id="searchInput" placeholder="Search in files..." />
+        <div id="searchResults"></div>
+      </div>
+
+      <div id="gitPanel" class="panel">
+        <div class="panelHeader">Git (Simulated)</div>
+        <button id="initRepo">Initialize Repo</button>
+        <input id="commitMessage" placeholder="Commit message" />
+        <button id="commitBtn">Commit</button>
+        <div id="gitLog"></div>
+      </div>
+
+      <div id="settingsPanel" class="panel">
+        <div class="panelHeader">Settings</div>
+
+        <label>Theme
+          <select id="themeSelect">
+            <option value="vs-dark">Dark</option>
+            <option value="vs">Light</option>
+            <option value="hc-black">High Contrast</option>
+          </select>
+        </label>
+
+        <label>Font Size
+          <input type="number" id="fontSizeInput" min="10" max="24" />
+        </label>
+
+        <label>Tab Size
+          <input type="number" id="tabSizeInput" min="2" max="8" />
+        </label>
+
+        <label>
+          <input type="checkbox" id="wordWrapToggle" />
+          Word Wrap
+        </label>
+
+        <label>
+          <input type="checkbox" id="minimapToggle" />
+          Minimap
+        </label>
+
+        <label>
+          <input type="checkbox" id="lineNumbersToggle" />
+          Line Numbers
+        </label>
+      </div>
+    </div>
+
+    <!-- Main Area -->
+    <div id="mainArea">
+
+      <div id="tabsBar"></div>
+
+      <div id="editorContainer">
+        <div id="editor"></div>
+        <iframe id="previewPane"></iframe>
+      </div>
+
+      <div id="terminal">
+        <div id="terminalOutput"></div>
+        <input id="terminalInput" placeholder="Type command..." />
+      </div>
+
+      <div id="statusBar">
+        <span id="statusPosition">Ln 1, Col 1</span>
+        <span id="statusLanguage">plaintext</span>
+        <span>UTF-8</span>
+      </div>
+
+    </div>
+
+    <!-- Bottom Activity Bar -->
+    <div id="activityBar">
+      <button id="toggleSidebar">📁</button>
+      <button id="openSearch">🔍</button>
+      <button id="openGit">🌿</button>
+      <button id="togglePreview">👁</button>
+      <button id="openTerminal">🖥</button>
+      <button id="openSettings">⚙</button>
+    </div>
+
+  </div>
+
+  <script type="module" src="Js/main.js"></script>
+</body>
+</html>
