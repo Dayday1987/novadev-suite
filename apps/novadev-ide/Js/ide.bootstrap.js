@@ -1,9 +1,7 @@
-<<<<<<< HEAD
-import { initEditor } from "./ide.core.js";
-import { initPanels } from "./ide.panels.js";
-import { loadProject } from "./ide.services.js";
-=======
+ide.bootstrap.js
+
 import {
+  initFS,
   listProjects,
   createProject,
   writeFile
@@ -13,101 +11,16 @@ import { initEditor } from "./ide.core.js";
 import { initPanels } from "./ide.panels.js";
 import { state } from "./ide.state.js";
 
-import {
-  initAuth,
-  getSession,
-  signUp,
-  signIn,
-  signOut,
-  signInWithProvider
-} from "./ide.auth.js";
->>>>>>> f40eb4630acbbe7b187517eefdf398ef79651501
-
 export async function bootstrapApp() {
+
   document.addEventListener("DOMContentLoaded", async () => {
-<<<<<<< HEAD
-    // 1️⃣ Load project into shared state FIRST
-    loadProject();
-=======
 
-    // Initialize Supabase
-    initAuth();
->>>>>>> f40eb4630acbbe7b187517eefdf398ef79651501
-
-    // Check session
-    const session = await getSession();
-
-    if (!session) {
-      showAuthScreen();
-      wireAuthUI();
-      return;
-    }
-<<<<<<< HEAD
-  });
-=======
-
-    // Logged in
-    showIDEContainer();
+    await initFS();
 
     await renderProjectLauncher();
+
   });
-}
 
-/* =====================================
-   Auth Screen Control
-===================================== */
-
-function showAuthScreen() {
-  document.getElementById("authScreen").classList.remove("hidden");
-  document.getElementById("ideContainer").classList.add("hidden");
-}
-
-function showIDEContainer() {
-  document.getElementById("authScreen").classList.add("hidden");
-  document.getElementById("ideContainer").classList.remove("hidden");
-}
-
-/* =====================================
-   Wire Auth UI
-===================================== */
-
-function wireAuthUI() {
-
-  document.getElementById("loginBtn").onclick = async () => {
-
-    const email = document.getElementById("emailInput").value;
-    const password = document.getElementById("passwordInput").value;
-
-    const { error } = await signIn(email, password);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    location.reload();
-  };
-
-  document.getElementById("signupBtn").onclick = async () => {
-
-    const email = document.getElementById("emailInput").value;
-    const password = document.getElementById("passwordInput").value;
-
-    const { error } = await signUp(email, password);
-
-    if (error) {
-      alert(error.message);
-      return;
-    }
-
-    alert("Check your email to confirm your account.");
-  };
-
-  document.getElementById("googleLogin")
-    .onclick = () => signInWithProvider("google");
-
-  document.getElementById("githubLogin")
-    .onclick = () => signInWithProvider("github");
 }
 
 /* =====================================
@@ -159,8 +72,8 @@ async function openProject(projectId) {
 
   state.currentProjectId = projectId;
 
-  document.getElementById("projectLauncher")
-    .classList.add("hidden");
+  const launcher = document.getElementById("projectLauncher");
+  launcher.classList.add("hidden");
 
   await startIDE();
 }
@@ -177,12 +90,15 @@ async function createStarterProject(projectId) {
 }
 
 /* =====================================
-   Start IDE
+   Start IDE Properly
 ===================================== */
 
 async function startIDE() {
 
+  // Initialize UI first
   initPanels();
+
+  // Then load Monaco
   await initEditor();
->>>>>>> f40eb4630acbbe7b187517eefdf398ef79651501
 }
+
