@@ -602,8 +602,6 @@ function update(now) {
       game.dashOffset = ((game.dashOffset - worldSpeed * deltaTime) % 100 + 100) % 100;
     }
 
-    audio.updateEngineSound();
-
     // ===== BURNOUT SMOKE =====
     const bikeX = width * CONFIG.BIKE_X_PERCENT;
     const isGrounded = game.bikeAngle >= CONFIG.GROUND_CONTACT_ANGLE - 0.01;
