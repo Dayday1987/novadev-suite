@@ -143,7 +143,7 @@ const audio = {
 
   startEngine() {
     if (!this.enabled || !this.engine) return;
-
+console.log("startEngine called, engineStarted:", this.engineStarted);
     if (!this.engineStarted) {
       this.engine.play().catch((e) => console.warn("Engine play failed:", e));
       this.engineStarted = true;
