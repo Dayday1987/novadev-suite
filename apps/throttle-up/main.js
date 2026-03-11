@@ -495,8 +495,6 @@ function update(now) {
         game.phase = "RACING";
       }
     }
-    // FIX: keep engine audio warm during countdown
-    audio.updateEngineSound();
     return;
   }
 
