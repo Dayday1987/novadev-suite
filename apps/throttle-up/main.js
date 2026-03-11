@@ -129,44 +129,46 @@ let _lastUIDistance = -1;
 const audio = {
   enabled: true,
   engine: null,
+  engineStarted: false,
+  _rateInterval: null,
 
   init() {
+    this.enabled = true;
     this.engine = new Audio("assets/audio/engine_loop_mid.mp3");
     this.engine.loop = true;
     this.engine.volume = 0.8;
+    this.engine.preload = "auto";
+    this.engine.load();
   },
 
   startEngine() {
     if (!this.enabled || !this.engine) return;
 
-    if (this.engine.paused) {
-      this.engine.play().catch((e) => {
-        console.warn("Engine play blocked:", e);
-      });
+    if (!this.engineStarted) {
+      this.engine.play().catch((e) => console.warn("Engine play failed:", e));
+      this.engineStarted = true;
+
+      if (!this._rateInterval) {
+        this._rateInterval = setInterval(() => {
+          if (!this.engine || game.phase !== "RACING") return;
+          const speedPercent = game.speed / CONFIG.maxSpeed;
+          const gearDrop = 1 - (game.gear - 1) * 0.03;
+          let targetRate = 0.65 + speedPercent * (1.6 - 0.65);
+          targetRate = Math.max(0.6, Math.min(1.8, targetRate * gearDrop));
+          this.engine.playbackRate = targetRate;
+          this.engine.volume = game.throttle ? 0.9 : 0.6;
+        }, 500);
+      }
     }
   },
 
   stopEngine() {
     if (!this.enabled || !this.engine) return;
-
+    clearInterval(this._rateInterval);
+    this._rateInterval = null;
     this.engine.pause();
     this.engine.currentTime = 0;
-  },
-
-  updateEngineSound() {
-    if (!this.enabled || !this.engine) return;
-
-    const speedPercent = game.speed / CONFIG.maxSpeed;
-
-    let targetRate = 0.7 + speedPercent * 0.9;
-    targetRate = Math.max(0.6, Math.min(1.8, targetRate));
-
-    this.engine.playbackRate +=
-      (targetRate - this.engine.playbackRate) * 0.12;
-
-    const targetVolume = game.throttle ? 0.9 : 0.6;
-    this.engine.volume +=
-      (targetVolume - this.engine.volume) * 0.1;
+    this.engineStarted = false;
   },
 };
 
