@@ -179,6 +179,116 @@ console.log("startEngine called, engineStarted:", this.engineStarted);
 const particles = {
   list: [],
 
+  const crashAnim = {
+  active: false,
+  timer: 0,
+  duration: 2.5,
+  riderX: 0, riderY: 0, riderVX: 0, riderVY: 0, riderAngle: 0, riderAngularVel: 0,
+  bikeX: 0, bikeY: 0, bikeVX: 0, bikeVY: 0, bikeAngle: 0, bikeAngularVel: 0,
+  flashAlpha: 0,
+
+  init(pivotX, pivotY, bikeAngle, bikeAngularVel, speed) {
+    this.active = true;
+    this.timer = 0;
+    this.flashAlpha = 0.5;
+
+    // Bike continues looping forward and tumbling down the road
+    this.bikeX = pivotX;
+    this.bikeY = pivotY;
+    this.bikeAngle = bikeAngle;
+    this.bikeVX = speed * 0.4 + 180;
+    this.bikeVY = -80;
+    this.bikeAngularVel = bikeAngularVel + 4;
+
+    // Rider flies backward off the back of the bike
+    this.riderX = pivotX - 20;
+    this.riderY = pivotY - 60;
+    this.riderAngle = bikeAngle;
+    this.riderVX = -(speed * 0.3 + 80);
+    this.riderVY = -220;
+    this.riderAngularVel = -5;
+  },
+
+  update(deltaTime) {
+    if (!this.active) return;
+    this.timer += deltaTime;
+    const GRAVITY = 900;
+
+    // Rider physics
+    this.riderVY += GRAVITY * deltaTime;
+    this.riderX += this.riderVX * deltaTime;
+    this.riderY += this.riderVY * deltaTime;
+    this.riderAngle += this.riderAngularVel * deltaTime;
+    if (this.riderY > game.currentY + 10) {
+      this.riderY = game.currentY + 10;
+      this.riderVY *= -0.25;
+      this.riderVX *= 0.6;
+      this.riderAngularVel *= 0.4;
+      particles.createCrashSparks(this.riderX, this.riderY);
+    }
+
+    // Bike physics
+    this.bikeVY += GRAVITY * deltaTime;
+    this.bikeX += this.bikeVX * deltaTime;
+    this.bikeY += this.bikeVY * deltaTime;
+    this.bikeAngle += this.bikeAngularVel * deltaTime;
+    this.bikeVX *= Math.pow(0.97, deltaTime * 60);
+    if (this.bikeY > game.currentY + 10) {
+      this.bikeY = game.currentY + 10;
+      this.bikeVY *= -0.35;
+      this.bikeAngularVel *= 0.6;
+      particles.createCrashSparks(this.bikeX, this.bikeY);
+    }
+
+    // Fade flash
+    this.flashAlpha = Math.max(0, this.flashAlpha - deltaTime * 1.2);
+
+    if (this.timer >= this.duration) {
+      this.active = false;
+    }
+  },
+
+  draw() {
+    if (!this.active) return;
+
+    const bW = assets.bike.img.width * CONFIG.bikeScale;
+    const bH = assets.bike.img.height * CONFIG.bikeScale;
+    const tS = bH * CONFIG.tireSizeMult;
+    const fade = Math.max(0, 1 - (this.timer / this.duration) * 0.6);
+
+    // Tumbling bike
+    ctx.save();
+    ctx.globalAlpha = fade;
+    ctx.translate(this.bikeX, this.bikeY);
+    ctx.rotate(this.bikeAngle);
+    ctx.drawImage(assets.bike.img, -bW / 2, -bH / 2, bW, bH);
+    // Rear tire stays attached
+    ctx.rotate(this.timer * 8);
+    ctx.drawImage(assets.tire.img, -tS / 2, -tS / 2, tS, tS);
+    ctx.restore();
+
+    // Falling rider
+    if (assets.rider.loaded) {
+      const rW = bW * 0.55;
+      const rH = bH * 0.85;
+      ctx.save();
+      ctx.globalAlpha = fade;
+      ctx.translate(this.riderX, this.riderY);
+      ctx.rotate(this.riderAngle);
+      ctx.drawImage(assets.rider.img, -rW / 2, -rH / 2, rW, rH);
+      ctx.restore();
+    }
+
+    ctx.globalAlpha = 1;
+
+    // Red impact flash
+    if (this.flashAlpha > 0) {
+      ctx.fillStyle = `rgba(255, 50, 0, ${this.flashAlpha})`;
+      ctx.fillRect(0, 0, width, height);
+    }
+  }
+};
+
   createDust(x, y) {
     for (let i = 0; i < 1; i++) {
       this.list.push({
@@ -438,22 +548,22 @@ function resetGame() {
 
 function crash() {
   if (game.crashing) return;
-
   game.crashing = true;
   game.phase = "CRASHING";
-  game.bikeAngularVelocity = 0;
-  game.speed = 0;
 
-  const bikeX = width * CONFIG.BIKE_X_PERCENT;
-  camera.startShake(15);
+  const bikeX = width * CONFIG.BIKE_X_PERCENT + CONFIG.rearTireXShift;
+  camera.startShake(25);
   particles.createCrashSparks(bikeX, game.currentY);
 
+  crashAnim.init(bikeX, game.currentY, game.bikeAngle, game.bikeAngularVelocity, game.speed);
+
+  game.bikeAngularVelocity = 0;
+  game.speed = 0;
   audio.stopEngine();
-  //audio.play("crash");
 
   setTimeout(() => {
     endWheelie();
-  }, 1000);
+  }, 2500);
 }
 
 function endWheelie() {
@@ -473,7 +583,10 @@ function update(now) {
   camera.update(deltaTime);
   particles.update(deltaTime);
 
-  if (game.phase === "CRASHING") return;
+  if (game.phase === "CRASHING") {
+  crashAnim.update(deltaTime);
+  return;
+}
 
   // IDLE
   if (game.phase === "IDLE") {
@@ -849,6 +962,8 @@ function draw() {
 
     ctx.restore(); // bike rotation
   }
+
+  crashAnim.draw();
 
   ctx.restore(); // camera shake
 
