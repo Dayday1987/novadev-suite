@@ -1,5 +1,3 @@
-===ide.core.js=====
-
 import { state } from "./ide.state.js";
 import { readFile, writeFile, listEntries } from "./ide.fs.js";
 
@@ -25,11 +23,7 @@ export async function initEditor() {
 
     const content = state.editor.getValue();
 
-    await writeFile(
-      state.currentProjectId,
-      state.currentFile,
-      content
-    );
+    await writeFile(state.currentProjectId, state.currentFile, content);
 
     updatePreview();
   });
@@ -56,7 +50,7 @@ async function openFirstFile() {
   if (!state.currentProjectId) return;
 
   const entries = await listEntries(state.currentProjectId);
-  const firstFile = entries.find(e => e.type === "file");
+  const firstFile = entries.find((e) => e.type === "file");
 
   if (firstFile) {
     await openFile(firstFile.path);
@@ -74,10 +68,7 @@ export async function openFile(path) {
   if (content === null) return;
 
   if (!state.models[path]) {
-    state.models[path] = monaco.editor.createModel(
-      content,
-      getLanguage(path)
-    );
+    state.models[path] = monaco.editor.createModel(content, getLanguage(path));
   }
 
   state.editor.setModel(state.models[path]);
@@ -129,7 +120,7 @@ function renderTabs() {
 
   tabsBar.innerHTML = "";
 
-  state.openTabs.forEach(path => {
+  state.openTabs.forEach((path) => {
     const tab = document.createElement("div");
     tab.className = "tab";
 
@@ -156,7 +147,6 @@ function renderTabs() {
 }
 /* delete file/folder */
 export function removeModel(path) {
-
   if (!state.models) return;
   if (!state.models[path]) return;
 
@@ -217,11 +207,11 @@ export async function updatePreview() {
 
   const entries = await listEntries(state.currentProjectId);
 
-  const html = await readFile(state.currentProjectId, "index.html") || "";
-  const css = await readFile(state.currentProjectId, "style.css") || "";
+  const html = (await readFile(state.currentProjectId, "index.html")) || "";
+  const css = (await readFile(state.currentProjectId, "style.css")) || "";
   const js =
-    await readFile(state.currentProjectId, "script.js") ||
-    await readFile(state.currentProjectId, "main.js") ||
+    (await readFile(state.currentProjectId, "script.js")) ||
+    (await readFile(state.currentProjectId, "main.js")) ||
     "";
 
   const fullDoc = `
