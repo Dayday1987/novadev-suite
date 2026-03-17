@@ -1,4 +1,3 @@
-/* ide.services.js */
 import { state } from "./ide.state.js";
 
 const STORAGE_KEY = "novadev_ide_project_v1";

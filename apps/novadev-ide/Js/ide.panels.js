@@ -1,25 +1,17 @@
-====ide.panels.js======
-
 import { state } from "./ide.state.js";
 import {
   openFile,
   createFile,
   applyEditorSettings,
   updatePreview,
-  removeModel
+  removeModel,
 } from "./ide.core.js";
 
-import {
-  listEntries,
-  readFile,
-  deleteFile,
-  deleteFolder
-} from "./ide.fs.js";
+import { listEntries, readFile, deleteFile, deleteFolder } from "./ide.fs.js";
 
 import { saveSettings } from "./ide.services.js";
 
 export function initPanels() {
-
   const sidebar = document.getElementById("sidebar");
   const fileList = document.getElementById("fileList");
   const searchInput = document.getElementById("searchInput");
@@ -29,20 +21,20 @@ export function initPanels() {
      Preview Toggle
   ============================== */
 
-  document.getElementById("togglePreview")
-    ?.addEventListener("click", () => {
-      const preview = document.getElementById("previewPane");
-      preview.classList.toggle("active");
-      updatePreview();
-    });
+  document.getElementById("togglePreview")?.addEventListener("click", () => {
+    const preview = document.getElementById("previewPane");
+    preview.classList.toggle("active");
+    updatePreview();
+  });
 
   /* ==============================
      Sidebar Controls
   ============================== */
 
   function showPanel(id) {
-    document.querySelectorAll(".panel")
-      .forEach(p => p.classList.remove("active"));
+    document
+      .querySelectorAll(".panel")
+      .forEach((p) => p.classList.remove("active"));
 
     document.getElementById(id)?.classList.add("active");
     sidebar.classList.add("open");
@@ -52,25 +44,28 @@ export function initPanels() {
     sidebar.classList.remove("open");
   }
 
-  document.getElementById("toggleSidebar")
+  document
+    .getElementById("toggleSidebar")
     ?.addEventListener("click", () => showPanel("explorerPanel"));
 
-  document.getElementById("openSearch")
+  document
+    .getElementById("openSearch")
     ?.addEventListener("click", () => showPanel("searchPanel"));
 
-  document.getElementById("openGit")
+  document
+    .getElementById("openGit")
     ?.addEventListener("click", () => showPanel("gitPanel"));
 
-  document.getElementById("openSettings")
+  document
+    .getElementById("openSettings")
     ?.addEventListener("click", () => showPanel("settingsPanel"));
 
-  document.getElementById("openTerminal")
-    ?.addEventListener("click", () => {
-      document.getElementById("terminal")
-        ?.classList.toggle("open");
-    });
+  document.getElementById("openTerminal")?.addEventListener("click", () => {
+    document.getElementById("terminal")?.classList.toggle("open");
+  });
 
-  document.getElementById("closeSidebar")
+  document
+    .getElementById("closeSidebar")
     ?.addEventListener("click", closeSidebar);
 
   /* ==============================
@@ -78,7 +73,6 @@ export function initPanels() {
   ============================== */
 
   async function renderFiles() {
-
     if (!state.currentProjectId) return;
 
     fileList.innerHTML = "";
@@ -90,20 +84,17 @@ export function initPanels() {
   }
 
   function buildTree(entries) {
-
     const root = {};
 
-    entries.forEach(entry => {
-
+    entries.forEach((entry) => {
       const parts = entry.path.split("/");
       let current = root;
 
       parts.forEach((part, index) => {
-
         if (!current[part]) {
           current[part] = {
             __meta: index === parts.length - 1 ? entry : null,
-            __children: {}
+            __children: {},
           };
         }
 
@@ -115,15 +106,13 @@ export function initPanels() {
   }
 
   function renderTree(node, container, depth = 0) {
-
-    Object.keys(node).forEach(name => {
-
+    Object.keys(node).forEach((name) => {
       const item = node[name];
       const meta = item.__meta;
       const children = item.__children;
 
       const div = document.createElement("div");
-      div.style.paddingLeft = (depth * 16) + "px";
+      div.style.paddingLeft = depth * 16 + "px";
 
       let pressTimer;
 
@@ -132,7 +121,6 @@ export function initPanels() {
       ============================== */
 
       if (meta && meta.type === "file") {
-
         div.textContent = "📄 " + name;
         div.className = "file-item";
 
@@ -153,13 +141,10 @@ export function initPanels() {
         };
 
         container.appendChild(div);
-
-      } 
+      } else {
       /* ==============================
          FOLDER
       ============================== */
-      else {
-
         div.textContent = "📁 " + name;
         div.className = "folder-item";
 
@@ -178,9 +163,7 @@ export function initPanels() {
 
         div.onclick = () => {
           childContainer.style.display =
-            childContainer.style.display === "none"
-              ? "block"
-              : "none";
+            childContainer.style.display === "none" ? "block" : "none";
         };
 
         container.appendChild(div);
@@ -192,23 +175,19 @@ export function initPanels() {
   }
 
   async function confirmDelete(path, type) {
-
     const confirmAction = confirm(
-      `Delete this ${type}? This cannot be undone.`
+      `Delete this ${type}? This cannot be undone.`,
     );
 
     if (!confirmAction) return;
 
     if (type === "file") {
-
       await deleteFile(state.currentProjectId, path);
       removeModel(path);
-
     } else {
-
       await deleteFolder(state.currentProjectId, path);
 
-      Object.keys(state.models || {}).forEach(key => {
+      Object.keys(state.models || {}).forEach((key) => {
         if (key.startsWith(path + "/")) {
           removeModel(key);
         }
@@ -218,15 +197,13 @@ export function initPanels() {
     renderFiles();
   }
 
-  document.getElementById("newFileBtn")
-    ?.addEventListener("click", async () => {
+  document.getElementById("newFileBtn")?.addEventListener("click", async () => {
+    const name = prompt("Enter file path (example: src/app.js)");
+    if (!name) return;
 
-      const name = prompt("Enter file path (example: src/app.js)");
-      if (!name) return;
-
-      await createFile(name);
-      renderFiles();
-    });
+    await createFile(name);
+    renderFiles();
+  });
 
   renderFiles();
 
@@ -235,7 +212,6 @@ export function initPanels() {
   ============================== */
 
   searchInput?.addEventListener("input", async () => {
-
     if (!state.currentProjectId) return;
 
     const query = searchInput.value.toLowerCase();
@@ -244,19 +220,16 @@ export function initPanels() {
     if (!query) return;
 
     const entries = await listEntries(state.currentProjectId);
-    const files = entries.filter(e => e.type === "file");
+    const files = entries.filter((e) => e.type === "file");
 
     for (const file of files) {
-
       const content = await readFile(state.currentProjectId, file.path);
       if (!content) continue;
 
       const lines = content.split("\n");
 
       lines.forEach((line, i) => {
-
         if (line.toLowerCase().includes(query)) {
-
           const div = document.createElement("div");
           div.className = "search-result";
           div.textContent = `${file.path} (Ln ${i + 1})`;
@@ -266,7 +239,7 @@ export function initPanels() {
 
             state.editor.setPosition({
               lineNumber: i + 1,
-              column: 1
+              column: 1,
             });
 
             state.editor.revealLineInCenter(i + 1);
@@ -289,7 +262,6 @@ export function initPanels() {
   ============================== */
 
   function applySettingsFromUI() {
-
     const settings = {
       theme: document.getElementById("themeSelect").value,
       fontSize: parseInt(document.getElementById("fontSizeInput").value) || 14,
@@ -303,11 +275,12 @@ export function initPanels() {
     saveSettings(settings);
   }
 
-  document.getElementById("themeSelect")
+  document
+    .getElementById("themeSelect")
     ?.addEventListener("change", applySettingsFromUI);
 }
 
-ide.services.js
+ide.services.js;
 
 /* ide.services.js */
 import { state } from "./ide.state.js";
@@ -352,4 +325,3 @@ export function loadSettings() {
   const data = localStorage.getItem(SETTINGS_KEY);
   return data ? JSON.parse(data) : null;
 }
-

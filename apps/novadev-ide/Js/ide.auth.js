@@ -1,5 +1,3 @@
-// ide.auth.js
-
 let supabase = null;
 
 /* ==============================
@@ -7,14 +5,11 @@ let supabase = null;
 ============================== */
 
 export function initAuth() {
-
   const SUPABASE_URL = "https://zyispsfejdfyfluahnr.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5aXNwc2ZlamRmeWZscHVhaG5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MTIyNTQsImV4cCI6MjA4Njk4ODI1NH0.awxFlFo54MwGFYpgcHrRtrqEHjIFqJH5qmx5_Gp_Ju0";
+  const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5aXNwc2ZlamRmeWZscHVhaG5yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE0MTIyNTQsImV4cCI6MjA4Njk4ODI1NH0.awxFlFo54MwGFYpgcHrRtrqEHjIFqJH5qmx5_Gp_Ju0";
 
-  supabase = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   return supabase;
 }
@@ -52,7 +47,7 @@ export async function signInWithProvider(provider) {
   return await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: window.location.href
-    }
+      redirectTo: window.location.href,
+    },
   });
 }

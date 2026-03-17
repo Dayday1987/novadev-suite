@@ -1,4 +1,3 @@
-// ide.fs.js
 // Multi-project Virtual File System
 
 const DB_NAME = "novadev_fs";
@@ -15,7 +14,6 @@ let db = null;
 
 export function initFS() {
   return new Promise((resolve, reject) => {
-
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = (event) => {
@@ -27,7 +25,7 @@ export function initFS() {
 
       if (!db.objectStoreNames.contains(ENTRY_STORE)) {
         db.createObjectStore(ENTRY_STORE, {
-          keyPath: ["projectId", "path"]
+          keyPath: ["projectId", "path"],
         });
       }
     };
@@ -61,14 +59,13 @@ export function createProject(name) {
   const id = uuid();
 
   return new Promise((resolve, reject) => {
-
     const tx = db.transaction(PROJECT_STORE, "readwrite");
     const store = tx.objectStore(PROJECT_STORE);
 
     store.put({
       id,
       name,
-      createdAt: Date.now()
+      createdAt: Date.now(),
     });
 
     tx.oncomplete = () => resolve(id);
@@ -78,7 +75,6 @@ export function createProject(name) {
 
 export function listProjects() {
   return new Promise((resolve, reject) => {
-
     const tx = db.transaction(PROJECT_STORE, "readonly");
     const store = tx.objectStore(PROJECT_STORE);
 
@@ -91,11 +87,7 @@ export function listProjects() {
 
 export function deleteProject(projectId) {
   return new Promise((resolve, reject) => {
-
-    const tx = db.transaction(
-      [PROJECT_STORE, ENTRY_STORE],
-      "readwrite"
-    );
+    const tx = db.transaction([PROJECT_STORE, ENTRY_STORE], "readwrite");
 
     tx.objectStore(PROJECT_STORE).delete(projectId);
 
@@ -125,7 +117,6 @@ export function writeFile(projectId, path, content) {
   path = normalize(path);
 
   return new Promise((resolve, reject) => {
-
     const tx = db.transaction(ENTRY_STORE, "readwrite");
     const store = tx.objectStore(ENTRY_STORE);
 
@@ -133,7 +124,7 @@ export function writeFile(projectId, path, content) {
       projectId,
       path,
       type: "file",
-      content
+      content,
     });
 
     tx.oncomplete = () => resolve();
@@ -145,7 +136,6 @@ export function mkdir(projectId, path) {
   path = normalize(path);
 
   return new Promise((resolve, reject) => {
-
     const tx = db.transaction(ENTRY_STORE, "readwrite");
     const store = tx.objectStore(ENTRY_STORE);
 
@@ -153,7 +143,7 @@ export function mkdir(projectId, path) {
       projectId,
       path,
       type: "folder",
-      content: null
+      content: null,
     });
 
     tx.oncomplete = () => resolve();
@@ -165,7 +155,6 @@ export function readFile(projectId, path) {
   path = normalize(path);
 
   return new Promise((resolve, reject) => {
-
     const tx = db.transaction(ENTRY_STORE, "readonly");
     const store = tx.objectStore(ENTRY_STORE);
 
@@ -181,16 +170,13 @@ export function readFile(projectId, path) {
 
 export function listEntries(projectId) {
   return new Promise((resolve, reject) => {
-
     const tx = db.transaction(ENTRY_STORE, "readonly");
     const store = tx.objectStore(ENTRY_STORE);
 
     const request = store.getAll();
 
     request.onsuccess = () => {
-      resolve(
-        request.result.filter(e => e.projectId === projectId)
-      );
+      resolve(request.result.filter((e) => e.projectId === projectId));
     };
 
     request.onerror = () => reject(request.error);
@@ -205,7 +191,6 @@ export function deleteFile(projectId, path) {
   path = normalize(path);
 
   return new Promise((resolve, reject) => {
-
     const tx = db.transaction(ENTRY_STORE, "readwrite");
     const store = tx.objectStore(ENTRY_STORE);
 
@@ -221,14 +206,12 @@ export function deleteFile(projectId, path) {
 ============================== */
 
 export async function deleteFolder(projectId, folderPath) {
-
   folderPath = normalize(folderPath);
 
   const entries = await listEntries(projectId);
 
-  const targets = entries.filter(e =>
-    e.path === folderPath ||
-    e.path.startsWith(folderPath + "/")
+  const targets = entries.filter(
+    (e) => e.path === folderPath || e.path.startsWith(folderPath + "/"),
   );
 
   for (const entry of targets) {
