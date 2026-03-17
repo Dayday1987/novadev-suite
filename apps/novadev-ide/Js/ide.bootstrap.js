@@ -1,56 +1,34 @@
-<<<<<<< HEAD
-import { initEditor } from "./ide.core.js";
-import { initPanels } from "./ide.panels.js";
-import { loadProject } from "./ide.services.js";
-=======
-import {
-  listProjects,
-  createProject,
-  writeFile
-} from "./ide.fs.js";
-
+import { initFS, listProjects, createProject, writeFile } from "./ide.fs.js";
 import { initEditor } from "./ide.core.js";
 import { initPanels } from "./ide.panels.js";
 import { state } from "./ide.state.js";
-
 import {
   initAuth,
   getSession,
   signUp,
   signIn,
   signOut,
-  signInWithProvider
+  signInWithProvider,
 } from "./ide.auth.js";
->>>>>>> f40eb4630acbbe7b187517eefdf398ef79651501
 
 export async function bootstrapApp() {
-  document.addEventListener("DOMContentLoaded", async () => {
-<<<<<<< HEAD
-    // 1️⃣ Load project into shared state FIRST
-    loadProject();
-=======
+  // Initialize Supabase
+  initAuth();
 
-    // Initialize Supabase
-    initAuth();
->>>>>>> f40eb4630acbbe7b187517eefdf398ef79651501
+  // Check session
+  const session = await getSession();
 
-    // Check session
-    const session = await getSession();
+  if (!session) {
+    showAuthScreen();
+    wireAuthUI();
+    return;
+  }
 
-    if (!session) {
-      showAuthScreen();
-      wireAuthUI();
-      return;
-    }
-<<<<<<< HEAD
-  });
-=======
+  // Logged in
+  showIDEContainer();
 
-    // Logged in
-    showIDEContainer();
-
-    await renderProjectLauncher();
-  });
+  await initFS();
+  await renderProjectLauncher();
 }
 
 /* =====================================
@@ -72,9 +50,7 @@ function showIDEContainer() {
 ===================================== */
 
 function wireAuthUI() {
-
   document.getElementById("loginBtn").onclick = async () => {
-
     const email = document.getElementById("emailInput").value;
     const password = document.getElementById("passwordInput").value;
 
@@ -89,7 +65,6 @@ function wireAuthUI() {
   };
 
   document.getElementById("signupBtn").onclick = async () => {
-
     const email = document.getElementById("emailInput").value;
     const password = document.getElementById("passwordInput").value;
 
@@ -103,11 +78,11 @@ function wireAuthUI() {
     alert("Check your email to confirm your account.");
   };
 
-  document.getElementById("googleLogin")
-    .onclick = () => signInWithProvider("google");
+  document.getElementById("googleLogin").onclick = () =>
+    signInWithProvider("google");
 
-  document.getElementById("githubLogin")
-    .onclick = () => signInWithProvider("github");
+  document.getElementById("githubLogin").onclick = () =>
+    signInWithProvider("github");
 }
 
 /* =====================================
@@ -115,7 +90,6 @@ function wireAuthUI() {
 ===================================== */
 
 async function renderProjectLauncher() {
-
   const launcher = document.getElementById("projectLauncher");
   const projectList = document.getElementById("projectList");
   const newProjectBtn = document.getElementById("newProjectBtn");
@@ -125,8 +99,7 @@ async function renderProjectLauncher() {
 
   const projects = await listProjects();
 
-  projects.forEach(project => {
-
+  projects.forEach((project) => {
     const div = document.createElement("div");
     div.className = "project-item";
     div.textContent = project.name;
@@ -139,7 +112,6 @@ async function renderProjectLauncher() {
   });
 
   newProjectBtn.onclick = async () => {
-
     const name = prompt("Project name:");
     if (!name) return;
 
@@ -156,11 +128,9 @@ async function renderProjectLauncher() {
 ===================================== */
 
 async function openProject(projectId) {
-
   state.currentProjectId = projectId;
 
-  document.getElementById("projectLauncher")
-    .classList.add("hidden");
+  document.getElementById("projectLauncher").classList.add("hidden");
 
   await startIDE();
 }
@@ -170,7 +140,6 @@ async function openProject(projectId) {
 ===================================== */
 
 async function createStarterProject(projectId) {
-
   await writeFile(projectId, "index.html", "<h1>Hello NovaDev 🚀</h1>");
   await writeFile(projectId, "style.css", "body { font-family: sans-serif; }");
   await writeFile(projectId, "script.js", "console.log('NovaDev ready');");
@@ -181,8 +150,6 @@ async function createStarterProject(projectId) {
 ===================================== */
 
 async function startIDE() {
-
   initPanels();
   await initEditor();
->>>>>>> f40eb4630acbbe7b187517eefdf398ef79651501
 }
