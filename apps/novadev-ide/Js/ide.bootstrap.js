@@ -1,4 +1,8 @@
 import { initFS, listProjects, createProject, writeFile } from "./ide.fs.js";
+ide.bootstrap.js;
+
+import { initFS, listProjects, createProject, writeFile } from "./ide.fs.js";
+
 import { initEditor } from "./ide.core.js";
 import { initPanels } from "./ide.panels.js";
 import { state } from "./ide.state.js";
@@ -131,6 +135,8 @@ async function openProject(projectId) {
   state.currentProjectId = projectId;
 
   document.getElementById("projectLauncher").classList.add("hidden");
+  const launcher = document.getElementById("projectLauncher");
+  launcher.classList.add("hidden");
 
   await startIDE();
 }
@@ -146,10 +152,12 @@ async function createStarterProject(projectId) {
 }
 
 /* =====================================
-   Start IDE
+   Start IDE Properly
 ===================================== */
 
 async function startIDE() {
   initPanels();
+
+  // Then load Monaco
   await initEditor();
 }

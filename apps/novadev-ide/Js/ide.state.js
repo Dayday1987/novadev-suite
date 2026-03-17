@@ -1,3 +1,5 @@
+=====ide.state.js======
+
 export const state = {
   editor: null,
   currentProjectId: null,
