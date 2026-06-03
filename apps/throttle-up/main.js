@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
     list: [],
 
     createDust(x, y) {
-      for (let i = 0; i < 1; i++) {
+      for (let i = 0; i < 5; i++) {
         this.list.push({
           x: x + (Math.random() - 0.5) * 8,
           y: y + (Math.random() - 0.5) * 4,
@@ -614,18 +614,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const isGrounded = game.bikeAngle >= CONFIG.GROUND_CONTACT_ANGLE - 0.01;
 
       const isBurnout =
-        game.throttle &&
-        game.gear === 1 &&
-        game.speed < 12 &&
-        isGrounded &&
-        Math.abs(game.bikeAngularVelocity) < 0.2;
+  game.throttle &&
+  game.gear === 1 &&
+  game.speed < 15 && // Slightly higher speed threshold
+  isGrounded &&
+  Math.abs(game.bikeAngularVelocity) < 1.0; // Loosen the velocity check
 
       if (isBurnout) {
         game.launchSmokeTimer = 0.2;
       }
 
       if (game.launchSmokeTimer > 0) {
-        particles.createDust(bikeX - 35, game.currentY + 12);
+        particles.createDust(bikeX - 35, game.currentY + 50);
         game.launchSmokeTimer -= deltaTime;
       }
 
