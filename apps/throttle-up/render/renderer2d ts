@@ -1,0 +1,139 @@
+import { drawTrack } from "./trackRenderer2d";
+import { drawBike } from "./bikeRenderer2d";
+import { drawEntity } from "./entityRenderer";
+import { loadSprites } from "./spriteLoader";
+import { SPRITE_PATHS } from "./sprites";
+
+export class Renderer2D {
+
+    private canvas: HTMLCanvasElement;
+    private ctx: CanvasRenderingContext2D;
+
+    private sprites: Record<string, HTMLImageElement> = {};
+
+    private loaded = false;
+
+    constructor(canvas: HTMLCanvasElement) {
+
+        this.canvas = canvas;
+
+        this.ctx = canvas.getContext("2d")!;
+
+        loadSprites(SPRITE_PATHS).then((sprites) => {
+
+            this.sprites = sprites;
+
+            this.loaded = true;
+
+        });
+
+    }
+
+    render(game: any) {
+
+        this.clear();
+
+        if (!this.loaded)
+            return;
+
+        this.drawBackground(game);
+
+        drawTrack(
+            this.ctx,
+            this.canvas,
+            this.sprites,
+            game.world.scrollX
+        );
+
+        this.drawEntities(game);
+
+        this.drawBike(game);
+
+        this.drawHUD(game);
+
+    }
+
+    private clear() {
+
+        this.ctx.clearRect(
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height
+        );
+
+    }
+
+    private drawBackground(game: any) {
+
+        this.ctx.fillStyle = "#78b8ff";
+
+        this.ctx.fillRect(
+            0,
+            0,
+            this.canvas.width,
+            this.canvas.height
+        );
+
+    }
+
+    private drawEntities(game: any) {
+
+        if (!game.spawns?.entities)
+            return;
+
+        for (const entity of game.spawns.entities) {
+
+            drawEntity(
+                this.ctx,
+                entity,
+                this.canvas,
+                this.sprites
+            );
+
+        }
+
+    }
+
+    private drawBike(game: any) {
+
+        drawBike(
+            this.ctx,
+            {
+                x: this.canvas.width * 0.25,
+                y: game.world.getLaneY(game.bike.lane),
+                angle: game.physics.bike.angle
+            },
+            game.visuals,
+            this.sprites.bike
+        );
+
+    }
+
+    private drawHUD(game: any) {
+
+        this.ctx.fillStyle = "white";
+
+        this.ctx.font = "18px Roboto Mono";
+
+        this.ctx.fillText(
+            `Speed ${Math.round(game.physics.bike.speed)} mph`,
+            20,
+            30
+        );
+
+        this.ctx.fillText(
+            `Gear ${game.physics.bike.gear}`,
+            20,
+            60
+        );
+
+        this.ctx.fillText(
+            `RPM ${Math.round(game.physics.bike.rpm * 100)}%`,
+            20,
+            90
+        );
+
+    }
+
+}
