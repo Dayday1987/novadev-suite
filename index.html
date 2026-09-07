@@ -1,431 +1,724 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>NovaDevStudio — NovaDev Suite</title>
-  <meta name="description" content="NovaDev Suite — Portfolio & Tools by NovaDev Studio (David Munoz). Meme maker, prompt library, and interactive demos." />
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>NovaDevStudio — NovaDev Suite</title>
+    <meta
+      name="description"
+      content="NovaDev Suite — Portfolio & Tools by NovaDev Studio (David Munoz). Meme maker, prompt library, and interactive demos."
+    />
 
-  <meta property="og:image" content="assets/og-img.png">
-  <meta property="og:image:type" content="image/png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:image" content="assets/og-img.png">
+    <meta property="og:image" content="assets/og-img.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="assets/og-img.png" />
 
-  <link rel="stylesheet" href="styles/main.css" />
+    <link rel="stylesheet" href="styles/main.css" />
 
-  <link rel="icon" href='data:image/svg+xml;utf8,
+    <link
+      rel="icon"
+      href='data:image/svg+xml;utf8,
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
     <defs><linearGradient id="a" x1="0" x2="1"><stop offset="0" stop-color="%236EE7F7"/><stop offset="1" stop-color="%237C5CFF"/></linearGradient></defs>
     <rect width="100" height="100" rx="16" fill="url(%23a)"/>
     <text x="50" y="64" font-size="56" text-anchor="middle" fill="%23071242" font-family="Inter,Arial" font-weight="900">N</text>
-  </svg>' type="image/svg+xml">
+  </svg>'
+      type="image/svg+xml"
+    />
 
-  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.44.0/min/vs/loader.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-</head>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  </head>
 
-<body>
-  <header class="header">
-    <div class="wrap header-grid">
-      <div class="brand">
-        <div class="logo-wrap" aria-hidden="true">
-          <div class="logo-mark">N</div>
-        </div>
-        <div>
-          <div class="brand-title">NovaDev Studio</div>
-          <div class="brand-sub">Portfolio & Tools — David Munoz</div>
-        </div>
-      </div>
-
-      <nav class="nav" aria-label="Primary">
-        <a href="#projects">Projects</a>
-        <a href="#blog">Blog</a>
-        <a href="#tools">Tools</a>
-        <a href="#contact" class="cta btn btn--glow">Contact</a>
-      </nav>
-      <button class="hamburger" aria-label="Toggle menu">☰</button>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero" aria-labelledby="hero-heading">
-      <div class="wrap hero-centered">
-        <div class="hero-glow" aria-hidden="true">
-          <div class="float-dot dot-a"></div>
-          <div class="float-dot dot-b"></div>
-          <div class="float-dot dot-c"></div>
-        </div>
-
-        <div class="hero-profile">
-          <img src="assets/avatar.png" alt="David Munoz — NovaDev Studio" class="avatar" width="220" height="220" loading="lazy" />
-          <div class="hero-personal">
-            <div class="hero-name">David Munoz</div>
-            <div class="hero-role">Founder • Full-stack & Front-end Dev</div>
+  <body>
+    <header class="header">
+      <div class="wrap header-grid">
+        <div class="brand">
+          <div class="logo-wrap" aria-hidden="true">
+            <div class="logo-mark">N</div>
+          </div>
+          <div>
+            <div class="brand-title">NovaDev Studio</div>
+            <div class="brand-sub">Portfolio & Tools — David Munoz</div>
           </div>
         </div>
 
-        <h1 id="hero-heading" class="hero-title">NovaDev Suite</h1>
-        <p class="hero-sub">A polished portfolio and tools suite — generate memes, save prompts, and show interactive demos.</p>
-
-        <div class="hero-ctas">
-          <a class="btn btn--glow primary" href="#tools">Open Tools</a>
-          <a class="btn ghost" href="#projects">See Projects</a>
-        </div>
-
-        <ul class="features" aria-hidden="false">
-          <li class="reveal">⚡ Fast, mobile-first, accessible</li>
-          <li class="reveal">🧰 Meme Maker (client-side Canvas)</li>
-          <li class="reveal">📝 Prompt Library (localStorage)</li>
-          <li class="reveal">🚀 Ready for Netlify / CodeSandbox</li>
-        </ul>
+        <nav class="nav" aria-label="Primary">
+          <a href="#projects">Projects</a>
+          <a href="#blog">Blog</a>
+          <a href="#tools">Tools</a>
+          <a href="#contact" class="cta btn btn--glow">Contact</a>
+        </nav>
+        <button class="hamburger" aria-label="Toggle menu">☰</button>
       </div>
-    </section>
+    </header>
 
-    <section id="projects" class="section" aria-labelledby="projects-heading">
-      <div class="wrap">
-        <h2 id="projects-heading" class="reveal fade-in">Selected Projects</h2>
+    <main>
+      <section class="hero" aria-labelledby="hero-heading">
+        <div class="wrap hero-centered">
+          <div class="hero-glow" aria-hidden="true">
+            <div class="float-dot dot-a"></div>
+            <div class="float-dot dot-b"></div>
+            <div class="float-dot dot-c"></div>
+          </div>
 
-        <div class="projects-grid">
-          <article class="card project reveal fade-in" tabindex="0" aria-labelledby="p1-title">
-            <img src="assets/ide.svg" alt="NovaDev IDE screenshot"/>
-            <h3 id="p1-title" class="fade-in">NovaDev IDE</h3>
-            <p class="fade-in">Professional web development environment with Monaco Editor.</p>
-            <div class="card-actions">
-              <a class="btn fade-in" href="apps/novadev-ide/index.html" target="_blank" rel="noopener">Launch</a>
-              <a class="btn ghost fade-in" href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/novadev-ide" target="_blank" rel="noopener">Code</a>
-            </div>
-          </article>
-
-          <article class="card project reveal fade-in" tabindex="0" aria-labelledby="p2-title">
-            <img src="assets/project2.png" alt="Wheelie game screenshot"/>
-            <h3 id="p2-title" class="fade-in">Throttle Up - Wheelie Challenge</h3>
-            <p class="fade-in">Canvas-based motorcycle balance game with two lanes.</p>
-            <div class="card-actions">
-              <a class="btn fade-in" href="apps/throttle-up/index.html" target="_blank" rel="noopener">Play</a>
-              <a class="btn ghost fade-in" href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/throttle-up" target="_blank" rel="noopener">Code</a>
-            </div>
-          </article>
-
-          <article class="card project reveal fade-in" tabindex="0" aria-labelledby="p3-title">
-            <img src="assets/project3.png" alt="Meme maker screenshot"/>
-            <h3 id="p3-title" class="fade-in">Meme Maker</h3>
-            <p class="fade-in">Client-side meme editor with canvas rendering.</p>
-            <div class="card-actions">
-              <a class="btn fade-in" href="apps/meme-maker/index.html" target="_blank" rel="noopener">Open</a>
-              <a class="btn ghost fade-in" href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/meme-maker" target="_blank" rel="noopener">Code</a>
-            </div>
-          </article>
-
-          <article class="card project reveal fade-in" tabindex="0" aria-labelledby="p4-title">
-            <img src="assets/project1.png" alt="AI Prompt Library screenshot"/>
-            <h3 id="p4-title" class="fade-in">AI Prompt Library</h3>
-            <p class="fade-in">Save and manage AI prompts with localStorage.</p>
-            <div class="card-actions">
-              <a class="btn fade-in" href="apps/ai.portfolio/index.html" target="_blank" rel="noopener">View</a>
-              <a class="btn ghost fade-in" href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/ai.portfolio" target="_blank" rel="noopener">Code</a>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="blog" class="section" aria-labelledby="blog-heading">
-      <div class="wrap">
-        <h2 id="blog-heading" class="reveal fade-in">Blog & Updates</h2>
-
-        <div class="blog-grid">
-          <article class="card blog-post reveal fade-in" data-post-id="1">
-            <div class="blog-header">
-              <h3 class="fade-in">Welcome to NovaDev Suite</h3>
-              <div class="blog-meta">
-                <span class="author">David Munoz</span>
-                <span class="date">December 16, 2024</span>
+          <div class="hero-profile">
+            <img
+              src="assets/avatar.png"
+              alt="David Munoz — NovaDev Studio"
+              class="avatar"
+              width="220"
+              height="220"
+              loading="lazy"
+            />
+            <div class="hero-personal">
+              <div class="hero-name">David Munoz</div>
+              <div class="hero-role">
+                Founder of NovaDev Studio • Full-stack Developer
               </div>
             </div>
-            <div class="blog-content fade-in">
-              <p>Excited to launch NovaDev Suite - a collection of web development tools and games built with modern web technologies. This portfolio showcases my work in JavaScript, canvas graphics, and web-based IDEs.</p>
-              <p>Check out the NovaDev IDE - a full-featured code editor running entirely in your browser!</p>
-            </div>
-            <div class="blog-actions">
-              <button class="btn ghost toggle-comments" data-post-id="1">
-                <span class="comment-count">0</span> Comments
-              </button>
-            </div>
-            <div class="comments-section hidden" data-post-id="1">
-              <div class="comments-list"></div>
-              <form class="comment-form">
-                <input type="text" name="name" placeholder="Your name" required />
-                <textarea name="comment" placeholder="Leave a comment..." required></textarea>
-                <button type="submit" class="btn primary">Post Comment</button>
-              </form>
-            </div>
-          </article>
+          </div>
 
-          <article class="card blog-post reveal fade-in" data-post-id="2">
-            <div class="blog-header">
-              <h3 class="fade-in">Throttle Up: Building a Canvas Game</h3>
-              <div class="blog-meta">
-                <span class="author">David Munoz</span>
-                <span class="date">December 16, 2024</span>
+          <h1 id="hero-heading" class="hero-title">NovaDev Suite</h1>
+          <p class="hero-sub">
+            A polished portfolio and tools suite — generate memes, save prompts,
+            and show interactive demos.
+          </p>
+
+          <div class="hero-ctas">
+            <a class="btn btn--glow primary" href="#tools">Explore Tools</a>
+            <a class="btn ghost" href="#projects">View Projects</a>
+          </div>
+
+          <ul class="features" aria-hidden="false">
+            <li class="reveal">⚡ Fast, mobile-first, accessible</li>
+            <li class="reveal">🧰 Meme Maker (client-side Canvas)</li>
+            <li class="reveal">📝 Prompt Library (localStorage)</li>
+            <li class="reveal">🚀 Ready for Netlify / CodeSandbox</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="projects" class="section" aria-labelledby="projects-heading">
+        <div class="wrap">
+          <h2 id="projects-heading" class="reveal fade-in">
+            Selected Projects
+          </h2>
+
+          <div class="projects-grid">
+            <article
+              class="card project reveal fade-in"
+              tabindex="0"
+              aria-labelledby="p1-title"
+            >
+              <img src="assets/ide.svg" alt="NovaDev IDE screenshot" />
+              <h3 id="p1-title" class="fade-in">NovaDev IDE</h3>
+              <p class="fade-in">
+                Professional web development environment with Monaco Editor.
+              </p>
+              <div class="card-actions">
+                <a
+                  class="btn fade-in"
+                  href="apps/novadev-ide/index.html"
+                  target="_blank"
+                  rel="noopener"
+                  >Launch</a
+                >
+                <a
+                  class="btn ghost fade-in"
+                  href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/novadev-ide"
+                  target="_blank"
+                  rel="noopener"
+                  >Code</a
+                >
+              </div>
+            </article>
+
+            <article
+              class="card project reveal fade-in"
+              tabindex="0"
+              aria-labelledby="p2-title"
+            >
+              <img src="assets/project2.png" alt="Wheelie game screenshot" />
+              <h3 id="p2-title" class="fade-in">
+                Throttle Up - Wheelie Challenge
+              </h3>
+              <p class="fade-in">
+                Canvas-based motorcycle balance game with two lanes.
+              </p>
+              <div class="card-actions">
+                <a
+                  class="btn fade-in"
+                  href="apps/throttle-up/index.html"
+                  target="_blank"
+                  rel="noopener"
+                  >Play</a
+                >
+                <a
+                  class="btn ghost fade-in"
+                  href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/throttle-up"
+                  target="_blank"
+                  rel="noopener"
+                  >Code</a
+                >
+              </div>
+            </article>
+
+            <article
+              class="card project reveal fade-in"
+              tabindex="0"
+              aria-labelledby="p3-title"
+            >
+              <img src="assets/project3.png" alt="Meme maker screenshot" />
+              <h3 id="p3-title" class="fade-in">Meme Maker</h3>
+              <p class="fade-in">
+                Client-side meme editor with canvas rendering.
+              </p>
+              <div class="card-actions">
+                <a
+                  class="btn fade-in"
+                  href="apps/meme-maker/index.html"
+                  target="_blank"
+                  rel="noopener"
+                  >Open</a
+                >
+                <a
+                  class="btn ghost fade-in"
+                  href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/meme-maker"
+                  target="_blank"
+                  rel="noopener"
+                  >Code</a
+                >
+              </div>
+            </article>
+
+            <article
+              class="card project reveal fade-in"
+              tabindex="0"
+              aria-labelledby="p4-title"
+            >
+              <img
+                src="assets/project1.png"
+                alt="AI Prompt Library screenshot"
+              />
+              <h3 id="p4-title" class="fade-in">AI Prompt Library</h3>
+              <p class="fade-in">
+                Save and manage AI prompts with localStorage.
+              </p>
+              <div class="card-actions">
+                <a
+                  class="btn fade-in"
+                  href="apps/ai.portfolio/index.html"
+                  target="_blank"
+                  rel="noopener"
+                  >View</a
+                >
+                <a
+                  class="btn ghost fade-in"
+                  href="https://github.com/Dayday1987/novadev-suite/tree/main/apps/ai.portfolio"
+                  target="_blank"
+                  rel="noopener"
+                  >Code</a
+                >
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="blog" class="section" aria-labelledby="blog-heading">
+        <div class="wrap">
+          <h2 id="blog-heading" class="reveal fade-in">Blog & Updates</h2>
+
+          <div class="blog-grid">
+            <article class="card blog-post reveal fade-in" data-post-id="1">
+              <div class="blog-header">
+                <h3 class="fade-in">Welcome to NovaDev Suite</h3>
+                <div class="blog-meta">
+                  <span class="author">David Munoz</span>
+                  <span class="date">December 16, 2024</span>
+                </div>
+              </div>
+              <div class="blog-content fade-in">
+                <p>
+                  Excited to launch NovaDev Suite - a collection of web
+                  development tools and games built with modern web
+                  technologies. This portfolio showcases my work in JavaScript,
+                  canvas graphics, and web-based IDEs.
+                </p>
+                <p>
+                  Check out the NovaDev IDE - a full-featured code editor
+                  running entirely in your browser!
+                </p>
+              </div>
+              <div class="blog-actions">
+                <button class="btn ghost toggle-comments" data-post-id="1">
+                  <span class="comment-count">0</span> Comments
+                </button>
+              </div>
+              <div class="comments-section hidden" data-post-id="1">
+                <div class="comments-list"></div>
+                <form class="comment-form">
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Your name"
+                    required
+                  />
+                  <textarea
+                    name="comment"
+                    placeholder="Leave a comment..."
+                    required
+                  ></textarea>
+                  <button type="submit" class="btn primary">
+                    Post Comment
+                  </button>
+                </form>
+              </div>
+            </article>
+
+            <article class="card blog-post reveal fade-in" data-post-id="2">
+              <div class="blog-header">
+                <h3 class="fade-in">Throttle Up: Building a Canvas Game</h3>
+                <div class="blog-meta">
+                  <span class="author">David Munoz</span>
+                  <span class="date">December 16, 2024</span>
+                </div>
+              </div>
+              <div class="blog-content fade-in">
+                <p>
+                  Throttle Up is a motorcycle wheelie game featuring a Kawasaki
+                  Ninja H2R. Built with HTML5 Canvas, it demonstrates physics
+                  simulation, collision detection, and responsive game design.
+                </p>
+                <p>
+                  The game features a race track environment with crowds,
+                  realistic bike graphics, and smooth gameplay mechanics.
+                </p>
+              </div>
+              <div class="blog-actions">
+                <button class="btn ghost toggle-comments" data-post-id="2">
+                  <span class="comment-count">0</span> Comments
+                </button>
+              </div>
+              <div class="comments-section hidden" data-post-id="2">
+                <div class="comments-list"></div>
+                <form class="comment-form">
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Your name"
+                    required
+                  />
+                  <textarea
+                    name="comment"
+                    placeholder="Leave a comment..."
+                    required
+                  ></textarea>
+                  <button type="submit" class="btn primary">
+                    Post Comment
+                  </button>
+                </form>
+              </div>
+            </article>
+
+            <article class="card blog-post reveal fade-in" data-post-id="3">
+              <div class="blog-header">
+                <h3 class="fade-in">Looking for Contributors!</h3>
+                <div class="blog-meta">
+                  <span class="author">David Munoz</span>
+                  <span class="date">December 16, 2024</span>
+                </div>
+              </div>
+              <div class="blog-content fade-in">
+                <p>
+                  NovaDev Suite is growing! I'm looking for developers,
+                  designers, and sponsors to help take this project to the next
+                  level.
+                </p>
+                <p>
+                  Whether you want to contribute code, design assets, or sponsor
+                  development - there's a place for you. Check out the contact
+                  forms below to get involved!
+                </p>
+              </div>
+              <div class="blog-actions">
+                <button class="btn ghost toggle-comments" data-post-id="3">
+                  <span class="comment-count">0</span> Comments
+                </button>
+              </div>
+              <div class="comments-section hidden" data-post-id="3">
+                <div class="comments-list"></div>
+                <form class="comment-form">
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Your name"
+                    required
+                  />
+                  <textarea
+                    name="comment"
+                    placeholder="Leave a comment..."
+                    required
+                  ></textarea>
+                  <button type="submit" class="btn primary">
+                    Post Comment
+                  </button>
+                </form>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="tools"
+        class="section tools-section"
+        aria-labelledby="tools-heading"
+      >
+        <div class="wrap">
+          <h2 id="tools-heading" class="reveal fade-in">Tools</h2>
+
+          <!-- ✅ EDITOR IS NOW OUTSIDE THE GRID -->
+          <section id="editor" class="section" aria-labelledby="editor-heading">
+            <div class="wrap">
+              <h2 id="editor-heading" class="reveal fade-in">
+                Live Code Editor
+              </h2>
+              <div class="editor-shell reveal">
+                <div class="editor-topbar">
+                  <div class="file-tabs" role="tablist" aria-label="Files">
+                    <button
+                      class="file-tab active fade-in"
+                      data-file="index.html"
+                    >
+                      index.html
+                    </button>
+                    <button class="file-tab fade-in" data-file="styles.css">
+                      styles.css
+                    </button>
+                    <button class="file-tab fade-in" data-file="script.js">
+                      script.js
+                    </button>
+                  </div>
+                  <div class="editor-actions">
+                    <button id="editorRun" class="btn btn--glow fade-in">
+                      Run
+                    </button>
+                    <button id="editorSave" class="btn fade-in">Save</button>
+                    <button id="editorDownloadFile" class="btn ghost fade-in">
+                      Download File
+                    </button>
+                    <button id="editorExport" class="btn ghost fade-in">
+                      Export ZIP
+                    </button>
+                  </div>
+                </div>
+
+                <div class="editor-body">
+                  <div
+                    id="editorContainer"
+                    class="monaco-editor-container"
+                  ></div>
+                  <div class="preview-pane">
+                    <div class="preview-toolbar fade-in">Live Preview</div>
+                    <iframe
+                      id="editorPreview"
+                      sandbox="allow-scripts allow-same-origin"
+                    ></iframe>
+                  </div>
+                </div>
+
+                <div class="editor-footer muted">
+                  Tip: edit HTML / CSS / JS, then click <strong>Run</strong>.
+                </div>
               </div>
             </div>
-            <div class="blog-content fade-in">
-              <p>Throttle Up is a motorcycle wheelie game featuring a Kawasaki Ninja H2R. Built with HTML5 Canvas, it demonstrates physics simulation, collision detection, and responsive game design.</p>
-              <p>The game features a race track environment with crowds, realistic bike graphics, and smooth gameplay mechanics.</p>
-            </div>
-            <div class="blog-actions">
-              <button class="btn ghost toggle-comments" data-post-id="2">
-                <span class="comment-count">0</span> Comments
-              </button>
-            </div>
-            <div class="comments-section hidden" data-post-id="2">
-              <div class="comments-list"></div>
-              <form class="comment-form">
-                <input type="text" name="name" placeholder="Your name" required />
-                <textarea name="comment" placeholder="Leave a comment..." required></textarea>
-                <button type="submit" class="btn primary">Post Comment</button>
-              </form>
-            </div>
-          </article>
+          </section>
 
-          <article class="card blog-post reveal fade-in" data-post-id="3">
-            <div class="blog-header">
-              <h3 class="fade-in">Looking for Contributors!</h3>
-              <div class="blog-meta">
-                <span class="author">David Munoz</span>
-                <span class="date">December 16, 2024</span>
-              </div>
-            </div>
-            <div class="blog-content fade-in">
-              <p>NovaDev Suite is growing! I'm looking for developers, designers, and sponsors to help take this project to the next level.</p>
-              <p>Whether you want to contribute code, design assets, or sponsor development - there's a place for you. Check out the contact forms below to get involved!</p>
-            </div>
-            <div class="blog-actions">
-              <button class="btn ghost toggle-comments" data-post-id="3">
-                <span class="comment-count">0</span> Comments
-              </button>
-            </div>
-            <div class="comments-section hidden" data-post-id="3">
-              <div class="comments-list"></div>
-              <form class="comment-form">
-                <input type="text" name="name" placeholder="Your name" required />
-                <textarea name="comment" placeholder="Leave a comment..." required></textarea>
-                <button type="submit" class="btn primary">Post Comment</button>
-              </form>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section id="tools" class="section tools-section" aria-labelledby="tools-heading">
-  <div class="wrap">
-    <h2 id="tools-heading" class="reveal fade-in">Tools</h2>
-
-    <!-- ✅ EDITOR IS NOW OUTSIDE THE GRID -->
-    <section id="editor" class="section" aria-labelledby="editor-heading">
-      <div class="wrap">
-        <h2 id="editor-heading" class="reveal fade-in">Live Code Editor</h2>
-        <div class="editor-shell reveal">
-          <div class="editor-topbar">
-            <div class="file-tabs" role="tablist" aria-label="Files">
-              <button class="file-tab active fade-in" data-file="index.html">index.html</button>
-              <button class="file-tab fade-in" data-file="styles.css">styles.css</button>
-              <button class="file-tab fade-in" data-file="script.js">script.js</button>
-            </div>
-            <div class="editor-actions">
-              <button id="editorRun" class="btn btn--glow fade-in">Run</button>
-              <button id="editorSave" class="btn fade-in">Save</button>
-              <button id="editorDownloadFile" class="btn ghost fade-in">Download File</button>
-              <button id="editorExport" class="btn ghost fade-in">Export ZIP</button>
-            </div>
-          </div>
-
-          <div class="editor-body">
-            <div id="editorContainer" class="monaco-editor-container"></div>
-            <div class="preview-pane">
-              <div class="preview-toolbar fade-in">Live Preview</div>
-              <iframe id="editorPreview" sandbox="allow-scripts allow-same-origin"></iframe>
-            </div>
-          </div>
-
-          <div class="editor-footer muted">
-            Tip: edit HTML / CSS / JS, then click <strong>Run</strong>.
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ✅ ONLY TOOL CARDS REMAIN IN GRID -->
-    <div class="tools-grid">
-
-      <div class="card tool reveal">
-        <h3 class="fade-in">Meme Maker</h3>
-        <canvas id="memeCanvas" width="1000" height="600"></canvas>
-
-        <div class="tool-row">
-          <input id="imageInput" type="file" accept="image/*" />
-          <input id="topText" type="text" placeholder="Top text" />
-          <input id="bottomText" type="text" placeholder="Bottom text" />
-        </div>
-
-        <div class="tool-row">
-          <button id="drawMeme" class="btn primary btn--glow fade-in">Draw</button>
-          <button id="downloadMeme" class="btn ghost fade-in">Download PNG</button>
-          <button id="resetMeme" class="btn fade-in">Reset</button>
-        </div>
-      </div>
-
-      <div class="card tool reveal">
-        <h3 class="fade-in">AI Prompt Library</h3>
-        <textarea id="promptInput" placeholder="Write a prompt here..."></textarea>
-
-        <div class="tool-row">
-          <button id="savePrompt" class="btn primary btn--glow fade-in">Save Prompt</button>
-          <button id="clearPrompts" class="btn ghost fade-in">Clear All</button>
-        </div>
-
-        <ul id="promptList" class="prompt-list"></ul>
-      </div>
-
-    </div>
-  </div>
-</section>
-    
-    <!-- CONTACT SECTION -->
-    
-    <section id="contact" class="section" aria-labelledby="contact-heading">
-      <div class="wrap">
-        <h2 id="contact-heading" class="reveal fade-in">Get in touch</h2>
-
-        <div class="contact-grid">
-          <div class="card contact reveal fade-in">
-            <h3 class="fade-in">💎 Become a Sponsor</h3>
-            <p class="muted fade-in">Support NovaDev Suite development and get your brand featured.</p>
-
-            <form id="sponsorForm" class="contact-form fade-in" name="sponsorForm" action="https://formsubmit.co/davidlmunoz.2021@gmail.com" method="POST">
-              <input type="hidden" name="_subject" value="New NovaDev Contact">
-<input type="hidden" name="_captcha" value="false">
-<input type="hidden" name="_template" value="table">
-              <input name="company" placeholder="Company name" required />
-              <input name="name" placeholder="Your name" required />
-              <input name="email" type="email" placeholder="you@company.com" required />
-              
-              <select name="sponsorship-tier" required>
-                <option value="">Select sponsorship tier</option>
-                <option value="bronze">Bronze - $500/month</option>
-                <option value="silver">Silver - $1,000/month</option>
-                <option value="gold">Gold - $2,500/month</option>
-                <option value="platinum">Platinum - $5,000/month</option>
-                <option value="custom">Custom - Let's discuss</option>
-              </select>
-
-              <textarea name="message" placeholder="Tell us about your sponsorship goals..." required></textarea>
+          <!-- ✅ ONLY TOOL CARDS REMAIN IN GRID -->
+          <div class="tools-grid">
+            <div class="card tool reveal">
+              <h3 class="fade-in">Meme Maker</h3>
+              <canvas id="memeCanvas" width="1000" height="600"></canvas>
 
               <div class="tool-row">
-                <button type="submit" class="btn primary btn--glow fade-in">Submit Inquiry</button>
-                <button type="reset" class="btn ghost fade-in">Reset</button>
+                <input id="imageInput" type="file" accept="image/*" />
+                <input id="topText" type="text" placeholder="Top text" />
+                <input id="bottomText" type="text" placeholder="Bottom text" />
               </div>
 
-              <input type="hidden" name="form-name" value="sponsorForm" />
-            </form>
-          </div>
+              <div class="tool-row">
+                <button id="drawMeme" class="btn primary btn--glow fade-in">
+                  Draw
+                </button>
+                <button id="downloadMeme" class="btn ghost fade-in">
+                  Download PNG
+                </button>
+                <button id="resetMeme" class="btn fade-in">Reset</button>
+              </div>
+            </div>
 
-          <div class="card contact reveal fade-in">
-            <h3 class="fade-in">🤝 Join as Contributor</h3>
-            <p class="muted fade-in">Developers, designers, and creators — let's build together!</p>
-
-            <form id="contributorForm" class="contact-form fade-in" name="contributorForm" action="https://formsubmit.co/davidlmunoz.2021@gmail.com" method="POST">
-              <input type="hidden" name="_subject" value="New NovaDev Contact">
-<input type="hidden" name="_captcha" value="false">
-<input type="hidden" name="_template" value="table">
-              <input name="name" placeholder="Your name" required />
-              <input name="email" type="email" placeholder="you@example.com" required />
-              
-              <select name="role" required>
-                <option value="">What's your expertise?</option>
-                <option value="frontend">Frontend Developer</option>
-                <option value="backend">Backend Developer</option>
-                <option value="fullstack">Full-stack Developer</option>
-                <option value="designer">UI/UX Designer</option>
-                <option value="game-dev">Game Developer</option>
-                <option value="devops">DevOps Engineer</option>
-                <option value="other">Other</option>
-              </select>
-
-              <input name="github" type="url" placeholder="GitHub profile (optional)" />
-              <input name="portfolio" type="url" placeholder="Portfolio URL (optional)" />
-
-              <textarea name="message" placeholder="Tell us about your skills and what you'd like to contribute..." required></textarea>
+            <div class="card tool reveal">
+              <h3 class="fade-in">AI Prompt Library</h3>
+              <textarea
+                id="promptInput"
+                placeholder="Write a prompt here..."
+              ></textarea>
 
               <div class="tool-row">
-                <button type="submit" class="btn primary btn--glow fade-in">Apply to Contribute</button>
-                <button type="reset" class="btn ghost fade-in">Reset</button>
+                <button id="savePrompt" class="btn primary btn--glow fade-in">
+                  Save Prompt
+                </button>
+                <button id="clearPrompts" class="btn ghost fade-in">
+                  Clear All
+                </button>
               </div>
 
-              <input type="hidden" name="form-name" value="contributorForm" />
-            </form>
+              <ul id="promptList" class="prompt-list"></ul>
+            </div>
           </div>
+        </div>
+      </section>
 
-          <div class="card contact reveal fade-in full-width">
-            <h3 class="fade-in">📧 General Inquiries</h3>
-            <p class="muted fade-in">Questions, feedback, or just want to say hi? Drop a message!</p>
+      <!-- CONTACT SECTION -->
 
-            <form id="contactForm" class="contact-form fade-in" name="contactForm" action="https://formsubmit.co/davidlmunoz.2021@gmail.com" method="POST">
-              <input type="hidden" name="_subject" value="New NovaDev Contact">
-<input type="hidden" name="_captcha" value="false">
-<input type="hidden" name="_template" value="table">
-              <div class="tool-row">
+      <section id="contact" class="section" aria-labelledby="contact-heading">
+        <div class="wrap">
+          <h2 id="contact-heading" class="reveal fade-in">Get in touch</h2>
+
+          <div class="contact-grid">
+            <div class="card contact reveal fade-in">
+              <h3 class="fade-in">💎 Become a Sponsor</h3>
+              <p class="muted fade-in">
+                Support NovaDev Suite development and get your brand featured.
+              </p>
+
+              <form
+                id="sponsorForm"
+                class="contact-form fade-in"
+                name="sponsorForm"
+                action="https://formsubmit.co/davidlmunoz.2021@gmail.com"
+                method="POST"
+              >
+                <input
+                  type="hidden"
+                  name="_subject"
+                  value="New NovaDev Contact"
+                />
+                <input type="hidden" name="_captcha" value="false" />
+                <input type="hidden" name="_template" value="table" />
+                <input name="company" placeholder="Company name" required />
                 <input name="name" placeholder="Your name" required />
-                <input name="email" type="email" placeholder="you@example.com" required />
-              </div>
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="you@company.com"
+                  required
+                />
 
-              <textarea name="message" placeholder="Your message..." required></textarea>
+                <select name="sponsorship-tier" required>
+                  <option value="">Select sponsorship tier</option>
+                  <option value="bronze">Bronze - $500/month</option>
+                  <option value="silver">Silver - $1,000/month</option>
+                  <option value="gold">Gold - $2,500/month</option>
+                  <option value="platinum">Platinum - $5,000/month</option>
+                  <option value="custom">Custom - Let's discuss</option>
+                </select>
 
-              <div class="tool-row">
-                <button type="submit" class="btn primary btn--glow fade-in">Send Message</button>
-                <button type="reset" class="btn ghost fade-in">Reset</button>
-              </div>
+                <textarea
+                  name="message"
+                  placeholder="Tell us about your sponsorship goals..."
+                  required
+                ></textarea>
 
-              <input type="hidden" name="form-name" value="contactForm" />
-            </form>
+                <div class="tool-row">
+                  <button type="submit" class="btn primary btn--glow fade-in">
+                    Submit Inquiry
+                  </button>
+                  <button type="reset" class="btn ghost fade-in">Reset</button>
+                </div>
+
+                <input type="hidden" name="form-name" value="sponsorForm" />
+              </form>
+            </div>
+
+            <div class="card contact reveal fade-in">
+              <h3 class="fade-in">🤝 Join as Contributor</h3>
+              <p class="muted fade-in">
+                Developers, designers, and creators — let's build together!
+              </p>
+
+              <form
+                id="contributorForm"
+                class="contact-form fade-in"
+                name="contributorForm"
+                action="https://formsubmit.co/davidlmunoz.2021@gmail.com"
+                method="POST"
+              >
+                <input
+                  type="hidden"
+                  name="_subject"
+                  value="New NovaDev Contact"
+                />
+                <input type="hidden" name="_captcha" value="false" />
+                <input type="hidden" name="_template" value="table" />
+                <input name="name" placeholder="Your name" required />
+                <input
+                  name="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  required
+                />
+
+                <select name="role" required>
+                  <option value="">What's your expertise?</option>
+                  <option value="frontend">Frontend Developer</option>
+                  <option value="backend">Backend Developer</option>
+                  <option value="fullstack">Full-stack Developer</option>
+                  <option value="designer">UI/UX Designer</option>
+                  <option value="game-dev">Game Developer</option>
+                  <option value="devops">DevOps Engineer</option>
+                  <option value="other">Other</option>
+                </select>
+
+                <input
+                  name="github"
+                  type="url"
+                  placeholder="GitHub profile (optional)"
+                />
+                <input
+                  name="portfolio"
+                  type="url"
+                  placeholder="Portfolio URL (optional)"
+                />
+
+                <textarea
+                  name="message"
+                  placeholder="Tell us about your skills and what you'd like to contribute..."
+                  required
+                ></textarea>
+
+                <div class="tool-row">
+                  <button type="submit" class="btn primary btn--glow fade-in">
+                    Apply to Contribute
+                  </button>
+                  <button type="reset" class="btn ghost fade-in">Reset</button>
+                </div>
+
+                <input type="hidden" name="form-name" value="contributorForm" />
+              </form>
+            </div>
+
+            <div class="card contact reveal fade-in full-width">
+              <h3 class="fade-in">📧 General Inquiries</h3>
+              <p class="muted fade-in">
+                Questions, feedback, or just want to say hi? Drop a message!
+              </p>
+
+              <form
+                id="contactForm"
+                class="contact-form fade-in"
+                name="contactForm"
+                action="https://formsubmit.co/davidlmunoz.2021@gmail.com"
+                method="POST"
+              >
+                <input
+                  type="hidden"
+                  name="_subject"
+                  value="New NovaDev Contact"
+                />
+                <input type="hidden" name="_captcha" value="false" />
+                <input type="hidden" name="_template" value="table" />
+                <div class="tool-row">
+                  <input name="name" placeholder="Your name" required />
+                  <input
+                    name="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    required
+                  />
+                </div>
+
+                <textarea
+                  name="message"
+                  placeholder="Your message..."
+                  required
+                ></textarea>
+
+                <div class="tool-row">
+                  <button type="submit" class="btn primary btn--glow fade-in">
+                    Send Message
+                  </button>
+                  <button type="reset" class="btn ghost fade-in">Reset</button>
+                </div>
+
+                <input type="hidden" name="form-name" value="contactForm" />
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer fade-in">
+      <div class="wrap footer-grid">
+        <div class="footer-left">
+          <strong>NovaDevStudio</strong> © <span id="year"></span>
+        </div>
+
+        <div class="footer-center">
+          <a
+            href="https://github.com/Dayday1987/novadev-suite"
+            target="_blank"
+            rel="noopener"
+            >GitHub</a
+          >
+          <a href="https://app.netlify.com" target="_blank" rel="noopener"
+            >Netlify</a
+          >
+          <a href="https://codesandbox.io" target="_blank" rel="noopener"
+            >CodeSandbox</a
+          >
+          <a
+            href="https://vscode.dev/github/Dayday1987/novadev-suite"
+            target="_blank"
+            rel="noopener"
+            >VSCode</a
+          >
+          <a href="https://developer.mozilla.org" target="_blank" rel="noopener"
+            >MDN</a
+          >
+        </div>
+
+        <div class="footer-right">
+          <div id="liveClock" aria-live="polite">—</div>
+          <div class="socials">
+            <a
+              href="https://github.com/Dayday1987"
+              target="_blank"
+              rel="noopener"
+              >GitHub</a
+            >
+            <a
+              href="https://www.linkedin.com/in/david-munoz"
+              target="_blank"
+              rel="noopener"
+              >LinkedIn</a
+            >
+            <a href="mailto:you@example.com">Email</a>
           </div>
         </div>
       </div>
-    </section>
-  </main>
-
-  <footer class="footer fade-in">
-    <div class="wrap footer-grid">
-      <div class="footer-left">
-        <strong>NovaDevStudio</strong> © <span id="year"></span>
-      </div>
-
-      <div class="footer-center">
-        <a href="https://github.com/Dayday1987/novadev-suite" target="_blank" rel="noopener">GitHub</a>
-        <a href="https://app.netlify.com" target="_blank" rel="noopener">Netlify</a>
-        <a href="https://codesandbox.io" target="_blank" rel="noopener">CodeSandbox</a>
-        <a href="https://vscode.dev/github/Dayday1987/novadev-suite" target="_blank" rel="noopener">VSCode</a>
-        <a href="https://developer.mozilla.org" target="_blank" rel="noopener">MDN</a>
-      </div>
-
-      <div class="footer-right">
-        <div id="liveClock" aria-live="polite">—</div>
-        <div class="socials">
-          <a href="https://github.com/Dayday1987" target="_blank" rel="noopener">GitHub</a>
-          <a href="https://www.linkedin.com/in/david-munoz" target="_blank" rel="noopener">LinkedIn</a>
-          <a href="mailto:you@example.com">Email</a>
-        </div>
-      </div>
-    </div>
-  </footer>
-<script type="module">
-  import { initEditor } from './scripts/editor-embed.js';
-  window.addEventListener('DOMContentLoaded', initEditor);
-</script>
-  <script type="module" src="./scripts/main.js"></script>
-</body>
+    </footer>
+    <script type="module">
+      import { initEditor } from "./scripts/editor-embed.js";
+      window.addEventListener("DOMContentLoaded", initEditor);
+    </script>
+    <script type="module" src="./scripts/main.js"></script>
+  </body>
 </html>
