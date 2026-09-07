@@ -1,20 +1,117 @@
 // core/physics.ts
-export const BIKE_PHYSICS = {
-  mass: 210,                 // kg (H2R-ish)
-  wheelBase: 1.45,           // meters
-  centerOfGravity: 0.62,     // % toward rear
 
-  torqueTapImpulse: 0.018,   // quick tap boost
-  torqueHoldForce: 0.0018,   // continuous hold
-  maxTorque: 0.035,
+export interface BikeState {
+  speed: number;
+  rpm: number;
+  gear: number;
 
-  gravityRestore: 0.0024,    // pulls bike down
-  angularDamping: 0.985,     // stabilizes rotation
+  angle: number;
+  angularVelocity: number;
 
-  wheelieStartAngle: 0.12,   // radians (~7°)
-  balanceSweetSpot: 0.38,    // ideal wheelie angle
-  warningAngle: 0.75,        // UI shake zone
-  crashAngle: 1.05,          // hard fail
+  wheelRotation: number;
 
-  angularVelocityCap: 0.06,  // prevents insta-flips
-};
+  throttle: boolean;
+  braking: boolean;
+
+  crashed: boolean;
+}
+
+export class PhysicsEngine {
+  public readonly bike: BikeState = {
+    speed: 0,
+    rpm: 0,
+    gear: 1,
+
+    angle: 0,
+    angularVelocity: 0,
+
+    wheelRotation: 0,
+
+    throttle: false,
+    braking: false,
+
+    crashed: false
+  };
+
+  readonly MAX_SPEED = 260;
+  readonly ACCELERATION = 45;
+  readonly FRICTION = 0.995;
+  readonly TORQUE = 10;
+  readonly GRAVITY = 14;
+  readonly DAMPING = 0.96;
+
+  update(delta: number) {
+    this.updateSpeed(delta);
+    this.updateWheelie(delta);
+    this.updateWheelRotation(delta);
+    this.updateRPM();
+  }
+
+  private updateSpeed(delta: number) {
+
+    if (this.bike.throttle) {
+
+      this.bike.speed +=
+        this.ACCELERATION * delta;
+
+    } else {
+
+      this.bike.speed *= this.FRICTION;
+
+    }
+
+    this.bike.speed = Math.max(
+      0,
+      Math.min(this.MAX_SPEED, this.bike.speed)
+    );
+  }
+
+  private updateWheelie(delta: number) {
+
+    if (this.bike.throttle && this.bike.speed > 20) {
+
+      this.bike.angularVelocity -=
+        this.TORQUE * delta;
+
+    }
+
+    this.bike.angularVelocity +=
+      Math.sin(this.bike.angle) *
+      this.GRAVITY *
+      delta;
+
+    this.bike.angularVelocity *= this.DAMPING;
+
+    this.bike.angle +=
+      this.bike.angularVelocity * delta;
+  }
+
+  private updateWheelRotation(delta: number) {
+
+    this.bike.wheelRotation +=
+      this.bike.speed *
+      delta *
+      0.25;
+  }
+
+  private updateRPM() {
+
+    this.bike.rpm =
+      this.bike.speed /
+      this.MAX_SPEED;
+
+  }
+
+  reset() {
+
+    this.bike.speed = 0;
+    this.bike.angle = 0;
+    this.bike.angularVelocity = 0;
+    this.bike.rpm = 0;
+    this.bike.gear = 1;
+    this.bike.wheelRotation = 0;
+    this.bike.crashed = false;
+
+  }
+
+}
